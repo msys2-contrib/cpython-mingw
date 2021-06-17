@@ -6,3 +6,6 @@
 # init system calls(posix/nt/...) for INITFUNC (used by makesetup)
 @INITSYS@ -DPy_BUILD_CORE_BUILTIN -I$(srcdir)/Include/internal posixmodule.c
 
+# build-in modules for windows platform:
+@USE_WIN32_MODULE@winreg ../PC/winreg.c
+
