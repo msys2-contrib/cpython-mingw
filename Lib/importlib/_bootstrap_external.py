@@ -42,6 +42,10 @@ if _MS_WINDOWS:
     path_separators = ['\\', '/']
 else:
     path_separators = ['/']
+
+if 'MSYSTEM' in _os.environ:
+    path_separators = path_separators[::-1]
+
 # Assumption made in _path_join()
 assert all(len(sep) == 1 for sep in path_separators)
 path_sep = path_separators[0]
