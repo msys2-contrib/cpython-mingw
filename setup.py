@@ -1003,6 +1003,9 @@ class PyBuildExt(build_ext):
                            ['_xxtestfuzz/_xxtestfuzz.c',
                             '_xxtestfuzz/fuzzer.c']))
 
+        if MS_WINDOWS:
+            self.add(Extension('_testconsole', ['../PC/_testconsole.c']))
+
     def detect_readline_curses(self):
         # readline
         do_readline = self.compiler.find_library_file(self.lib_dirs, 'readline')
