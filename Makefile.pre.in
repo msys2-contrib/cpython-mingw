@@ -383,7 +383,7 @@ PYTHON_OBJS=	\
 		Python/errors.o \
 		Python/flowgraph.o \
 		Python/frame.o \
-		Python/frozenmain.o \
+		@PYTHON_OBJS_FROZENMAIN@ \
 		Python/future.o \
 		Python/getargs.o \
 		Python/getcompiler.o \
