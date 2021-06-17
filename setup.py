@@ -2250,6 +2250,8 @@ class PyBuildExt(build_ext):
             ext.libraries.append(ffi_lib)
             if MS_WINDOWS:
                 ext.libraries.extend(['ole32', 'oleaut32', 'uuid'])
+                ext.export_symbols.extend(['DllGetClassObject PRIVATE',
+                                           'DllCanUnloadNow PRIVATE'])
             self.use_system_libffi = True
 
         if sysconfig.get_config_var('HAVE_LIBDL'):
