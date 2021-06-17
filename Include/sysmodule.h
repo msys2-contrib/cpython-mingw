@@ -15,9 +15,9 @@ Py_DEPRECATED(3.11) PyAPI_FUNC(void) PySys_SetArgvEx(int, wchar_t **, int);
 Py_DEPRECATED(3.11) PyAPI_FUNC(void) PySys_SetPath(const wchar_t *);
 
 PyAPI_FUNC(void) PySys_WriteStdout(const char *format, ...)
-                 Py_GCC_ATTRIBUTE((format(printf, 1, 2)));
+                 Py_PRINTF(1, 2);
 PyAPI_FUNC(void) PySys_WriteStderr(const char *format, ...)
-                 Py_GCC_ATTRIBUTE((format(printf, 1, 2)));
+                 Py_PRINTF(1, 2);
 PyAPI_FUNC(void) PySys_FormatStdout(const char *format, ...);
 PyAPI_FUNC(void) PySys_FormatStderr(const char *format, ...);
 
