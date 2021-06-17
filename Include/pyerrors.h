@@ -321,9 +321,9 @@ PyAPI_FUNC(int) PyUnicodeTranslateError_SetReason(
     );
 
 PyAPI_FUNC(int) PyOS_snprintf(char *str, size_t size, const char  *format, ...)
-                        Py_GCC_ATTRIBUTE((format(printf, 3, 4)));
+                        Py_PRINTF(3, 4);
 PyAPI_FUNC(int) PyOS_vsnprintf(char *str, size_t size, const char  *format, va_list va)
-                        Py_GCC_ATTRIBUTE((format(printf, 3, 0)));
+                        Py_PRINTF(3, 0);
 
 #ifndef Py_LIMITED_API
 #  define Py_CPYTHON_ERRORS_H
