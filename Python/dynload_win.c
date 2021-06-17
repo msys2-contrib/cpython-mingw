@@ -174,7 +174,9 @@ dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
     char funcname[258], *import_python;
     const wchar_t *wpathname;
 
+#if defined(_MSC_VER)
     _Py_CheckPython3();
+#endif
 
 _Py_COMP_DIAG_PUSH
 _Py_COMP_DIAG_IGNORE_DEPR_DECLS
