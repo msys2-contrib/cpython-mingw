@@ -15,6 +15,114 @@
 extern "C" {
 #endif
 
+#ifdef __MINGW32__
+#define wcstok  wcstok_s
+#include <windows.h>
+#endif
+
+char
+Py_GetSepA(const char *name)
+{
+    char* msystem = (char*)2; /* So that non Windows use / as sep */
+    static char sep = '\0';
+#ifdef _WIN32
+    /* https://msdn.microsoft.com/en-gb/library/windows/desktop/aa365247%28v=vs.85%29.aspx
+     * The "\\?\" prefix .. indicate that the path should be passed to the system with minimal
+     * modification, which means that you cannot use forward slashes to represent path separators
+     */
+    if (name != NULL && memcmp(name, "\\\\?\\", sizeof("\\\\?\\") - sizeof(char)) == 0)
+    {
+        return '\\';
+    }
+#endif
+    if (sep != '\0')
+        return sep;
+#if defined(__MINGW32__)
+    msystem = Py_GETENV("MSYSTEM");
+#endif
+    if (msystem != NULL)
+        sep = '/';
+    else
+        sep = '\\';
+    return sep;
+}
+
+static char
+Py_GetAltSepA(const char *name)
+{
+    char sep = Py_GetSepA(name);
+    if (sep == '/')
+        return '\\';
+    return '/';
+}
+
+void
+Py_NormalizeSepsA(char *name)
+{
+    char sep = Py_GetSepA(name);
+    char altsep = Py_GetAltSepA(name);
+    char* seps;
+    if (strlen(name) > 1 && name[1] == ':') {
+        name[0] = toupper(name[0]);
+    }
+    seps = strchr(name, altsep);
+    while(seps) {
+        *seps = sep;
+        seps = strchr(seps, altsep);
+    }
+}
+
+wchar_t
+Py_GetSepW(const wchar_t *name)
+{
+    char* msystem = (char*)2; /* So that non Windows use / as sep */
+    static wchar_t sep = L'\0';
+#ifdef _WIN32
+    /* https://msdn.microsoft.com/en-gb/library/windows/desktop/aa365247%28v=vs.85%29.aspx
+     * The "\\?\" prefix .. indicate that the path should be passed to the system with minimal
+     * modification, which means that you cannot use forward slashes to represent path separators
+     */
+    if (name != NULL && memcmp(name, L"\\\\?\\", sizeof(L"\\\\?\\") - sizeof(wchar_t)) == 0)
+    {
+        return L'\\';
+    }
+#endif
+    if (sep != L'\0')
+        return sep;
+#if defined(__MINGW32__)
+    msystem = Py_GETENV("MSYSTEM");
+#endif
+    if (msystem != NULL)
+        sep = L'/';
+    else
+        sep = L'\\';
+    return sep;
+}
+
+static wchar_t
+Py_GetAltSepW(const wchar_t *name)
+{
+    char sep = Py_GetSepW(name);
+    if (sep == L'/')
+        return L'\\';
+    return L'/';
+}
+
+void
+Py_NormalizeSepsW(wchar_t *name)
+{
+    wchar_t sep = Py_GetSepW(name);
+    wchar_t altsep = Py_GetAltSepW(name);
+    wchar_t* seps;
+    if (wcslen(name) > 1 && name[1] == L':') {
+        name[0] = towupper(name[0]);
+    }
+    seps = wcschr(name, altsep);
+    while(seps) {
+        *seps = sep;
+        seps = wcschr(seps, altsep);
+    }
+}
 
 _PyPathConfig _Py_path_config = _PyPathConfig_INIT;
 
@@ -541,6 +649,7 @@ _Py_SetProgramFullPath(const wchar_t *program_full_path)
     if (_Py_path_config.program_full_path == NULL) {
         path_out_of_memory(__func__);
     }
+    Py_NormalizeSepsW(_Py_path_config.program_name);
 }
 
 
