@@ -653,6 +653,12 @@ extern char * _getpty(int *, int, mode_t, int);
 
 #define Py_VA_COPY va_copy
 
+#if defined(__GNUC__) && ((__GNUC__ == 4 && __GNUC_MINOR__>= 4) || __GNUC__ > 4)
+#  define Py_PRINTF(X,Y) Py_GCC_ATTRIBUTE((format(gnu_printf,X,Y)))
+#else
+#  define Py_PRINTF(X,Y) Py_GCC_ATTRIBUTE((format(printf,X,Y))) 
+#endif
+
 /*
  * Convenient macros to deal with endianness of the platform. WORDS_BIGENDIAN is
  * detected by configure and defined in pyconfig.h. The code in pyconfig.h
