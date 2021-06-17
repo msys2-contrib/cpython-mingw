@@ -38,6 +38,8 @@ def _walk_dir(dir, maxlevels, quiet=0):
         if name == '__pycache__':
             continue
         fullname = os.path.join(dir, name)
+        if sys.platform == "win32" and sys.version.find("GCC") >= 0:
+            fullname = fullname.replace('\\','/')
         if not os.path.isdir(fullname):
             yield fullname
         elif (maxlevels > 0 and name != os.curdir and name != os.pardir and
