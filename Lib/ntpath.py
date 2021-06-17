@@ -11,9 +11,7 @@ module as os.path.
 curdir = '.'
 pardir = '..'
 extsep = '.'
-sep = '\\'
 pathsep = ';'
-altsep = '/'
 defpath = '.;C:\\bin'
 devnull = 'nul'
 
@@ -22,6 +20,15 @@ import sys
 import stat
 import genericpath
 from genericpath import *
+
+if sys.platform == "win32" and "MSYSTEM" in os.environ:
+    sep = '/'
+    altsep = '\\'
+else:
+    sep = '\\'
+    altsep = '/'
+bsep = str.encode(sep)
+baltsep = str.encode(altsep)
 
 __all__ = ["normcase","isabs","join","splitdrive","split","splitext",
            "basename","dirname","commonprefix","getsize","getmtime",
@@ -33,9 +40,27 @@ __all__ = ["normcase","isabs","join","splitdrive","split","splitext",
 
 def _get_bothseps(path):
     if isinstance(path, bytes):
-        return b'\\/'
+        return bsep+baltsep
     else:
-        return '\\/'
+        return sep+altsep
+
+def _get_sep(path):
+    if isinstance(path, bytes):
+        return bsep
+    else:
+        return sep
+
+def _get_altsep(path):
+    if isinstance(path, bytes):
+        return baltsep
+    else:
+        return altsep
+
+def _get_colon(path):
+    if isinstance(path, bytes):
+        return b':'
+    else:
+        return ':'
 
 # Normalize the case of a pathname and map slashes to backslashes.
 # Other normalizations (such as optimizing '../' away) are not done
@@ -47,9 +72,9 @@ def normcase(s):
     Makes all characters lowercase and all slashes into backslashes."""
     s = os.fspath(s)
     if isinstance(s, bytes):
-        return s.replace(b'/', b'\\').lower()
+        return s.replace(baltsep, bsep).lower()
     else:
-        return s.replace('/', '\\').lower()
+        return s.replace(altsep, sep).lower()
 
 
 # Return whether a path is absolute.
@@ -76,14 +101,9 @@ def isabs(s):
 # Join two (or more) paths.
 def join(path, *paths):
     path = os.fspath(path)
-    if isinstance(path, bytes):
-        sep = b'\\'
-        seps = b'\\/'
-        colon = b':'
-    else:
-        sep = '\\'
-        seps = '\\/'
-        colon = ':'
+    sep = _get_sep(path)
+    seps = _get_bothseps(path)
+    colon = _get_colon(path)
     try:
         if not paths:
             path[:0] + sep  #23780: Ensure compatible data type even if p is null.
@@ -142,14 +162,9 @@ def splitdrive(p):
     """
     p = os.fspath(p)
     if len(p) >= 2:
-        if isinstance(p, bytes):
-            sep = b'\\'
-            altsep = b'/'
-            colon = b':'
-        else:
-            sep = '\\'
-            altsep = '/'
-            colon = ':'
+        sep = _get_sep(p)
+        altsep = _get_altsep(p)
+        colon = _get_colon(p)
         normp = p.replace(altsep, sep)
         if (normp[0:2] == sep*2) and (normp[2:3] != sep):
             # is a UNC path:
@@ -203,9 +218,9 @@ def split(p):
 def splitext(p):
     p = os.fspath(p)
     if isinstance(p, bytes):
-        return genericpath._splitext(p, b'\\', b'/', b'.')
+        return genericpath._splitext(p, bsep, baltsep, b'.')
     else:
-        return genericpath._splitext(p, '\\', '/', '.')
+        return genericpath._splitext(p, sep, altsep, '.')
 splitext.__doc__ = genericpath._splitext.__doc__
 
 
@@ -450,15 +465,13 @@ def expandvars(path):
 def normpath(path):
     """Normalize path, eliminating double slashes, etc."""
     path = os.fspath(path)
+    sep = _get_sep(path)
+    altsep = _get_altsep(path)
     if isinstance(path, bytes):
-        sep = b'\\'
-        altsep = b'/'
         curdir = b'.'
         pardir = b'..'
         special_prefixes = (b'\\\\.\\', b'\\\\?\\')
     else:
-        sep = '\\'
-        altsep = '/'
         curdir = '.'
         pardir = '..'
         special_prefixes = ('\\\\.\\', '\\\\?\\')
@@ -668,6 +681,7 @@ else:
                 # strip the prefix anyway.
                 if ex.winerror == initial_winerror:
                     path = spath
+        path = normpath(path)
         return path
 
 
@@ -678,12 +692,11 @@ supports_unicode_filenames = (hasattr(sys, "getwindowsversion") and
 def relpath(path, start=None):
     """Return a relative version of a path"""
     path = os.fspath(path)
+    sep = _get_sep(path)
     if isinstance(path, bytes):
-        sep = b'\\'
         curdir = b'.'
         pardir = b'..'
     else:
-        sep = '\\'
         curdir = '.'
         pardir = '..'
 
@@ -738,13 +751,11 @@ def commonpath(paths):
         raise ValueError('commonpath() arg is an empty sequence')
 
     paths = tuple(map(os.fspath, paths))
+    sep = _get_sep(paths[0])
+    altsep = _get_altsep(paths[0])
     if isinstance(paths[0], bytes):
-        sep = b'\\'
-        altsep = b'/'
         curdir = b'.'
     else:
-        sep = '\\'
-        altsep = '/'
         curdir = '.'
 
     try:
