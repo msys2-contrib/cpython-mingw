@@ -282,6 +282,7 @@ shutdown(how) -- shut down traffic in one or both directions\n\
 # include <Rpc.h>
 
 /* Macros based on the IPPROTO enum, see: https://bugs.python.org/issue29515 */
+#ifdef _MSC_VER
 #define IPPROTO_ICMP IPPROTO_ICMP
 #define IPPROTO_IGMP IPPROTO_IGMP
 #define IPPROTO_GGP IPPROTO_GGP
@@ -312,6 +313,7 @@ shutdown(how) -- shut down traffic in one or both directions\n\
 #define IPPROTO_PGM IPPROTO_PGM  // WinSock2 only
 #define IPPROTO_L2TP IPPROTO_L2TP  // WinSock2 only
 #define IPPROTO_SCTP IPPROTO_SCTP  // WinSock2 only
+#endif /* _MSC_VER */
 
 /* Provides the IsWindows7SP1OrGreater() function */
 #include <versionhelpers.h>
@@ -416,7 +418,7 @@ remove_unusable_flags(PyObject *m)
    * _SS_ALIGNSIZE is defined in sys/socket.h by 6.5.21,
    * for example, but not by 6.5.10.
    */
-#elif defined(_MSC_VER) && _MSC_VER>1201
+#elif (defined(_MSC_VER) && _MSC_VER>1201) || defined(__MINGW32__)
   /* Do not include addrinfo.h for MSVC7 or greater. 'addrinfo' and
    * EAI_* constants are defined in (the already included) ws2tcpip.h.
    */
