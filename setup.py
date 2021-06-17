@@ -444,6 +444,9 @@ class PyBuildExt(build_ext):
     def build_extensions(self):
         self.set_srcdir()
 
+        if MS_WINDOWS:
+            self.compiler.define_macro("Py_BUILD_CORE_MODULE")
+
         # Detect which modules should be compiled
         self.detect_modules()
 
