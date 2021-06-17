@@ -6551,6 +6551,16 @@ case $host in
     ;;
 esac
 
+dnl Python interpreter main program for frozen scripts
+AC_SUBST(PYTHON_OBJS_FROZENMAIN)
+PYTHON_OBJS_FROZENMAIN="Python/frozenmain.o"
+case $host in
+  *-*-mingw*)
+    dnl 'PC/frozen_dllmain.c' - not yet
+    PYTHON_OBJS_FROZENMAIN=
+    ;;
+esac
+
 AC_SUBST(SRCDIRS)
 SRCDIRS="\
   Modules \
