@@ -5515,7 +5515,7 @@ os_utime_impl(PyObject *module, path_t *path, PyObject *times, PyObject *ns,
 /*[clinic end generated code: output=cfcac69d027b82cf input=2fbd62a2f228f8f4]*/
 {
 #ifdef MS_WINDOWS
-    HANDLE hFile;
+    HANDLE hFile = 0;
     FILETIME atime, mtime;
 #else
     int result;
@@ -14786,7 +14786,7 @@ os__add_dll_directory_impl(PyObject *module, path_t *path)
        loaded. */
     Py_BEGIN_ALLOW_THREADS
     if (!(hKernel32 = GetModuleHandleW(L"kernel32")) ||
-        !(AddDllDirectory = (PAddDllDirectory)GetProcAddress(
+        !(AddDllDirectory = (PAddDllDirectory)(void *)GetProcAddress(
             hKernel32, "AddDllDirectory")) ||
         !(cookie = (*AddDllDirectory)(path->wide))) {
         err = GetLastError();
@@ -14836,7 +14836,7 @@ os__remove_dll_directory_impl(PyObject *module, PyObject *cookie)
        loaded. */
     Py_BEGIN_ALLOW_THREADS
     if (!(hKernel32 = GetModuleHandleW(L"kernel32")) ||
-        !(RemoveDllDirectory = (PRemoveDllDirectory)GetProcAddress(
+        !(RemoveDllDirectory = (PRemoveDllDirectory)(void *)GetProcAddress(
             hKernel32, "RemoveDllDirectory")) ||
         !(*RemoveDllDirectory)(cookieValue)) {
         err = GetLastError();
