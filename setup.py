@@ -1148,6 +1148,8 @@ class PyBuildExt(build_ext):
             if MACOS:
                 # Issue #35569: Expose RFC 3542 socket options.
                 kwargs['extra_compile_args'] = ['-D__APPLE_USE_RFC_3542']
+            if MS_WINDOWS:
+                kwargs['libraries'] = ['ws2_32', 'iphlpapi']
 
             self.add(Extension('_socket', ['socketmodule.c'], **kwargs))
         elif self.compiler.find_library_file(self.lib_dirs, 'net'):
