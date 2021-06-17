@@ -3276,6 +3276,10 @@ if test "$ac_cv_sizeof_off_t" -gt "$ac_cv_sizeof_long" -a \
 else
   have_largefile_support="no"
 fi
+dnl Activate on windows platforms (32&64-bit) where off_t(4) < fpos_t(8)
+AS_CASE([$ac_sys_system],
+  [MINGW], [have_largefile_support="yes"]
+)
 AS_VAR_IF([have_largefile_support], [yes], [
   AC_DEFINE([HAVE_LARGEFILE_SUPPORT], [1],
   [Defined to enable large file support when an off_t is bigger than a long
