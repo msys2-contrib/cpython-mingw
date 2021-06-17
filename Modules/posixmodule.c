@@ -54,6 +54,7 @@
 #ifdef __ANDROID__
 #  undef HAVE_FACCESSAT
 #endif
+#include "iscygpty.h"
 
 #include <stdio.h>                // ctermid()
 #include <stdlib.h>               // system()
@@ -11180,7 +11181,7 @@ os_isatty_impl(PyObject *module, int fd)
     int return_value;
     Py_BEGIN_ALLOW_THREADS
     _Py_BEGIN_SUPPRESS_IPH
-    return_value = isatty(fd);
+    return_value = isatty(fd) || is_cygpty(fd);
     _Py_END_SUPPRESS_IPH
     Py_END_ALLOW_THREADS
     return return_value;

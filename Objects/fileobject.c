@@ -3,6 +3,7 @@
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
 #include "pycore_call.h"          // _PyObject_CallNoArgs()
+#include "iscygpty.h"
 #include "pycore_runtime.h"       // _PyRuntime
 
 #if defined(HAVE_GETC_UNLOCKED) && !defined(_Py_MEMORY_SANITIZER)
@@ -382,7 +383,7 @@ stdprinter_isatty(PyStdPrinter_Object *self, PyObject *Py_UNUSED(ignored))
     }
 
     Py_BEGIN_ALLOW_THREADS
-    res = isatty(self->fd);
+    res = isatty(self->fd) || is_cygpty(self->fd);
     Py_END_ALLOW_THREADS
 
     return PyBool_FromLong(res);

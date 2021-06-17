@@ -406,6 +406,7 @@ PYTHON_OBJS=	\
 		Python/instrumentation.o \
 		Python/intrinsics.o \
 		Python/legacy_tracing.o \
+		Python/iscygpty.o \
 		Python/marshal.o \
 		Python/modsupport.o \
 		Python/mysnprintf.o \
@@ -1632,6 +1633,7 @@ PYTHON_HEADERS= \
 		$(srcdir)/Include/import.h \
 		$(srcdir)/Include/interpreteridobject.h \
 		$(srcdir)/Include/intrcheck.h \
+		$(srcdir)/Include/iscygpty.h \
 		$(srcdir)/Include/iterobject.h \
 		$(srcdir)/Include/listobject.h \
 		$(srcdir)/Include/longobject.h \
