@@ -1584,6 +1584,11 @@ if test $enable_shared = "yes"; then
       BLDLIBRARY='-L. -lpython$(LDVERSION)'
       DLLLIBRARY='libpython$(LDVERSION).dll'
       ;;
+    MINGW*)
+      LDLIBRARY='libpython$(LDVERSION).dll.a'
+      DLLLIBRARY='libpython$(LDVERSION).dll'
+      BLDLIBRARY='-L. -lpython$(LDVERSION)'
+      ;;
     SunOS*)
       LDLIBRARY='libpython$(LDVERSION).so'
       BLDLIBRARY='-Wl,-R,$(LIBDIR) -L. -lpython$(LDVERSION)'
@@ -1642,6 +1647,9 @@ else # shared is disabled
     CYGWIN*)
       BLDLIBRARY='$(LIBRARY)'
       LDLIBRARY='libpython$(LDVERSION).dll.a'
+      ;;
+    MINGW*)
+      LDLIBRARY='libpython$(LDVERSION).a'
       ;;
   esac
 fi
@@ -3648,6 +3656,10 @@ then
 	CYGWIN*)
 		LDSHARED="gcc -shared -Wl,--enable-auto-image-base"
 		LDCXXSHARED="g++ -shared -Wl,--enable-auto-image-base";;
+	MINGW*)
+		LDSHARED='$(CC) -shared -Wl,--enable-auto-image-base'
+		LDCXXSHARED='$(CXX) -shared -Wl,--enable-auto-image-base'
+		;;
 	*)	LDSHARED="ld";;
 	esac
 fi
@@ -6454,7 +6466,7 @@ MODULE_DEPS_SHARED='$(MODULE_DEPS_STATIC) $(EXPORTSYMS)'
 LIBPYTHON=''
 
 # On Android and Cygwin the shared libraries must be linked with libpython.
-if test "$PY_ENABLE_SHARED" = "1" && ( test -n "$ANDROID_API_LEVEL" || test "$MACHDEP" = "cygwin"); then
+if test "$PY_ENABLE_SHARED" = "1" && ( test -n "$ANDROID_API_LEVEL" || test "$MACHDEP" = "cygwin" || test "$MACHDEP" = "win32"); then
   MODULE_DEPS_SHARED="$MODULE_DEPS_SHARED \$(LDLIBRARY)"
   LIBPYTHON="\$(BLDLIBRARY)"
 fi
@@ -7247,6 +7259,15 @@ for dir in $SRCDIRS; do
     fi
 done
 AC_MSG_RESULT([done])
+
+# For mingw build need additional library for linking
+case $host in
+  *-*-mingw*)
+    LIBS="$LIBS -lversion -lshlwapi -lpathcch -lbcrypt"
+  ;;
+  *)
+  ;;
+esac
 
 # Availability of -O2:
 AC_CACHE_CHECK([for -O2], [ac_cv_compile_o2], [
