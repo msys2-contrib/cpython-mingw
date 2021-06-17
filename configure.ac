@@ -908,6 +908,14 @@ then
             [Define to include mbstate_t for mbrtowc])
 fi
 
+AC_MSG_CHECKING([for posixmodule name])
+AC_SUBST(MODULE_POSIXMODULE_NAME)
+case $host in
+  *-*-mingw*)	MODULE_POSIXMODULE_NAME=nt;;
+  *)		MODULE_POSIXMODULE_NAME=posix;;
+esac
+AC_MSG_RESULT([$MODULE_POSIXMODULE_NAME])
+
 # Record the configure-time value of MACOSX_DEPLOYMENT_TARGET,
 # it may influence the way we can build extensions, so distutils
 # needs to check it
