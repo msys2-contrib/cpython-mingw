@@ -34,3 +34,6 @@ _symtable symtablemodule.c
 
 # for systems without $HOME env, used by site._getuserbase()
 @MODULE_PWD_TRUE@pwd pwdmodule.c
+
+# build-in modules for windows platform:
+@USE_WIN32_MODULE@winreg ../PC/winreg.c
