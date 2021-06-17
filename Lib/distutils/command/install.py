@@ -72,8 +72,8 @@ if HAS_USER_SITE:
     INSTALL_SCHEMES['nt_user'] = {
         'purelib': '$usersite',
         'platlib': '$usersite',
-        'headers': '$userbase/Python$py_version_nodot/Include/$dist_name',
-        'scripts': '$userbase/Python$py_version_nodot/Scripts',
+        'headers': '$userbase/include/python$py_version_short$abiflags/$dist_name',
+        'scripts': '$userbase/bin',
         'data'   : '$userbase',
         }
 
