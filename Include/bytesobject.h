@@ -35,9 +35,9 @@ PyAPI_FUNC(PyObject *) PyBytes_FromStringAndSize(const char *, Py_ssize_t);
 PyAPI_FUNC(PyObject *) PyBytes_FromString(const char *);
 PyAPI_FUNC(PyObject *) PyBytes_FromObject(PyObject *);
 PyAPI_FUNC(PyObject *) PyBytes_FromFormatV(const char*, va_list)
-                                Py_GCC_ATTRIBUTE((format(printf, 1, 0)));
+                                Py_PRINTF(1, 0);
 PyAPI_FUNC(PyObject *) PyBytes_FromFormat(const char*, ...)
-                                Py_GCC_ATTRIBUTE((format(printf, 1, 2)));
+                                Py_PRINTF(1, 2);
 PyAPI_FUNC(Py_ssize_t) PyBytes_Size(PyObject *);
 PyAPI_FUNC(char *) PyBytes_AsString(PyObject *);
 PyAPI_FUNC(PyObject *) PyBytes_Repr(PyObject *, int);
