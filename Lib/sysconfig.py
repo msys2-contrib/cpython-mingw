@@ -100,6 +100,9 @@ _BASE_EXEC_PREFIX = os.path.normpath(sys.base_exec_prefix)
 _CONFIG_VARS = None
 _USER_BASE = None
 
+# GCC[mingw*] use posix build system
+_POSIX_BUILD = os.name == 'posix' or \
+    (os.name == "nt" and 'GCC' in sys.version)
 
 def _safe_realpath(path):
     try:
@@ -183,7 +186,7 @@ def _expand_vars(scheme, vars):
 
 
 def _get_default_scheme():
-    if os.name == 'posix':
+    if _POSIX_BUILD:
         # the default scheme for posix is posix_prefix
         return 'posix_prefix'
     return os.name
@@ -199,7 +202,7 @@ def _getuserbase():
     def joinuser(*args):
         return os.path.expanduser(os.path.join(*args))
 
-    if os.name == "nt":
+    if os.name == "nt" and not _POSIX_BUILD:
         base = os.environ.get("APPDATA") or "~"
         return joinuser(base, "Python")
 
@@ -505,7 +508,7 @@ def parse_config_h(fp, vars=None):
 def get_config_h_filename():
     """Return the path of pyconfig.h."""
     if _PYTHON_BUILD:
-        if os.name == "nt":
+        if os.name == "nt" and not _POSIX_BUILD:
             inc_dir = os.path.join(_sys_home or _PROJECT_BASE, "PC")
         else:
             inc_dir = _sys_home or _PROJECT_BASE
@@ -577,10 +580,10 @@ def get_config_vars(*args):
             # sys.abiflags may not be defined on all platforms.
             _CONFIG_VARS['abiflags'] = ''
 
-        if os.name == 'nt':
+        if os.name == 'nt' and not _POSIX_BUILD:
             _init_non_posix(_CONFIG_VARS)
             _CONFIG_VARS['TZPATH'] = ''
-        if os.name == 'posix':
+        if _POSIX_BUILD:
             _init_posix(_CONFIG_VARS)
         # For backward compatibility, see issue19555
         SO = _CONFIG_VARS.get('EXT_SUFFIX')
@@ -593,7 +596,7 @@ def get_config_vars(*args):
 
         # Always convert srcdir to an absolute path
         srcdir = _CONFIG_VARS.get('srcdir', _PROJECT_BASE)
-        if os.name == 'posix':
+        if _POSIX_BUILD:
             if _PYTHON_BUILD:
                 # If srcdir is a relative path (typically '.' or '..')
                 # then it should be interpreted relative to the directory
