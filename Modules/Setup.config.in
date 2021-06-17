@@ -6,6 +6,9 @@
 # init system calls(posix/nt/...) for INITFUNC (used by makesetup)
 @INITSYS@ -DPy_BUILD_CORE_BUILTIN -I$(srcdir)/Include/internal posixmodule.c
 
+# This is needed to find out the user's home dir if $HOME is not set
+@USE_PWD_MODULE@pwd pwdmodule.c
+
 # build-in modules for windows platform:
 @USE_WIN32_MODULE@winreg ../PC/winreg.c
 
