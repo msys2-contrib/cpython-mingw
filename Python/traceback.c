@@ -341,7 +341,7 @@ _Py_FindSourceFile(PyObject *filename, char* namebuf, size_t namelen, PyObject *
     filepath = PyBytes_AS_STRING(filebytes);
 
     /* Search tail of filename in sys.path before giving up */
-    tail = strrchr(filepath, SEP);
+    tail = strrchr(filepath, Py_GetSepA(filepath));
     if (tail == NULL)
         tail = filepath;
     else
