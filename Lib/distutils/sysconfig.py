@@ -64,8 +64,23 @@ def parse_config_h(fp, g=None):
 
 _python_build = partial(is_python_build, check_home=True)
 _init_posix = partial(sysconfig_init_posix, _config_vars)
-_init_nt = partial(_init_non_posix, _config_vars)
 
+def _posix_build():
+    # GCC[mingw*] use posix build system
+    # Check for cross builds explicitly
+    host_platform = os.environ.get("_PYTHON_HOST_PLATFORM")
+    if host_platform:
+        if host_platform.startswith('mingw'):
+            return True
+    return os.name == 'posix' or \
+        (os.name == "nt" and 'GCC' in sys.version)
+posix_build = _posix_build()
+
+
+def _init_nt():
+    if posix_build:
+        return _init_posix(_config_vars)
+    return _init_non_posix(_config_vars)
 
 # Similar function is also implemented in sysconfig as _parse_makefile
 # but without the parsing capabilities of distutils.text_file.TextFile.
@@ -290,7 +305,7 @@ def get_python_inc(plat_specific=0, prefix=None):
     """
     if prefix is None:
         prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
-    if os.name == "posix":
+    if posix_build:
         if python_build:
             # Assume the executable is in the build directory.  The
             # pyconfig.h file should be in the same directory.  Since
@@ -337,7 +352,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
         else:
             prefix = plat_specific and EXEC_PREFIX or PREFIX
 
-    if os.name == "posix":
+    if posix_build:
         if plat_specific or standard_lib:
             # Platform-specific modules (any module from a non-pure-Python
             # module distribution) or standard Python library modules.
