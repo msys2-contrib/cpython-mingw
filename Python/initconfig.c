@@ -136,7 +136,7 @@ static const char usage_6[] =
 "PYTHONDEVMODE: enable the development mode.\n"
 "PYTHONPYCACHEPREFIX: root directory for bytecode cache (pyc) files.\n";
 
-#if defined(MS_WINDOWS)
+#if defined(_MSC_VER)
 #  define PYTHONHOMEHELP "<prefix>\\python{major}{minor}"
 #else
 #  define PYTHONHOMEHELP "<prefix>/lib/pythonX.X"
@@ -1187,7 +1187,7 @@ config_init_program_name(PyConfig *config)
     }
 
     /* Last fall back: hardcoded name */
-#ifdef MS_WINDOWS
+#ifdef _MSC_VER
     const wchar_t *default_program_name = L"python";
 #else
     const wchar_t *default_program_name = L"python3";
