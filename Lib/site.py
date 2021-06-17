@@ -90,6 +90,12 @@ USER_SITE = None
 USER_BASE = None
 
 
+# Same as defined in Lib/sysconfig.py
+# redeclared since sysconfig is large for site.
+# GCC[mingw*] use posix build system
+_POSIX_BUILD = os.name == 'posix' or \
+    (os.name == "nt" and 'GCC' in sys.version)
+
 def _trace(message):
     if sys.flags.verbose:
         print(message, file=sys.stderr)
@@ -299,7 +305,7 @@ def _getuserbase():
     def joinuser(*args):
         return os.path.expanduser(os.path.join(*args))
 
-    if os.name == "nt":
+    if os.name == "nt" and not _POSIX_BUILD:
         base = os.environ.get("APPDATA") or "~"
         return joinuser(base, _get_implementation())
 
@@ -320,7 +326,7 @@ def _get_path(userbase):
 
     implementation = _get_implementation()
     implementation_lower = implementation.lower()
-    if os.name == 'nt':
+    if os.name == 'nt' and not _POSIX_BUILD:
         ver_nodot = sys.winver.replace('.', '')
         return f'{userbase}\\{implementation}{ver_nodot}\\site-packages'
 
@@ -399,7 +405,7 @@ def getsitepackages(prefixes=None):
             abi_thread = 't'
         else:
             abi_thread = ''
-        if os.sep == '/':
+        if _POSIX_BUILD:
             libdirs = [sys.platlibdir]
             if sys.platlibdir != "lib":
                 libdirs.append("lib")
