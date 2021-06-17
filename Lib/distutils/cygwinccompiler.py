@@ -253,11 +253,16 @@ class CygwinCCompiler(UnixCCompiler):
             output_dir = ''
         obj_names = []
         for src_name in source_filenames:
-            # use normcase to make sure '.rc' is really '.rc' and not '.RC'
-            base, ext = os.path.splitext(os.path.normcase(src_name))
+            base, ext = os.path.splitext(src_name)
+            # use 'normcase' only for resource suffixes
+            ext_normcase = os.path.normcase(ext)
+            if ext_normcase in ['.rc','.res']:
+                ext = ext_normcase
             if ext not in (self.src_extensions + ['.rc','.res']):
                 raise UnknownFileError("unknown file type '%s' (from '%s')" % \
                       (ext, src_name))
+            base = os.path.splitdrive(base)[1] # Chop off the drive
+            base = base[os.path.isabs(base):]  # If abs, chop off leading /
             if strip_dir:
                 base = os.path.basename (base)
             if ext in ('.res', '.rc'):
@@ -313,7 +318,7 @@ class Mingw32CCompiler(CygwinCCompiler):
 
         # Include the appropriate MSVC runtime library if Python was built
         # with MSVC 7.0 or later.
-        self.dll_libraries = get_msvcr()
+        self.dll_libraries = get_msvcr() or []
 
 # Because these compilers aren't configured in Python's pyconfig.h file by
 # default, we should at least warn the user if he is using an unmodified
