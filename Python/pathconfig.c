@@ -8,7 +8,7 @@
 #include <wchar.h>
 
 #include "marshal.h"              // PyMarshal_ReadObjectFromString
-#include "osdefs.h"               // DELIM
+#include "osdefs.h"               // DELIM, SEP
 
 #ifdef MS_WINDOWS
 #  include <windows.h>            // GetFullPathNameW(), MAX_PATH
@@ -16,6 +16,142 @@
 #  include <shlwapi.h>
 #endif
 
+#ifdef __MINGW32__
+#define wcstok  wcstok_s
+#include <windows.h>
+#endif
+
+static int
+Py_StartsWithA(const char * str, const char * prefix)
+{
+    while(*prefix)
+    {
+        if(*prefix++ != *str++)
+            return 0;
+    }
+
+    return 1;
+}
+
+static int
+Py_StartsWithW(const wchar_t * str, const wchar_t * prefix)
+{
+    while(*prefix)
+    {
+        if(*prefix++ != *str++)
+            return 0;
+    }
+
+    return 1;
+}
+
+char
+Py_GetSepA(const char *name)
+{
+    static char sep = '\0';
+#ifdef _WIN32
+    /* https://msdn.microsoft.com/en-gb/library/windows/desktop/aa365247%28v=vs.85%29.aspx
+     * The "\\?\" prefix .. indicate that the path should be passed to the system with minimal
+     * modification, which means that you cannot use forward slashes to represent path separators
+     */
+    if (name != NULL && Py_StartsWithA(name, "\\\\?\\") != 0)
+    {
+        return '\\';
+    }
+#endif
+    if (sep != '\0')
+        return sep;
+#if defined(__MINGW32__)
+    char* msystem = getenv("MSYSTEM");
+    if (msystem != NULL && strcmp(msystem, "") != 0)
+        sep = '/';
+    else
+        sep = '\\';
+#else
+    sep = SEP;
+#endif
+    return sep;
+}
+
+static char
+Py_GetAltSepA(const char *name)
+{
+    char sep = Py_GetSepA(name);
+    if (sep == '/')
+        return '\\';
+    return '/';
+}
+
+void
+Py_NormalizeSepsA(char *name)
+{
+    assert(name != NULL);
+    char sep = Py_GetSepA(name);
+    char altsep = Py_GetAltSepA(name);
+    char* seps;
+    if (name[0] != '\0' && name[1] == ':') {
+        name[0] = toupper(name[0]);
+    }
+    seps = strchr(name, altsep);
+    while(seps) {
+        *seps = sep;
+        seps = strchr(seps, altsep);
+    }
+}
+
+wchar_t
+Py_GetSepW(const wchar_t *name)
+{
+    static wchar_t sep = L'\0';
+#ifdef _WIN32
+    /* https://msdn.microsoft.com/en-gb/library/windows/desktop/aa365247%28v=vs.85%29.aspx
+     * The "\\?\" prefix .. indicate that the path should be passed to the system with minimal
+     * modification, which means that you cannot use forward slashes to represent path separators
+     */
+    if (name != NULL && Py_StartsWithW(name, L"\\\\?\\") != 0)
+    {
+        return L'\\';
+    }
+#endif
+    if (sep != L'\0')
+        return sep;
+#if defined(__MINGW32__)
+    char* msystem = getenv("MSYSTEM");
+    if (msystem != NULL && strcmp(msystem, "") != 0)
+        sep = L'/';
+    else
+        sep = L'\\';
+#else
+    sep = SEP;
+#endif
+    return sep;
+}
+
+static wchar_t
+Py_GetAltSepW(const wchar_t *name)
+{
+    char sep = Py_GetSepW(name);
+    if (sep == L'/')
+        return L'\\';
+    return L'/';
+}
+
+void
+Py_NormalizeSepsW(wchar_t *name)
+{
+    assert(name != NULL);
+    wchar_t sep = Py_GetSepW(name);
+    wchar_t altsep = Py_GetAltSepW(name);
+    wchar_t* seps;
+    if (name[0] != L'\0' && name[1] == L':') {
+        name[0] = towupper(name[0]);
+    }
+    seps = wcschr(name, altsep);
+    while(seps) {
+        *seps = sep;
+        seps = wcschr(seps, altsep);
+    }
+}
 
 /* External interface */
 
@@ -486,7 +622,7 @@ _PyPathConfig_ComputeSysPath0(const PyWideStringList *argv, PyObject **path0_p)
     }
 #endif /* All others */
 
-    PyObject *path0_obj = PyUnicode_FromWideChar(path0, n);
+    PyObject *path0_obj = PyUnicode_FromWideChar(_Py_normpath(path0, -1), n);
     if (path0_obj == NULL) {
         return -1;
     }

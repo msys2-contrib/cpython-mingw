@@ -11,9 +11,7 @@ module as os.path.
 curdir = '.'
 pardir = '..'
 extsep = '.'
-sep = '\\'
 pathsep = ';'
-altsep = '/'
 defpath = '.;C:\\bin'
 devnull = 'nul'
 
@@ -21,6 +19,15 @@ import os
 import sys
 import genericpath
 from genericpath import *
+
+if sys._use_alt_sep:
+    sep = '/'
+    altsep = '\\'
+else:
+    sep = '\\'
+    altsep = '/'
+bsep = str.encode(sep)
+baltsep = str.encode(altsep)
 
 __all__ = ["normcase","isabs","join","splitdrive","splitroot","split","splitext",
            "basename","dirname","commonprefix","getsize","getmtime",
@@ -33,9 +40,39 @@ __all__ = ["normcase","isabs","join","splitdrive","splitroot","split","splitext"
 
 def _get_bothseps(path):
     if isinstance(path, bytes):
-        return b'\\/'
+        return bsep+baltsep
     else:
-        return '\\/'
+        return sep+altsep
+
+def _get_sep(path):
+    if isinstance(path, bytes):
+        return bsep
+    else:
+        return sep
+
+def _get_altsep(path):
+    if isinstance(path, bytes):
+        return baltsep
+    else:
+        return altsep
+
+def _get_colon(path):
+    if isinstance(path, bytes):
+        return b':'
+    else:
+        return ':'
+
+def _get_colon_seps(path):
+    if isinstance(path, bytes):
+        return b':'+bsep+baltsep
+    else:
+        return ':'+sep+altsep
+
+def _get_unc_prefix(path):
+    if isinstance(path, bytes):
+        return b'\\\\?\\UNC\\'
+    else:
+        return '\\\\?\\UNC\\'
 
 # Normalize the case of a pathname and map slashes to backslashes.
 # Other normalizations (such as optimizing '../' away) are not done
@@ -57,14 +94,14 @@ try:
             return s
         if isinstance(s, bytes):
             encoding = sys.getfilesystemencoding()
-            s = s.decode(encoding, 'surrogateescape').replace('/', '\\')
+            s = s.decode(encoding, 'surrogateescape').replace(altsep, sep)
             s = _LCMapStringEx(_LOCALE_NAME_INVARIANT,
                                _LCMAP_LOWERCASE, s)
             return s.encode(encoding, 'surrogateescape')
         else:
             return _LCMapStringEx(_LOCALE_NAME_INVARIANT,
                                   _LCMAP_LOWERCASE,
-                                  s.replace('/', '\\'))
+                                  s.replace(altsep, sep))
 except ImportError:
     def normcase(s):
         """Normalize case of pathname.
@@ -73,23 +110,17 @@ except ImportError:
         """
         s = os.fspath(s)
         if isinstance(s, bytes):
-            return os.fsencode(os.fsdecode(s).replace('/', '\\').lower())
-        return s.replace('/', '\\').lower()
+            return os.fsencode(os.fsdecode(s).replace(altsep, sep).lower())
+        return s.replace(altsep, sep).lower()
 
 
 def isabs(s):
     """Test whether a path is absolute"""
     s = os.fspath(s)
-    if isinstance(s, bytes):
-        sep = b'\\'
-        altsep = b'/'
-        colon_sep = b':\\'
-        double_sep = b'\\\\'
-    else:
-        sep = '\\'
-        altsep = '/'
-        colon_sep = ':\\'
-        double_sep = '\\\\'
+    sep = _get_sep(s)
+    altsep = _get_altsep(s)
+    colon_sep = _get_colon(s) + sep
+    double_sep = sep + sep
     s = s[:3].replace(altsep, sep)
     # Absolute: UNC, device, and paths with a drive and root.
     return s.startswith(colon_sep, 1) or s.startswith(double_sep)
@@ -98,14 +129,9 @@ def isabs(s):
 # Join two (or more) paths.
 def join(path, *paths):
     path = os.fspath(path)
-    if isinstance(path, bytes):
-        sep = b'\\'
-        seps = b'\\/'
-        colon_seps = b':\\/'
-    else:
-        sep = '\\'
-        seps = '\\/'
-        colon_seps = ':\\/'
+    sep = _get_sep(path)
+    seps = _get_bothseps(path)
+    colon_seps = _get_colon_seps(path)
     try:
         result_drive, result_root, result_path = splitroot(path)
         for p in paths:
@@ -174,18 +200,12 @@ except ImportError:
 
         The tail contains anything after the root."""
         p = os.fspath(p)
-        if isinstance(p, bytes):
-            sep = b'\\'
-            altsep = b'/'
-            colon = b':'
-            unc_prefix = b'\\\\?\\UNC\\'
-            empty = b''
-        else:
-            sep = '\\'
-            altsep = '/'
-            colon = ':'
-            unc_prefix = '\\\\?\\UNC\\'
-            empty = ''
+        sep = _get_sep(p)
+        altsep = _get_altsep(p)
+        colon = _get_colon(p)
+        unc_prefix = _get_unc_prefix(p)
+        empty = b'' if isinstance(p, bytes) else ''
+
         normp = p.replace(altsep, sep)
         if normp[:1] == sep:
             if normp[1:2] == sep:
@@ -243,9 +263,9 @@ def split(p):
 def splitext(p):
     p = os.fspath(p)
     if isinstance(p, bytes):
-        return genericpath._splitext(p, b'\\', b'/', b'.')
+        return genericpath._splitext(p, bsep, baltsep, b'.')
     else:
-        return genericpath._splitext(p, '\\', '/', '.')
+        return genericpath._splitext(p, sep, altsep, '.')
 splitext.__doc__ = genericpath._splitext.__doc__
 
 
@@ -360,7 +380,7 @@ def expanduser(path):
     if 'USERPROFILE' in os.environ:
         userhome = os.environ['USERPROFILE']
     elif 'HOMEPATH' not in os.environ:
-        return path
+        return os.path.normpath(path)
     else:
         drive = os.environ.get('HOMEDRIVE', '')
         userhome = join(drive, os.environ['HOMEPATH'])
@@ -384,7 +404,7 @@ def expanduser(path):
     if isinstance(path, bytes):
         userhome = os.fsencode(userhome)
 
-    return userhome + path[i:]
+    return os.path.normpath(userhome) + path[i:]
 
 
 # Expand paths containing shell variable substitutions.
@@ -475,14 +495,12 @@ except ImportError:
     def normpath(path):
         """Normalize path, eliminating double slashes, etc."""
         path = os.fspath(path)
+        sep = _get_sep(path)
+        altsep = _get_altsep(path)
         if isinstance(path, bytes):
-            sep = b'\\'
-            altsep = b'/'
             curdir = b'.'
             pardir = b'..'
         else:
-            sep = '\\'
-            altsep = '/'
             curdir = '.'
             pardir = '..'
         path = path.replace(altsep, sep)
@@ -529,7 +547,7 @@ else:  # use native Windows method on Windows
     def abspath(path):
         """Return the absolute version of a path."""
         try:
-            return _getfullpathname(normpath(path))
+            return normpath(_getfullpathname(normpath(path)))
         except (OSError, ValueError):
             # See gh-75230, handle outside for cleaner traceback
             pass
@@ -728,6 +746,7 @@ else:
                 # strip the prefix anyway.
                 if ex.winerror == initial_winerror:
                     path = spath
+        path = normpath(path)
         return path
 
 
@@ -740,12 +759,11 @@ def relpath(path, start=None):
     if not path:
         raise ValueError("no path specified")
 
+    sep = _get_sep(path)
     if isinstance(path, bytes):
-        sep = b'\\'
         curdir = b'.'
         pardir = b'..'
     else:
-        sep = '\\'
         curdir = '.'
         pardir = '..'
 
@@ -797,13 +815,11 @@ def commonpath(paths):
     if not paths:
         raise ValueError('commonpath() arg is an empty iterable')
 
+    sep = _get_sep(paths[0])
+    altsep = _get_altsep(paths[0])
     if isinstance(paths[0], bytes):
-        sep = b'\\'
-        altsep = b'/'
         curdir = b'.'
     else:
-        sep = '\\'
-        altsep = '/'
         curdir = '.'
 
     try:
