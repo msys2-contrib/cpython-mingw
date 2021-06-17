@@ -1459,6 +1459,7 @@ LIBSUBDIRS=	asyncio \
 		sqlite3 \
 		tkinter \
 		turtledemo \
+		msilib \
 		unittest \
 		urllib \
 		venv venv/scripts venv/scripts/common venv/scripts/posix \
