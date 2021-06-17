@@ -1738,6 +1738,10 @@ AC_SUBST(LINK_PYTHON_OBJS)
 AC_SUBST(AR)
 AC_CHECK_TOOLS(AR, ar aal, ar)
 
+# windres program
+AC_SUBST(WINDRES)
+AC_CHECK_TOOL(WINDRES, windres)
+
 # tweak ARFLAGS only if the user didn't set it on the command line
 AC_SUBST(ARFLAGS)
 if test -z "$ARFLAGS"
@@ -6684,10 +6688,33 @@ AC_MSG_RESULT(done)
 case $host in
   *-*-mingw*)
     LIBS="$LIBS -lversion -lshlwapi -lpathcch"
+    AC_PROG_AWK
+    if test "$AWK" = "gawk"; then
+      awk_extra_flag="--non-decimal-data"
+    fi
+    AC_MSG_CHECKING([FIELD3])
+    FIELD3=$($AWK $awk_extra_flag '\
+      /^#define PY_RELEASE_LEVEL_/             {levels[$2]=$3}    \
+      /^#define PY_MICRO_VERSION[[:space:]]+/  {micro=$3}         \
+      /^#define PY_RELEASE_LEVEL[[:space:]]+/  {level=levels[$3]} \
+      /^#define PY_RELEASE_SERIAL[[:space:]]+/ {serial=$3}        \
+      END {print micro * 1000 + level * 10 + serial}' \
+      $srcdir/Include/patchlevel.h
+    )
+    
+    AC_MSG_RESULT([${FIELD3}])
+    RCFLAGS="$RCFLAGS -DFIELD3=$FIELD3 -O COFF"
+
+    case $host in
+      i686*)  RCFLAGS="$RCFLAGS --target=pe-i386" ;;
+      x86_64*)  RCFLAGS="$RCFLAGS --target=pe-x86-64" ;;
+      *) ;;
+    esac
   ;;
   *)
   ;;
 esac
+AC_SUBST(RCFLAGS)
 
 # Availability of -O2:
 AC_CACHE_CHECK([for -O2], [ac_cv_compile_o2], [
