@@ -90,7 +90,7 @@ if sys.platform == "win32" and "MSYSTEM" in os.environ:
 
 CROSS_COMPILING = ("_PYTHON_HOST_PLATFORM" in os.environ)
 HOST_PLATFORM = get_platform()
-MS_WINDOWS = (HOST_PLATFORM == 'win32')
+MS_WINDOWS = (HOST_PLATFORM == 'win32' or HOST_PLATFORM == 'mingw')
 CYGWIN = (HOST_PLATFORM == 'cygwin')
 MACOS = (HOST_PLATFORM == 'darwin')
 AIX = (HOST_PLATFORM.startswith('aix'))
