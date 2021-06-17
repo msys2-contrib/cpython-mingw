@@ -971,7 +971,7 @@ getattributelist(PyObject *obj, const char *name, AttributeList *attribute_list)
     DWORD err;
     BOOL result;
     PyObject *value;
-    Py_ssize_t handle_list_size;
+    Py_ssize_t handle_list_size = 0;
     DWORD attribute_count = 0;
     SIZE_T attribute_list_size = 0;
 
