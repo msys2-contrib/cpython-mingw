@@ -16,7 +16,7 @@ _tracemalloc _tracemalloc.c
 _codecs _codecsmodule.c
 _collections _collectionsmodule.c
 errno errnomodule.c
-_io _io/_iomodule.c _io/iobase.c _io/fileio.c _io/bytesio.c _io/bufferedio.c _io/textio.c _io/stringio.c
+_io _io/_iomodule.c _io/iobase.c _io/fileio.c _io/bytesio.c _io/bufferedio.c _io/textio.c _io/stringio.c _io/winconsoleio.c
 itertools itertoolsmodule.c
 _sre _sre/sre.c
 _thread _threadmodule.c
