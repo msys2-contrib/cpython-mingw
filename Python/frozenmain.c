@@ -3,6 +3,7 @@
 #include "Python.h"
 #include "pycore_runtime.h"  // _PyRuntime_Initialize()
 #include <locale.h>
+#include "iscygpty.h"
 
 #ifdef MS_WINDOWS
 extern void PyWinFreeze_ExeInit(void);
@@ -71,7 +72,7 @@ Py_FrozenMain(int argc, char **argv)
         sts = 0;
     }
 
-    if (inspect && isatty((int)fileno(stdin))) {
+    if (inspect && (isatty((int)fileno(stdin)) || is_cygpty((int)fileno(stdin))))
         sts = PyRun_AnyFile(stdin, "<stdin>") != 0;
     }
 
