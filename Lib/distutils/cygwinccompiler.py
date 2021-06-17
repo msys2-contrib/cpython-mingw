@@ -91,6 +91,7 @@ class CygwinCCompiler(UnixCCompiler):
     obj_extension = ".o"
     static_lib_extension = ".a"
     shared_lib_extension = ".dll"
+    dylib_lib_extension = ".dll.a"
     static_lib_format = "lib%s%s"
     shared_lib_format = "%s%s"
     exe_extension = ".exe"
