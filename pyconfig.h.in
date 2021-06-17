@@ -1527,6 +1527,9 @@
 /* Define if mvwdelch in curses.h is an expression. */
 #undef MVWDELCH_IS_EXPRESSION
 
+/* Define to 1 if you want to use native NT threads */
+#undef NT_THREADS
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
