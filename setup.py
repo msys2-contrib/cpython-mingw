@@ -1146,7 +1146,7 @@ class PyBuildExt(build_ext):
         if curses_library == 'ncursesw':
             curses_defines.append(('HAVE_NCURSESW', '1'))
             if not CROSS_COMPILING:
-                curses_includes.append('/usr/include/ncursesw')
+                curses_includes.append(sysconfig.get_config_var("NCURSESW_INCLUDEDIR"))
             # Bug 1464056: If _curses.so links with ncursesw,
             # _curses_panel.so must link with panelw.
             panel_library = 'panelw'
