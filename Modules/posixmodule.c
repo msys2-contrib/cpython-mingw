@@ -3858,6 +3858,7 @@ posix_getcwd(int use_bytes)
         return NULL;
     }
 
+    Py_NormalizeSepsW(wbuf2);
     PyObject *resobj = PyUnicode_FromWideChar(wbuf2, len);
     if (wbuf2 != wbuf) {
         PyMem_RawFree(wbuf2);
@@ -4462,6 +4463,7 @@ os__getfinalpathname_impl(PyObject *module, path_t *path)
         target_path = tmp;
     }
 
+    Py_NormalizeSepsW(target_path);
     result = PyUnicode_FromWideChar(target_path, result_length);
     if (result && path->narrow) {
         Py_SETREF(result, PyUnicode_EncodeFSDefault(result));
