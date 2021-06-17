@@ -20,7 +20,7 @@
 
       FSCTL_GET_REPARSE_POINT is not exported with WIN32_LEAN_AND_MEAN. */
 #  include <windows.h>
-#  include <pathcch.h>
+#  include <shlwapi.h>
 #  include <lmcons.h>             // UNLEN
 #  include "osdefs.h"             // SEP
 #  define HAVE_SYMLINK
@@ -4456,7 +4456,6 @@ os__path_splitroot_impl(PyObject *module, path_t *path)
     wchar_t *buffer;
     wchar_t *end;
     PyObject *result = NULL;
-    HRESULT ret;
 
     buffer = (wchar_t*)PyMem_Malloc(sizeof(wchar_t) * (wcslen(path->wide) + 1));
     if (!buffer) {
@@ -4468,23 +4467,32 @@ os__path_splitroot_impl(PyObject *module, path_t *path)
     }
 
     Py_BEGIN_ALLOW_THREADS
-    ret = PathCchSkipRoot(buffer, &end);
+    if (buffer[0] && buffer[1] == L':') {
+        if (buffer[2] == L'\\') {
+            end = &buffer[3];
+        } else {
+            end = &buffer[2];
+        }
+    } else {
+        end = PathSkipRootW(buffer);
+    }
     Py_END_ALLOW_THREADS
-    if (FAILED(ret)) {
+    if (!end || end == buffer) {
         result = Py_BuildValue("sO", "", path->object);
-    } else if (end != buffer) {
+    } else if (!*end) {
+        result = Py_BuildValue("Os", path->object, "");
+    } else {
         size_t rootLen = (size_t)(end - buffer);
         result = Py_BuildValue("NN",
             PyUnicode_FromWideChar(path->wide, rootLen),
             PyUnicode_FromWideChar(path->wide + rootLen, -1)
         );
-    } else {
-        result = Py_BuildValue("Os", path->object, "");
     }
     PyMem_Free(buffer);
 
     return result;
 }
+
 
 
 #endif /* MS_WINDOWS */
