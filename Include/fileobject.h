@@ -30,7 +30,7 @@ Py_DEPRECATED(3.12) PyAPI_DATA(int) Py_UTF8Mode;
 #endif
 
 /* A routine to check if a file descriptor can be select()-ed. */
-#ifdef _MSC_VER
+#ifdef MS_WINDOWS
     /* On Windows, any socket fd can be select()-ed, no matter how high */
     #define _PyIsSelectable_fd(FD) (1)
 #else
