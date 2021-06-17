@@ -36,6 +36,13 @@
 #include <curses.h>
 #endif
 
+#if defined(__MINGW32__)
+#include <windows.h>
+#if !defined(_ISPAD)
+#define _ISPAD 0x10
+#endif
+#endif
+
 #ifdef HAVE_NCURSES_H
 /* configure was checking <curses.h>, but we will
    use <ncurses.h>, which has some or all these features. */
