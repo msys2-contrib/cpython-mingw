@@ -303,9 +303,9 @@ class Mingw32CCompiler(CygwinCCompiler):
             raise CCompilerError(
                 'Cygwin gcc cannot be used with --compiler=mingw32')
 
-        self.set_executables(compiler='gcc -O -Wall',
-                             compiler_so='gcc -mdll -O -Wall',
-                             compiler_cxx='g++ -O -Wall',
+        self.set_executables(compiler='gcc -O2 -Wall',
+                             compiler_so='gcc -mdll -O2 -Wall',
+                             compiler_cxx='g++ -O2 -Wall',
                              linker_exe='gcc',
                              linker_so='%s %s %s'
                                         % (self.linker_dll, shared_option,
