@@ -3072,6 +3072,11 @@ then
 	VxWorks*)
 		LINKFORSHARED='--export-dynamic';;
 	esac
+	case $host in
+	*-*-mingw*)
+		# for https://bugs.python.org/issue40458 on MINGW
+		LINKFORSHARED="-Wl,--stack,2000000";;
+	esac
 fi
 AC_MSG_RESULT($LINKFORSHARED)
 
