@@ -446,6 +446,14 @@ def _parse_makefile(filename, vars=None, keep_unresolved=True):
         if isinstance(v, str):
             done[k] = v.strip()
 
+    # any keys that have one with the same name suffixed with _b2h
+    # need to be replaced with the value of the _b2h key.
+    # This converts from MSYS*/Cygwin paths to Windows paths.
+    for k, v in dict(done).items():
+        if isinstance(k, str):
+            if k.endswith("_b2h"):
+                done[k[:-4]]=v
+ 
     # save the results in the global dictionary
     vars.update(done)
     return vars
