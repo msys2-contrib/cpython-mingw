@@ -115,6 +115,8 @@ class _WindowsFlavour(_Flavour):
 
     sep = '\\'
     altsep = '/'
+    if 'MSYSTEM' in os.environ:
+        sep, altsep = altsep, sep
     has_drv = True
     pathmod = ntpath
 
