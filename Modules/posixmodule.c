@@ -36,6 +36,7 @@
 #ifdef __ANDROID__
 #  undef HAVE_FACCESSAT
 #endif
+#include "iscygpty.h"
 
 #include <stdio.h>  /* needed for ctermid() */
 
@@ -10082,7 +10083,7 @@ os_isatty_impl(PyObject *module, int fd)
 {
     int return_value;
     _Py_BEGIN_SUPPRESS_IPH
-    return_value = isatty(fd);
+    return_value = isatty(fd) || is_cygpty(fd);
     _Py_END_SUPPRESS_IPH
     return return_value;
 }

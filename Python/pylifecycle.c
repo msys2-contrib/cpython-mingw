@@ -19,6 +19,7 @@
 #include "pycore_traceback.h"     // _Py_DumpTracebackThreads()
 
 #include "grammar.h"              // PyGrammar_RemoveAccelerators()
+#include "iscygpty.h"
 #include <locale.h>               // setlocale()
 
 #ifdef HAVE_SIGNAL_H
@@ -2470,7 +2471,7 @@ _Py_RestoreSignals(void)
 int
 Py_FdIsInteractive(FILE *fp, const char *filename)
 {
-    if (isatty((int)fileno(fp)))
+    if (isatty((int)fileno(fp)) || is_cygpty((int)fileno(fp)))
         return 1;
     if (!Py_InteractiveFlag)
         return 0;
