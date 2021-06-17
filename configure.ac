@@ -6436,10 +6436,17 @@ then
   [Define if you have struct stat.st_mtimensec])
 fi
 
+if test -n "$PKG_CONFIG"; then
+    NCURSESW_INCLUDEDIR="`"$PKG_CONFIG" ncursesw --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ *$//'`"
+else
+    NCURSESW_INCLUDEDIR=""
+fi
+AC_SUBST(NCURSESW_INCLUDEDIR)
+
 # first curses header check
 ac_save_cppflags="$CPPFLAGS"
 if test "$cross_compiling" = no; then
-  CPPFLAGS="$CPPFLAGS -I/usr/include/ncursesw"
+  CPPFLAGS="$CPPFLAGS -I$NCURSESW_INCLUDEDIR"
 fi
 
 AC_CHECK_HEADERS(curses.h ncurses.h)
