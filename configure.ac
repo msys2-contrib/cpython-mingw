@@ -327,6 +327,9 @@ then
 	*-*-cygwin*)
 		ac_sys_system=Cygwin
 		;;
+	*-*-mingw*)
+		ac_sys_system=MINGW
+		;;
 	*-apple-ios*)
 		ac_sys_system=iOS
 		;;
@@ -366,6 +369,7 @@ then
 	linux*) MACHDEP="linux";;
 	cygwin*) MACHDEP="cygwin";;
 	darwin*) MACHDEP="darwin";;
+	mingw*) MACHDEP="win32";;
 	'')	MACHDEP="unknown";;
     esac
 
@@ -776,6 +780,9 @@ if test "$cross_compiling" = yes; then
 		;;
 	wasm32-*-* | wasm64-*-*)
 		_host_ident=$host_cpu
+		;;
+	*-*-mingw*)
+		_host_cpu=
 		;;
 	*)
 		# for now, limit cross builds to known configurations
