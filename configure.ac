@@ -5872,6 +5872,15 @@ for dir in $SRCDIRS; do
 done
 AC_MSG_RESULT(done)
 
+# For mingw build need additional library for linking
+case $host in
+  *-*-mingw*)
+    LIBS="$LIBS -lversion -lshlwapi -lpathcch"
+  ;;
+  *)
+  ;;
+esac
+
 # Availability of -O2:
 AC_MSG_CHECKING(for -O2)
 saved_cflags="$CFLAGS"
