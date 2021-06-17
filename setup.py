@@ -1588,7 +1588,7 @@ class PyBuildScripts(build_scripts):
             else:
                 newfilename = filename + minoronly
             log.info(f'renaming {filename} to {newfilename}')
-            os.rename(filename, newfilename)
+            os.replace(filename, newfilename)
             newoutfiles.append(newfilename)
             if filename in updated_files:
                 newupdated_files.append(newfilename)
