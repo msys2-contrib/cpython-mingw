@@ -6233,7 +6233,7 @@ AC_MSG_RESULT([$LDVERSION])
 
 # On Android and Cygwin the shared libraries must be linked with libpython.
 AC_SUBST([LIBPYTHON])
-if test "$PY_ENABLE_SHARED" = "1" && ( test -n "$ANDROID_API_LEVEL" || test "$MACHDEP" = "cygwin"); then
+if test "$PY_ENABLE_SHARED" = "1" && ( test -n "$ANDROID_API_LEVEL" || test "$MACHDEP" = "cygwin" || test "$MACHDEP" = "win32"); then
   LIBPYTHON="-lpython${VERSION}${ABIFLAGS}"
 else
   LIBPYTHON=''
