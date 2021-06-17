@@ -4286,10 +4286,14 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 
 AC_MSG_CHECKING(for inet_pton)
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#ifdef _WIN32
+#include <ws2tcpip.h>
+#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 ]], [[void* p = inet_pton]])],
   [AC_DEFINE(HAVE_INET_PTON, 1, Define if you have the 'inet_pton' function.)
    AC_MSG_RESULT(yes)],
