@@ -12,6 +12,13 @@ This software comes with no warranty. Use at your own risk.
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
 #include "pycore_fileutils.h"
+#ifdef __MINGW32__
+/* The header libintl.h and library libintl may exist on mingw host.
+ * To be compatible with MSVC build we has to undef some defines.
+ */
+#undef HAVE_LIBINTL_H
+#undef HAVE_BIND_TEXTDOMAIN_CODESET
+#endif
 
 #include <stdio.h>
 #include <locale.h>
