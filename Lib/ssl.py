@@ -254,7 +254,7 @@ class _TLSMessageType:
     CHANGE_CIPHER_SPEC = 0x0101
 
 
-if sys.platform == "win32":
+if sys.platform == "win32" and sys.version.find("GCC") == -1:
     from _ssl import enum_certificates, enum_crls
 
 from socket import socket, SOCK_STREAM, create_connection
@@ -591,7 +591,7 @@ class SSLContext(_SSLContext):
     def load_default_certs(self, purpose=Purpose.SERVER_AUTH):
         if not isinstance(purpose, _ASN1Object):
             raise TypeError(purpose)
-        if sys.platform == "win32":
+        if sys.platform == "win32" and sys.version.find("GCC") == -1:
             for storename in self._windows_cert_stores:
                 self._load_windows_store_certs(storename, purpose)
         self.set_default_verify_paths()
