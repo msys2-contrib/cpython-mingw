@@ -29,6 +29,12 @@
 #define PYD_UNTAGGED_SUFFIX PYD_DEBUG_SUFFIX ".pyd"
 
 const char *_PyImport_DynLoadFiletab[] = {
+#ifdef EXT_SUFFIX
+    EXT_SUFFIX, /* include SOABI flags where is encoded debug */
+#endif
+#ifdef SHLIB_SUFFIX
+    "-abi" PYTHON_ABI_STRING SHLIB_SUFFIX,
+#endif
     PYD_TAGGED_SUFFIX,
     PYD_UNTAGGED_SUFFIX,
     NULL
@@ -251,8 +257,7 @@ dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
            ensure DLLs adjacent to the PYD are preferred. */
         Py_BEGIN_ALLOW_THREADS
         hDLL = LoadLibraryExW(wpathname, NULL,
-                              LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-                              LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
+                              LOAD_WITH_ALTERED_SEARCH_PATH);
         Py_END_ALLOW_THREADS
         PyMem_Free(wpathname);
 
