@@ -36,6 +36,7 @@
 
 #include "opcode.h"
 
+#include "iscygpty.h"
 #include <locale.h>               // setlocale()
 #include <stdlib.h>               // getenv()
 #ifdef HAVE_UNISTD_H
@@ -3534,7 +3535,7 @@ Py_Exit(int sts)
 int
 Py_FdIsInteractive(FILE *fp, const char *filename)
 {
-    if (isatty(fileno(fp))) {
+    if (isatty(fileno(fp)) || is_cygpty(fileno(fp))) {
         return 1;
     }
     if (!_Py_GetConfig()->interactive) {
@@ -3549,7 +3550,7 @@ Py_FdIsInteractive(FILE *fp, const char *filename)
 int
 _Py_FdIsInteractive(FILE *fp, PyObject *filename)
 {
-    if (isatty(fileno(fp))) {
+    if (isatty(fileno(fp)) || is_cygpty(fileno(fp))) {
         return 1;
     }
     if (!_Py_GetConfig()->interactive) {

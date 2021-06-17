@@ -460,6 +460,7 @@ PYTHON_OBJS=	\
 		Python/intrinsics.o \
 		Python/jit.o \
 		Python/legacy_tracing.o \
+		Python/iscygpty.o \
 		Python/lock.o \
 		Python/marshal.o \
 		Python/modsupport.o \
@@ -1044,6 +1045,7 @@ PYTHON_HEADERS= \
 		$(srcdir)/Include/genericaliasobject.h \
 		$(srcdir)/Include/import.h \
 		$(srcdir)/Include/intrcheck.h \
+		$(srcdir)/Include/iscygpty.h \
 		$(srcdir)/Include/iterobject.h \
 		$(srcdir)/Include/listobject.h \
 		$(srcdir)/Include/lock.h \
