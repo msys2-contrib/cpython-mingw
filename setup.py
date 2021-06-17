@@ -986,7 +986,11 @@ class PyBuildExt(build_ext):
                            depends=['testcapi_long.h']))
 
         # Python Internal C API test module
+        macros = []
+        if MS_WINDOWS:
+            macros.append(('PY3_DLLNAME', 'L"%s"' % sysconfig.get_config_var('DLLLIBRARY')))
         self.add(Extension('_testinternalcapi', ['_testinternalcapi.c'],
+                           define_macros=macros,
                            extra_compile_args=['-DPy_BUILD_CORE_MODULE']))
 
         # Python PEP-3118 (buffer protocol) test module
