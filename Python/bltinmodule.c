@@ -1,6 +1,7 @@
 /* Built-in functions */
 
 #include "Python.h"
+#include "iscygpty.h"
 #include <ctype.h>
 #include "pycore_ast.h"           // _PyAST_Validate()
 #include "pycore_call.h"          // _PyObject_CallNoArgs()
@@ -2135,7 +2136,7 @@ builtin_input_impl(PyObject *module, PyObject *prompt)
         Py_DECREF(tmp);
         if (fd < 0 && PyErr_Occurred())
             return NULL;
-        tty = fd == fileno(stdin) && isatty(fd);
+        tty = fd == fileno(stdin) && (isatty(fd) || is_cygpty(fd));
     }
     if (tty) {
         tmp = PyObject_CallMethodNoArgs(fout, &_Py_ID(fileno));
@@ -2148,7 +2149,7 @@ builtin_input_impl(PyObject *module, PyObject *prompt)
             Py_DECREF(tmp);
             if (fd < 0 && PyErr_Occurred())
                 return NULL;
-            tty = fd == fileno(stdout) && isatty(fd);
+            tty = fd == fileno(stdout) && (isatty(fd) || is_cygpty(fd));
         }
     }
 
