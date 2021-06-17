@@ -1,4 +1,5 @@
 #include "Python.h"
+#include "iscygpty.h"
 #include "pycore_fileutils.h"     // fileutils definitions
 #include "pycore_runtime.h"       // _PyRuntime
 #include "osdefs.h"               // SEP
@@ -77,7 +78,7 @@ _Py_device_encoding(int fd)
     int valid;
     Py_BEGIN_ALLOW_THREADS
     _Py_BEGIN_SUPPRESS_IPH
-    valid = isatty(fd);
+    valid = isatty(fd) || is_cygpty(fd);
     _Py_END_SUPPRESS_IPH
     Py_END_ALLOW_THREADS
     if (!valid)
@@ -1925,12 +1926,12 @@ _Py_write_impl(int fd, const void *buf, size_t count, int gil_held)
            depending on heap usage). */
         if (gil_held) {
             Py_BEGIN_ALLOW_THREADS
-            if (isatty(fd)) {
+            if (isatty(fd) || is_cygpty(fd)) {
                 count = 32767;
             }
             Py_END_ALLOW_THREADS
         } else {
-            if (isatty(fd)) {
+            if (isatty(fd) || is_cygpty(fd)) {
                 count = 32767;
             }
         }
