@@ -188,7 +188,7 @@ static const char usage_envvars[] =
 "PYTHONVERBOSE           : trace import statements (-v)\n"
 "PYTHONWARNINGS=arg      : warning control (-W arg)\n";
 
-#if defined(MS_WINDOWS)
+#if defined(_MSC_VER)
 #  define PYTHONHOMEHELP "<prefix>\\python{major}{minor}"
 #else
 #  define PYTHONHOMEHELP "<prefix>/lib/pythonX.X"
