@@ -68,8 +68,10 @@ struct SOCKADDR_BTH_REDEF {
  */
 # ifdef SIO_GET_MULTICAST_FILTER
 #  include <mstcpip.h> /* for SIO_RCVALL */
+#ifndef __MINGW32__ /* resolve by configure */
 #  define HAVE_ADDRINFO
 #  define HAVE_SOCKADDR_STORAGE
+#endif
 #  define HAVE_GETADDRINFO
 #  define HAVE_GETNAMEINFO
 #  define ENABLE_IPV6
