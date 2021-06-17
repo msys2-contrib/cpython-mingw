@@ -360,8 +360,9 @@ PyThread_release_lock(PyThread_type_lock aLock)
 {
     dprintf(("%lu: PyThread_release_lock(%p) called\n", PyThread_get_thread_ident(),aLock));
 
-    if (!(aLock && LeaveNonRecursiveMutex((PNRMUTEX) aLock)))
+    if (!(aLock && LeaveNonRecursiveMutex((PNRMUTEX) aLock))) {
         dprintf(("%lu: Could not PyThread_release_lock(%p) error: %ld\n", PyThread_get_thread_ident(), aLock, GetLastError()));
+    }
 }
 
 /* minimum/maximum thread stack sizes supported */

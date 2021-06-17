@@ -825,6 +825,7 @@ Reg2Py(BYTE *retDataBuf, DWORD retDataSize, DWORD typ)
         case REG_BINARY:
         /* ALSO handle ALL unknown data types here.  Even if we can't
            support it natively, we should handle the bits. */
+           /* fallthrough */
         default:
             if (retDataSize == 0) {
                 Py_INCREF(Py_None);
