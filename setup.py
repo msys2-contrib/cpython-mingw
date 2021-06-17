@@ -681,7 +681,7 @@ class PyBuildExt(build_ext):
     def add_multiarch_paths(self):
         # Debian/Ubuntu multiarch support.
         # https://wiki.ubuntu.com/MultiarchSpec
-        tmpfile = os.path.join(self.build_temp, 'multiarch')
+        tmpfile = os.path.join(self.build_temp, 'multiarch').replace('\\','/')
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         ret = run_command(
@@ -706,7 +706,7 @@ class PyBuildExt(build_ext):
         opt = ''
         if CROSS_COMPILING:
             opt = '-t' + sysconfig.get_config_var('HOST_GNU_TYPE')
-        tmpfile = os.path.join(self.build_temp, 'multiarch')
+        tmpfile = os.path.join(self.build_temp, 'multiarch').replace('\\','/')
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         ret = run_command(
@@ -768,7 +768,7 @@ class PyBuildExt(build_ext):
                 pass
 
     def add_cross_compiling_paths(self):
-        tmpfile = os.path.join(self.build_temp, 'ccpaths')
+        tmpfile = os.path.join(self.build_temp, 'ccpaths').replace('\\','/')
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         ret = run_command('%s -E -v - </dev/null 2>%s 1>/dev/null' % (CC, tmpfile))
@@ -1099,7 +1099,7 @@ class PyBuildExt(build_ext):
         readline_termcap_library = ""
         curses_library = ""
         # Cannot use os.popen here in py3k.
-        tmpfile = os.path.join(self.build_temp, 'readline_termcap_lib')
+        tmpfile = os.path.join(self.build_temp, 'readline_termcap_lib').replace('\\','/')
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         # Determine if readline is already linked against curses or tinfo.
@@ -2119,12 +2119,12 @@ class PyBuildExt(build_ext):
         cflags = sysconfig.get_config_vars('CFLAGS')[0]
         archs = re.findall(r'-arch\s+(\w+)', cflags)
 
-        tmpfile = os.path.join(self.build_temp, 'tk.arch')
+        tmpfile = os.path.join(self.build_temp, 'tk.arch').replace('\\','/')
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 
         run_command(
-            "file {}/Tk.framework/Tk | grep 'for architecture' > {}".format(F, tmpfile)
+            "file {}/Tk.framework/Tk | grep 'for architecture' > {}".format(F, tmpfile).replace('\\','/')
         )
         with open(tmpfile) as fp:
             detected_archs = []
