@@ -164,7 +164,7 @@ static const char usage_envvars[] =
 "PYTHONWARNINGS  : warning control (-W)\n"
 ;
 
-#if defined(MS_WINDOWS)
+#if defined(_MSC_VER)
 #  define PYTHONHOMEHELP "<prefix>\\python{major}{minor}"
 #else
 #  define PYTHONHOMEHELP "<prefix>/lib/pythonX.X"
