@@ -9,7 +9,7 @@
 atexit atexitmodule.c
 faulthandler faulthandler.c
 @INITSYS@ posixmodule.c
-_signal signalmodule.c
+_signal signalmodule.c -lws2_32
 _tracemalloc _tracemalloc.c
 
 # modules used by importlib, deepfreeze, freeze, runpy, and sysconfig
