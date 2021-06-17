@@ -312,6 +312,7 @@ IO_OBJS=	\
 ##########################################################################
 
 LIBFFI_INCLUDEDIR=	@LIBFFI_INCLUDEDIR@
+NCURSESW_INCLUDEDIR=	@NCURSESW_INCLUDEDIR@
 
 ##########################################################################
 # Parser
