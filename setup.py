@@ -699,7 +699,7 @@ class PyBuildExt(build_ext):
     def add_multiarch_paths(self):
         # Debian/Ubuntu multiarch support.
         # https://wiki.ubuntu.com/MultiarchSpec
-        tmpfile = os.path.join(self.build_temp, 'multiarch')
+        tmpfile = os.path.join(self.build_temp, 'multiarch').replace('\\','/')
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         ret = run_command(
@@ -724,7 +724,7 @@ class PyBuildExt(build_ext):
         opt = ''
         if CROSS_COMPILING:
             opt = '-t' + sysconfig.get_config_var('HOST_GNU_TYPE')
-        tmpfile = os.path.join(self.build_temp, 'multiarch')
+        tmpfile = os.path.join(self.build_temp, 'multiarch').replace('\\','/')
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         ret = run_command(
@@ -786,7 +786,7 @@ class PyBuildExt(build_ext):
                 pass
 
     def add_cross_compiling_paths(self):
-        tmpfile = os.path.join(self.build_temp, 'ccpaths')
+        tmpfile = os.path.join(self.build_temp, 'ccpaths').replace('\\','/')
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         # bpo-38472: With a German locale, GCC returns "gcc-Version 9.1.0
@@ -1054,7 +1054,7 @@ class PyBuildExt(build_ext):
         readline_termcap_library = ""
         curses_library = ""
         # Cannot use os.popen here in py3k.
-        tmpfile = os.path.join(self.build_temp, 'readline_termcap_lib')
+        tmpfile = os.path.join(self.build_temp, 'readline_termcap_lib').replace('\\','/')
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         # Determine if readline is already linked against curses or tinfo.
