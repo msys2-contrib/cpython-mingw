@@ -77,6 +77,17 @@ def get_platform():
     return sys.platform
 
 
+# On MSYS, os.system needs to be wrapped with sh.exe
+# as otherwise all the io redirection will fail.
+# Arguably, this could happen inside the real os.system
+# rather than this monkey patch.
+if sys.platform == "win32" and "MSYSTEM" in os.environ:
+    os_system = os.system
+    def msys_system(command):
+        command_in_sh = 'sh.exe -c "%s"' % command.replace("\\", "\\\\")
+        return os_system(command_in_sh)
+    os.system = msys_system
+
 CROSS_COMPILING = ("_PYTHON_HOST_PLATFORM" in os.environ)
 HOST_PLATFORM = get_platform()
 MS_WINDOWS = (HOST_PLATFORM == 'win32')
