@@ -1,5 +1,6 @@
 import os
 import sys
+import textwrap
 from sysconfig import (
     _ALWAYS_STR,
     _PYTHON_BUILD,
@@ -209,11 +210,30 @@ def _generate_posix_vars():
     os.makedirs(pybuilddir, exist_ok=True)
     destfile = os.path.join(pybuilddir, name + '.py')
 
+    replacement = """
+        keys_to_replace = [
+            'BINDIR', 'BINLIBDEST', 'CONFINCLUDEDIR',
+            'CONFINCLUDEPY', 'DESTDIRS', 'DESTLIB', 'DESTSHARED',
+            'INCLDIRSTOMAKE', 'INCLUDEDIR', 'INCLUDEPY',
+            'LIBDEST', 'LIBDIR', 'LIBPC', 'LIBPL', 'MACHDESTLIB',
+            'MANDIR', 'SCRIPTDIR', 'datarootdir', 'exec_prefix',
+            'TZPATH',
+        ]
+
+        prefix = build_time_vars['BINDIR'][:-4]
+
+        for key in keys_to_replace:
+            value = build_time_vars[key]
+            build_time_vars[key] = value.replace(prefix, sys.base_prefix)
+    """
+
     with open(destfile, 'w', encoding='utf8') as f:
+        f.write('import sys\n')
         f.write('# system configuration generated and used by'
                 ' the sysconfig module\n')
         f.write('build_time_vars = ')
         _print_config_dict(vars, stream=f)
+        f.write('\n%s' % textwrap.dedent(replacement))
 
     # Create file used for sys.path fixup -- see Modules/getpath.c
     with open('pybuilddir.txt', 'w', encoding='utf8') as f:
