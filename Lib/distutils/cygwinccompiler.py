@@ -48,7 +48,6 @@ cygwin in no-cygwin mode).
 import os
 import sys
 import copy
-from subprocess import Popen, PIPE, check_output
 import re
 
 from distutils.unixccompiler import UnixCCompiler
@@ -383,6 +382,7 @@ def _find_exe_version(cmd):
     executable = cmd.split()[0]
     if find_executable(executable) is None:
         return None
+    from subprocess import Popen, PIPE
     out = Popen(cmd, shell=True, stdout=PIPE).stdout
     try:
         out_string = out.read()
