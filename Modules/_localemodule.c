@@ -13,6 +13,14 @@ This software comes with no warranty. Use at your own risk.
 #include "pycore_fileutils.h"     // _Py_GetLocaleconvNumeric()
 #include "pycore_pymem.h"         // _PyMem_Strdup()
 
+#ifdef __MINGW32__
+/* The header libintl.h and library libintl may exist on mingw host.
+ * To be compatible with MSVC build we has to undef some defines.
+ */
+#undef HAVE_LIBINTL_H
+#undef HAVE_BIND_TEXTDOMAIN_CODESET
+#endif
+
 #include <locale.h>               // setlocale()
 #include <string.h>               // strlen()
 #ifdef HAVE_ERRNO_H
