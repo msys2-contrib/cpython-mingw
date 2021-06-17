@@ -3223,6 +3223,9 @@ if test -z "$SHLIB_SUFFIX"; then
 	CYGWIN*)   SHLIB_SUFFIX=.dll;;
 	*)	   SHLIB_SUFFIX=.so;;
 	esac
+	case $host_os in
+	mingw*)    SHLIB_SUFFIX=.dll;;
+	esac
 fi
 AC_MSG_RESULT($SHLIB_SUFFIX)
 
@@ -4708,6 +4711,13 @@ then
 	then DYNLOADFILE="dynload_shlib.o"
 	else DYNLOADFILE="dynload_stub.o"
 	fi
+	;;
+	esac
+	case $host in
+	*-*-mingw*)
+	DYNLOADFILE="dynload_win.o"
+	extra_machdep_objs="$extra_machdep_objs PC/dl_nt.o"
+	CFLAGS_NODIST="$CFLAGS_NODIST -DMS_DLL_ID='\"$VERSION\"'"
 	;;
 	esac
 fi
@@ -6508,6 +6518,12 @@ LABEL2:
 case "$ac_cv_computed_gotos" in yes*)
   AC_DEFINE(HAVE_COMPUTED_GOTOS, 1,
   [Define if the C compiler supports computed gotos.])
+esac
+case $host_os in
+    mingw*)
+	dnl Synchronized with _PyImport_DynLoadFiletab (dynload_win.c)
+	dnl Do not use more then one dot on this platform !
+	EXT_SUFFIX=-$SOABI$SHLIB_SUFFIX;;
 esac
 
 case $ac_sys_system in
