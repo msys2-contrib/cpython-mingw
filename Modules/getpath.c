@@ -427,7 +427,7 @@ add_exe_suffix(wchar_t **progpath_p)
     /* Check for already have an executable suffix */
     size_t n = wcslen(progpath);
     size_t s = wcslen(EXE_SUFFIX);
-    if (wcsncasecmp(EXE_SUFFIX, progpath + n - s, s) == 0) {
+    if (_wcsnicmp(EXE_SUFFIX, progpath + n - s, s) == 0) {
         return _PyStatus_OK();
     }
 
