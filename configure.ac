@@ -5353,10 +5353,14 @@ PY_CHECK_NETDB_FUNC([getprotobyname])
 
 dnl PY_CHECK_SOCKET_FUNC(FUNCTION)
 AC_DEFUN([PY_CHECK_SOCKET_FUNC], [PY_CHECK_FUNC([$1], [
+#ifdef _WIN32
+#include <ws2tcpip.h>
+#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 ])])
 
 PY_CHECK_SOCKET_FUNC([inet_aton])
