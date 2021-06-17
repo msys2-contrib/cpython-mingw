@@ -236,7 +236,7 @@ class CygwinCCompiler(UnixCCompiler):
         # (On my machine: 10KiB < stripped_file < ??100KiB
         #   unstripped_file = stripped_file + XXX KiB
         #  ( XXX=254 for a typical python extension))
-        if not debug:
+        if not debug and not hasattr(sys, 'gettotalrefcount'):
             extra_preargs.append("-s")
 
         UnixCCompiler.link(self, target_desc, objects, output_filename,
