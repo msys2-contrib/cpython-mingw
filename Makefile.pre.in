@@ -2118,6 +2118,7 @@ LIBSUBDIRS=	asyncio \
 		tkinter \
 		tomllib \
 		turtledemo \
+		msilib \
 		unittest \
 		urllib \
 		venv venv/scripts venv/scripts/common venv/scripts/posix \
