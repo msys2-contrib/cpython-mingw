@@ -2283,7 +2283,7 @@ class PyBuildExt(build_ext):
         undef_macros = []
         if '--with-system-libmpdec' in sysconfig.get_config_var("CONFIG_ARGS"):
             include_dirs = []
-            libraries = [':libmpdec.so.2']
+            libraries = [':libmpdec.dll.a']
             sources = ['_decimal/_decimal.c']
             depends = ['_decimal/docstrings.h']
         else:
