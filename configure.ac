@@ -1350,6 +1350,9 @@ fi
 
 AC_MSG_RESULT($LDLIBRARY)
 
+AC_SUBST(WINDRES)
+AC_CHECK_TOOL(WINDRES, windres)
+
 AC_SUBST(AR)
 AC_CHECK_TOOLS(AR, ar aal, ar)
 
@@ -5870,10 +5873,17 @@ AC_MSG_RESULT(done)
 case $host in
   *-*-mingw*)
     LIBS="$LIBS -lversion -lshlwapi -lpathcch"
+    RCFLAGS="$RCFLAGS -O COFF"
+    case $host in
+      i686*)  RCFLAGS="$RCFLAGS --target=pe-i386" ;;
+      x86_64*)  RCFLAGS="$RCFLAGS --target=pe-x86-64" ;;
+      *) ;;
+    esac
   ;;
   *)
   ;;
 esac
+AC_SUBST(RCFLAGS)
 
 # Availability of -O2:
 AC_MSG_CHECKING(for -O2)
