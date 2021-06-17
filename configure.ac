@@ -3152,6 +3152,10 @@ dnl LFS does not work with Emscripten 3.1
 AS_CASE([$ac_sys_system],
   [Emscripten], [have_largefile_support="no"]
 )
+dnl Activate on windows platforms (32&64-bit) where off_t(4) < fpos_t(8)
+AS_CASE([$ac_sys_system],
+  [MINGW], [have_largefile_support="yes"]
+)
 AS_VAR_IF([have_largefile_support], [yes], [
   AC_DEFINE([HAVE_LARGEFILE_SUPPORT], [1],
   [Defined to enable large file support when an off_t is bigger than a long
