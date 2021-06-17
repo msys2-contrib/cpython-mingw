@@ -1609,6 +1609,27 @@ class PyBuildExt(build_ext):
                                    '-framework', 'SystemConfiguration',
                                    '-framework', 'CoreFoundation']))
 
+        # Modules with some Windows dependencies:
+        if MS_WINDOWS:
+            srcdir = sysconfig.get_config_var('srcdir')
+            pc_srcdir = os.path.abspath(os.path.join(srcdir, 'PC'))
+
+            self.add(Extension('msvcrt', [os.path.join(pc_srcdir, p)
+                               for p in ['msvcrtmodule.c']]))
+
+            self.add(Extension('_winapi', ['_winapi.c']))
+
+            self.add(Extension('_msi', [os.path.join(pc_srcdir, p)
+                               for p in ['_msi.c']],
+                               libraries=['msi','cabinet','rpcrt4'])) # To link with lib(msi|cabinet|rpcrt4).a
+
+            self.add(Extension('winsound', [os.path.join(pc_srcdir, p)
+                               for p in ['winsound.c']],
+                               libraries=['winmm']))
+
+            self.add(Extension('_overlapped', ['overlapped.c'],
+                               libraries=['ws2_32']))
+
     def detect_compress_exts(self):
         # Andrew Kuchling's zlib module.  Note that some versions of zlib
         # 1.1.3 have security problems.  See CERT Advisory CA-2002-07:
