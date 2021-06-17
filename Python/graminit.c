@@ -2,7 +2,8 @@
 
 #include "exports.h"
 #include "grammar.h"
-Py_EXPORTED_SYMBOL grammar _PyParser_Grammar;
+#include "pyport.h"
+PyAPI_DATA(grammar) _PyParser_Grammar;
 static const arc arcs_0_0[3] = {
     {2, 1},
     {3, 2},
