@@ -4455,21 +4455,36 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 ],[])
 AC_MSG_RESULT($was_it_defined)
 
+AC_CHECK_HEADERS([ws2tcpip.h])
 AC_MSG_CHECKING(for addrinfo)
 AC_CACHE_VAL(ac_cv_struct_addrinfo,
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <netdb.h>]], [[struct addrinfo a]])],
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#ifdef HAVE_WS2TCPIP_H
+#  include <ws2tcpip.h>
+#else
+#  include <netdb.h>
+#endif]],
+    [[struct addrinfo a]])],
   [ac_cv_struct_addrinfo=yes],
   [ac_cv_struct_addrinfo=no]))
 AC_MSG_RESULT($ac_cv_struct_addrinfo)
 if test $ac_cv_struct_addrinfo = yes; then
-	AC_DEFINE(HAVE_ADDRINFO, 1, [struct addrinfo (netdb.h)])
+	AC_DEFINE(HAVE_ADDRINFO, 1, [struct addrinfo])
 fi
 
 AC_MSG_CHECKING(for sockaddr_storage)
 AC_CACHE_VAL(ac_cv_struct_sockaddr_storage,
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#		include <sys/types.h>
-#		include <sys/socket.h>]], [[struct sockaddr_storage s]])],
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif]],
+    [[struct sockaddr_storage s]])],
   [ac_cv_struct_sockaddr_storage=yes],
   [ac_cv_struct_sockaddr_storage=no]))
 AC_MSG_RESULT($ac_cv_struct_sockaddr_storage)
@@ -5609,7 +5624,10 @@ fi
 
 AC_CHECK_TYPE(socklen_t,,
   AC_DEFINE(socklen_t,int,
-            [Define to `int' if <sys/socket.h> does not define.]),[
+            [Define to `int' if <sys/socket.h> or <ws2tcpip.h> does not define.]),[
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif

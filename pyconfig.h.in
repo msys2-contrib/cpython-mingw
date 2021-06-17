@@ -54,7 +54,7 @@
 /* Define to 1 if you have the `acosh' function. */
 #undef HAVE_ACOSH
 
-/* struct addrinfo (netdb.h) */
+/* struct addrinfo */
 #undef HAVE_ADDRINFO
 
 /* Define to 1 if you have the `alarm' function. */
@@ -1354,6 +1354,9 @@
 /* Define if libssl has X509_VERIFY_PARAM_set1_host and related function */
 #undef HAVE_X509_VERIFY_PARAM_SET1_HOST
 
+/* Define to 1 if you have the <ws2tcpip.h> header file. */
+#undef HAVE_WS2TCPIP_H
+
 /* Define if the zlib library has inflateCopy */
 #undef HAVE_ZLIB_COPY
 
@@ -1665,7 +1668,7 @@
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 
-/* Define to `int' if <sys/socket.h> does not define. */
+/* Define to `int' if <sys/socket.h> or <ws2tcpip.h> does not define. */
 #undef socklen_t
 
 /* Define to `int' if <sys/types.h> doesn't define. */
