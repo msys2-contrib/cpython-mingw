@@ -3828,10 +3828,19 @@ AC_SEARCH_LIBS([sem_init], [pthread rt posix4])
 fi
 
 # check if we need libintl for locale functions
+case $host in
+  *-*-mingw*)
+  dnl Native windows build don't use libintl (see _localemodule.c).
+  dnl Also we don't like setup.py to add "intl" library to the list
+  dnl when build _locale module.
+  ;;
+  *)
 AC_CHECK_LIB([intl], [textdomain],
 	[AC_DEFINE([WITH_LIBINTL], [1],
 	[Define to 1 if libintl is needed for locale functions.])
         LIBS="-lintl $LIBS"])
+  ;;
+esac
 
 # checks for system dependent C++ extensions support
 case "$ac_sys_system" in
