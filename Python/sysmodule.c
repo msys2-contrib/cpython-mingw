@@ -36,7 +36,7 @@ Data members:
 #include <windows.h>
 #endif /* MS_WINDOWS */
 
-#ifdef MS_COREDLL
+#if defined(MS_WINDOWS) && defined(Py_ENABLE_SHARED)
 extern void *PyWin_DLLhModule;
 /* A string loaded from the DLL at startup: */
 extern const char *PyWin_DLLVersionString;
@@ -2731,7 +2731,7 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
                         PyUnicode_FromString("little"));
 #endif
 
-#ifdef MS_COREDLL
+#if defined(MS_WINDOWS) && defined(Py_ENABLE_SHARED)
     SET_SYS_FROM_STRING("dllhandle",
                         PyLong_FromVoidPtr(PyWin_DLLhModule));
     SET_SYS_FROM_STRING("winver",
