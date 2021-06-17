@@ -20,10 +20,10 @@ from site import USER_SITE
 HAS_USER_SITE = True
 
 WINDOWS_SCHEME = {
-    'purelib': '$base/Lib/site-packages',
-    'platlib': '$base/Lib/site-packages',
-    'headers': '$base/Include/$dist_name',
-    'scripts': '$base/Scripts',
+    'purelib': '$base/lib/python$py_version_short/site-packages',
+    'platlib': '$base/lib/python$py_version_short/site-packages',
+    'headers': '$base/include/python$py_version_short$abiflags/$dist_name',
+    'scripts': '$base/bin',
     'data'   : '$base',
 }
 
@@ -50,8 +50,8 @@ if HAS_USER_SITE:
     INSTALL_SCHEMES['nt_user'] = {
         'purelib': '$usersite',
         'platlib': '$usersite',
-        'headers': '$userbase/Python$py_version_nodot/Include/$dist_name',
-        'scripts': '$userbase/Python$py_version_nodot/Scripts',
+        'headers': '$userbase/include/python$py_version_short$abiflags/$dist_name',
+        'scripts': '$userbase/bin',
         'data'   : '$userbase',
         }
 
