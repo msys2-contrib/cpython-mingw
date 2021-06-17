@@ -5,6 +5,12 @@
 #  error "this header requires Py_BUILD_CORE define"
 #endif
 
+#ifdef __MINGW32__
+# if !defined(HAVE_PTHREAD_H) || defined(NT_THREADS)
+#  undef _POSIX_THREADS
+# endif
+#endif
+
 #ifndef _POSIX_THREADS
 /* This means pthreads are not implemented in libc headers, hence the macro
    not present in unistd.h. But they still can be implemented as an external
@@ -39,6 +45,10 @@
 /* include windows if it hasn't been done before */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+/* winpthreads are involved via windows header, so need undef _POSIX_THREADS after header include */
+#if defined(_POSIX_THREADS)
+#undef _POSIX_THREADS
+#endif
 
 /* options */
 /* non-emulated condition variables are provided for those that want
