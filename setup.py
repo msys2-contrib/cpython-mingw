@@ -911,7 +911,11 @@ class PyBuildExt(build_ext):
             self.missing.append('spwd')
 
         # select(2); not on ancient System V
-        self.add(Extension('select', ['selectmodule.c']))
+        select_libs = []
+        if MS_WINDOWS:
+            select_libs += ['ws2_32']
+        self.add(Extension('select', ['selectmodule.c'],
+                               libraries=select_libs))
 
         # Fred Drake's interface to the Python parser
         self.add(Extension('parser', ['parsermodule.c']))
