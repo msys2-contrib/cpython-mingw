@@ -1120,6 +1120,8 @@ class PyBuildExt(build_ext):
                 # readline package
                 if find_file('readline/rlconf.h', self.inc_dirs, []) is None:
                     do_readline = False
+        if MS_WINDOWS:
+            do_readline = False
         if do_readline:
             readline_libs = [readline_lib]
             if readline_termcap_library:
