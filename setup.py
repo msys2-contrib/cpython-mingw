@@ -2158,9 +2158,12 @@ class PyBuildExt(build_ext):
         self.add(ext)
         if TEST_EXTENSIONS:
             # function my_sqrt() needs libm for sqrt()
+            ffi_test_libs = ['m']
+            if MS_WINDOWS:
+                ffi_test_libs += ['oleaut32']
             self.add(Extension('_ctypes_test',
                                sources=['_ctypes/_ctypes_test.c'],
-                               libraries=['m']))
+                               libraries=ffi_test_libs))
 
         ffi_inc = sysconfig.get_config_var("LIBFFI_INCLUDEDIR")
         ffi_lib = None
@@ -2205,6 +2208,8 @@ class PyBuildExt(build_ext):
 
             ext.include_dirs.append(ffi_inc)
             ext.libraries.append(ffi_lib)
+            if MS_WINDOWS:
+                ext.libraries.extend(['ole32', 'oleaut32', 'uuid'])
             self.use_system_libffi = True
 
         if sysconfig.get_config_var('HAVE_LIBDL'):
