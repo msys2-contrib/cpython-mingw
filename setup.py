@@ -1773,7 +1773,12 @@ class PyBuildExt(build_ext):
                                    libraries=libs,
                                    include_dirs=["Modules/_multiprocessing"]))
 
+        multiprocessing_libs = []
+        if MS_WINDOWS:
+            multiprocessing_libs += ['ws2_32']
         self.add(Extension('_multiprocessing', multiprocessing_srcs,
+                           define_macros={},
+                           libraries=multiprocessing_libs,
                            include_dirs=["Modules/_multiprocessing"]))
 
     def detect_uuid(self):
