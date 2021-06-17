@@ -7,6 +7,7 @@
 #include "pycore_pathconfig.h"    // _PyPathConfig_ComputeSysPath0()
 #include "pycore_pylifecycle.h"   // _Py_PreInitializeFromPyArgv()
 #include "pycore_pystate.h"       // _PyInterpreterState_GET()
+#include "iscygpty.h"
 
 /* Includes for exit_sigint() */
 #include <stdio.h>                // perror()
@@ -92,7 +93,7 @@ static inline int config_run_code(const PyConfig *config)
 static int
 stdin_is_interactive(const PyConfig *config)
 {
-    return (isatty(fileno(stdin)) || config->interactive);
+    return (isatty(fileno(stdin)) || config->interactive || is_cygpty(fileno(stdin)));
 }
 
 

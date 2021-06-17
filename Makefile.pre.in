@@ -409,6 +409,7 @@ PYTHON_OBJS=	\
 		Python/import.o \
 		Python/importdl.o \
 		Python/initconfig.o \
+		Python/iscygpty.o \
 		Python/marshal.o \
 		Python/modsupport.o \
 		Python/mysnprintf.o \
@@ -1512,6 +1513,7 @@ PYTHON_HEADERS= \
 		$(srcdir)/Include/frameobject.h \
 		$(srcdir)/Include/import.h \
 		$(srcdir)/Include/intrcheck.h \
+		$(srcdir)/Include/iscygpty.h \
 		$(srcdir)/Include/iterobject.h \
 		$(srcdir)/Include/listobject.h \
 		$(srcdir)/Include/longobject.h \

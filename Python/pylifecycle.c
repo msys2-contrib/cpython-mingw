@@ -31,6 +31,7 @@
 
 extern void _PyIO_Fini(void);
 
+#include "iscygpty.h"
 #include <locale.h>               // setlocale()
 #include <stdlib.h>               // getenv()
 
@@ -2954,7 +2955,7 @@ Py_Exit(int sts)
 int
 Py_FdIsInteractive(FILE *fp, const char *filename)
 {
-    if (isatty((int)fileno(fp)))
+    if (isatty((int)fileno(fp)) || is_cygpty((int)fileno(fp)))
         return 1;
     if (!Py_InteractiveFlag)
         return 0;
@@ -2967,7 +2968,7 @@ Py_FdIsInteractive(FILE *fp, const char *filename)
 int
 _Py_FdIsInteractive(FILE *fp, PyObject *filename)
 {
-    if (isatty((int)fileno(fp))) {
+    if (isatty((int)fileno(fp)) || is_cygpty((int)fileno(fp))) {
         return 1;
     }
     if (!Py_InteractiveFlag) {
