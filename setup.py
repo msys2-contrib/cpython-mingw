@@ -1008,7 +1008,10 @@ class PyBuildExt(build_ext):
 
     def detect_readline_curses(self):
         # readline
-        do_readline = self.compiler.find_library_file(self.lib_dirs, 'readline')
+        if not MS_WINDOWS:
+            do_readline = self.compiler.find_library_file(self.lib_dirs, 'readline')
+        else:
+            do_readline = False
         readline_termcap_library = ""
         curses_library = ""
         # Cannot use os.popen here in py3k.
