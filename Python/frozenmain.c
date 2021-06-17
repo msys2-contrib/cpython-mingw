@@ -3,6 +3,7 @@
 #include "Python.h"
 #include "pycore_pystate.h"       // _Py_GetConfig()
 #include "pycore_runtime.h"       // _PyRuntime_Initialize()
+#include "iscygpty.h"
 
 #ifdef HAVE_UNISTD_H
 #  include <unistd.h>             // isatty()
@@ -82,7 +83,7 @@ Py_FrozenMain(int argc, char **argv)
         sts = 0;
     }
 
-    if (inspect && isatty((int)fileno(stdin))) {
+    if (inspect && (isatty((int)fileno(stdin)) || is_cygpty((int)fileno(stdin))))
         sts = PyRun_AnyFile(stdin, "<stdin>") != 0;
     }
 
