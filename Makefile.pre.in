@@ -431,7 +431,7 @@ PYTHON_OBJS=	\
 		Python/errors.o \
 		Python/flowgraph.o \
 		Python/frame.o \
-		Python/frozenmain.o \
+		@PYTHON_OBJS_FROZENMAIN@ \
 		Python/future.o \
 		Python/gc.o \
 		Python/gc_free_threading.o \
