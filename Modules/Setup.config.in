@@ -11,4 +11,5 @@
 
 # build-in modules for windows platform:
 @USE_WIN32_MODULE@winreg ../PC/winreg.c
+@USE_WIN32_MODULE@msvcrt -DPy_BUILD_CORE ../PC/msvcrtmodule.c
 
