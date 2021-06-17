@@ -971,7 +971,9 @@ class PyBuildExt(build_ext):
         # grp(3)
         self.addext(Extension('grp', ['grpmodule.c']))
 
-        self.addext(Extension('_socket', ['socketmodule.c']))
+        self.addext(Extension(
+            '_socket', ['socketmodule.c'],
+            libraries=(['ws2_32', 'iphlpapi'] if MS_WINDOWS else None)))
         self.addext(Extension('spwd', ['spwdmodule.c']))
 
         # select(2); not on ancient System V

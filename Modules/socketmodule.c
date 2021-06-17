@@ -274,7 +274,7 @@ shutdown(how) -- shut down traffic in one or both directions\n\
 # endif
 
 /* Macros based on the IPPROTO enum, see: https://bugs.python.org/issue29515 */
-#ifdef MS_WINDOWS
+#ifdef _MSC_VER
 #define IPPROTO_ICMP IPPROTO_ICMP
 #define IPPROTO_IGMP IPPROTO_IGMP
 #define IPPROTO_GGP IPPROTO_GGP
@@ -305,7 +305,7 @@ shutdown(how) -- shut down traffic in one or both directions\n\
 #define IPPROTO_PGM IPPROTO_PGM  // WinSock2 only
 #define IPPROTO_L2TP IPPROTO_L2TP  // WinSock2 only
 #define IPPROTO_SCTP IPPROTO_SCTP  // WinSock2 only
-#endif /* MS_WINDOWS */
+#endif /* _MSC_VER */
 
 /* Provides the IsWindows7SP1OrGreater() function */
 #include <versionhelpers.h>
@@ -403,6 +403,10 @@ remove_unusable_flags(PyObject *m)
 #elif defined(_MSC_VER) && _MSC_VER>1201
   /* Do not include addrinfo.h for MSVC7 or greater. 'addrinfo' and
    * EAI_* constants are defined in (the already included) ws2tcpip.h.
+   */
+#elif defined(__MINGW32__)
+  /* Do not include addrinfo.h as minimum supported version is
+   * _WIN32_WINNT >= WindowsXP(0x0501)
    */
 #else
 #  include "addrinfo.h"
