@@ -5881,7 +5881,7 @@ AC_MSG_RESULT(done)
 # For mingw build need additional library for linking
 case $host in
   *-*-mingw*)
-    LIBS="$LIBS -lversion -lshlwapi -lpathcch"
+    LIBS="$LIBS -lversion -lshlwapi"
     RCFLAGS="$RCFLAGS -O COFF"
     case $host in
       i686*)  RCFLAGS="$RCFLAGS --target=pe-i386" ;;
