@@ -920,6 +920,28 @@ if test x$MULTIARCH != x; then
 fi
 AC_SUBST(MULTIARCH_CPPFLAGS)
 
+# initialize default configuration
+py_config=
+case $host in
+  *-*-mingw*) py_config=mingw ;;
+esac
+if test -n "$py_config" ; then
+  AC_MSG_NOTICE([loading configure defaults from .../Misc/config_$py_config"])
+  . "$srcdir/Misc/config_$py_config"
+fi
+
+# initialize defaults for cross-builds
+if test "$cross_compiling" = yes; then
+  py_config=$host_os
+  case $py_config in
+    mingw32*) py_config=mingw32 ;;
+  esac
+  if test -f "$srcdir/Misc/cross_$py_config" ; then
+    AC_MSG_NOTICE([loading cross defaults from .../Misc/cross_$py_config"])
+    . "$srcdir/Misc/cross_$py_config"
+  fi
+fi
+
 AC_MSG_CHECKING([for -Wl,--no-as-needed])
 save_LDFLAGS="$LDFLAGS"
 LDFLAGS="$LDFLAGS -Wl,--no-as-needed"
