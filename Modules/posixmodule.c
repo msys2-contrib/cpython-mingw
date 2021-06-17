@@ -361,6 +361,26 @@ corresponding Unix manual entries for more information on calls.");
 #  define HAVE_PIPE       1
 #  define HAVE_FSYNC      1
 #  define fsync _commit
+#elif defined(__MINGW32__)	/* GCC for windows hosts */
+/* getlogin is detected by configure on mingw-w64 */
+#  undef HAVE_GETLOGIN
+/*#    define HAVE_GETCWD     1 - detected by configure*/
+#  define HAVE_GETPPID    1
+#  define HAVE_GETLOGIN   1
+#  define HAVE_SPAWNV     1
+#  define HAVE_WSPAWNV    1
+#  define HAVE_WEXECV     1
+/*#    define HAVE_EXECV	     1 - detected by configure*/
+#  define HAVE_PIPE	     1
+#  define HAVE_POPEN	     1
+#  define HAVE_SYSTEM	   1
+#  define HAVE_CWAIT      1
+#  define HAVE_FSYNC      1
+#  define fsync _commit
+#  include <winioctl.h>
+#  ifndef _MAX_ENV
+#    define _MAX_ENV	32767
+#  endif
 #endif  /* ! __WATCOMC__ || __QNX__ */
 
 /*[clinic input]
@@ -438,7 +458,7 @@ extern char        *ctermid_r(char *);
 #  endif
 #endif
 
-#ifdef _MSC_VER
+#ifdef MS_WINDOWS
 #  ifdef HAVE_DIRECT_H
 #    include <direct.h>
 #  endif
@@ -449,7 +469,7 @@ extern char        *ctermid_r(char *);
 #    include <process.h>
 #  endif
 #  include <malloc.h>
-#endif /* _MSC_VER */
+#endif /* MS_WINDOWS */
 
 #ifndef MAXPATHLEN
 #  if defined(PATH_MAX) && PATH_MAX > 1024
@@ -1536,9 +1556,9 @@ error:
 ** man environ(7).
 */
 #include <crt_externs.h>
-#elif !defined(_MSC_VER) && (!defined(__WATCOMC__) || defined(__QNX__) || defined(__VXWORKS__))
+#elif !defined(MS_WINDOWS) && (!defined(__WATCOMC__) || defined(__QNX__) || defined(__VXWORKS__))
 extern char **environ;
-#endif /* !_MSC_VER */
+#endif /* !MS_WINDOWS */
 
 static PyObject *
 convertenviron(void)
