@@ -20,7 +20,7 @@ static const struct _frozen _PyImport_FrozenModules[] = {
     {0, 0, 0} /* sentinel */
 };
 
-#ifndef MS_WINDOWS
+#ifndef _MSC_VER
 /* On Windows, this links with the regular pythonXY.dll, so this variable comes
    from frozen.obj. In the Makefile, frozen.o is not linked into this executable,
    so we define the variable here. */
