@@ -2510,6 +2510,53 @@ then
 	BASECFLAGS="$BASECFLAGS $ac_arch_flags"
 fi
 
+dnl NOTE:
+dnl - GCC 4.4+ for mingw* require and use posix threads(pthreads-w32)
+dnl - Host may contain installed pthreads-w32.
+dnl - On windows platform only NT-thread model is supported. 
+dnl To avoid miss detection scipt first will check for NT-thread model
+dnl and if is not found will try to detect build options for pthread
+dnl model. Autodetection could be overiden if variable with_nt_threads
+dnl is set in "Site Configuration" (see autoconf manual).
+dnl If NT-thread model is enabled script skips some checks that
+dnl impact build process. When a new functionality is added, developers
+dnl are responsible to update configure script to avoid thread models
+dnl to be mixed.
+
+AC_MSG_CHECKING([for --with-nt-threads])
+AC_ARG_WITH(nt-threads,
+            AS_HELP_STRING([--with-nt-threads], [build with windows threads (default is system-dependent)]),
+[
+	case $withval in
+	no)	with_nt_threads=no;;
+	yes)	with_nt_threads=yes;;
+	*)	with_nt_threads=yes;;
+	esac
+], [
+	case $host in
+		*-*-mingw*) with_nt_threads=yes;;
+		*) with_nt_threads=no;;
+	esac
+])
+AC_MSG_RESULT([$with_nt_threads])
+
+if test $with_nt_threads = yes ; then
+AC_MSG_CHECKING([whether linking with nt-threads work])
+AC_LINK_IFELSE([
+    AC_LANG_PROGRAM([[]],[[_beginthread(0, 0, 0);]])
+  ],
+  [AC_MSG_RESULT([yes])],
+  [AC_MSG_ERROR([failed to link with nt-threads])])
+fi
+
+if test $with_nt_threads = yes ; then
+  dnl temporary default flag to avoid additional pthread checks
+  dnl and initilize other ac..thread flags to no
+  ac_cv_pthread_is_default=no
+  ac_cv_kthread=no
+  ac_cv_pthread=no
+  dnl ac_cv_kpthread is set to no if default is yes (see below)
+else
 # On some compilers, pthreads are available without further options
 # (e.g. MacOS X). On some of these systems, the compiler will not
 # complain if unaccepted options are passed (e.g. gcc on Mac OS X).
@@ -2621,6 +2668,8 @@ int main(void){
 CC="$ac_save_cc"])
 fi
 
+fi
+
 # If we have set a CC compiler flag for thread support then
 # check if it works for CXX, too.
 ac_cv_cxx_thread=no
@@ -2641,6 +2690,10 @@ elif test "$ac_cv_pthread" = "yes"
 then
   CXX="$CXX -pthread"
   ac_cv_cxx_thread=yes
+elif test $with_nt_threads = yes
+then
+  dnl set to always to skip extra pthread check below
+  ac_cv_cxx_thread=always
 fi
 
 if test $ac_cv_cxx_thread = yes
@@ -2678,8 +2731,8 @@ AC_CHECK_HEADERS([ \
   alloca.h asm/types.h bluetooth.h conio.h crypt.h direct.h dlfcn.h endian.h errno.h fcntl.h grp.h \
   ieeefp.h io.h langinfo.h libintl.h libutil.h linux/auxvec.h sys/auxv.h linux/limits.h linux/memfd.h \
   linux/random.h linux/soundcard.h \
-  linux/tipc.h linux/wait.h netdb.h netinet/in.h netpacket/packet.h poll.h process.h pthread.h pty.h \
-  sched.h setjmp.h shadow.h signal.h spawn.h stropts.h sys/audioio.h sys/bsdtty.h sys/devpoll.h \
+  linux/tipc.h linux/wait.h netdb.h netinet/in.h netpacket/packet.h poll.h process.h pty.h \
+  setjmp.h shadow.h signal.h spawn.h stropts.h sys/audioio.h sys/bsdtty.h sys/devpoll.h \
   sys/endian.h sys/epoll.h sys/event.h sys/eventfd.h sys/file.h sys/ioctl.h sys/kern_control.h \
   sys/loadavg.h sys/lock.h sys/memfd.h sys/mkdev.h sys/mman.h sys/modem.h sys/param.h sys/poll.h \
   sys/random.h sys/resource.h sys/select.h sys/sendfile.h sys/socket.h sys/soundcard.h sys/stat.h \
@@ -2689,6 +2742,14 @@ AC_CHECK_HEADERS([ \
 ])
 AC_HEADER_DIRENT
 AC_HEADER_MAJOR
+
+# If using nt threads, don't look for pthread.h or thread.h
+if test "x$with_nt_threads" = xno ; then
+AC_HEADER_STDC
+AC_CHECK_HEADERS(pthread.h sched.h thread.h)
+AC_HEADER_DIRENT
+AC_HEADER_MAJOR
+fi
 
 # bluetooth/bluetooth.h has been known to not compile with -std=c99.
 # http://permalink.gmane.org/gmane.linux.bluez.kernel/22294
@@ -2894,6 +2955,10 @@ elif test "$ac_cv_pthread" = "yes"
 then CC="$CC -pthread"
 fi
 
+if test $with_nt_threads = yes ; then
+  dnl skip check for pthread_t if NT-thread model is enabled
+  ac_cv_have_pthread_t=skip
+else
 AC_CACHE_CHECK([for pthread_t], [ac_cv_have_pthread_t], [
 AC_COMPILE_IFELSE([
   AC_LANG_PROGRAM([[#include <pthread.h>]], [[pthread_t x; x = *(pthread_t*)0;]])
@@ -2925,7 +2990,7 @@ AS_VAR_IF([ac_cv_pthread_key_t_is_arithmetic_type], [yes], [
     AC_DEFINE(PTHREAD_KEY_T_IS_COMPATIBLE_WITH_INT, 1,
               [Define if pthread_key_t is compatible with int.])
 ])
-
+fi
 CC="$ac_save_cc"
 
 AC_SUBST(OTHER_LIBTOOL_OPT)
@@ -3460,10 +3525,15 @@ AS_VAR_IF([have_uuid], [missing], [
 
 AS_VAR_IF([have_uuid], [missing], [have_uuid=no])
 
+if test $with_nt_threads = yes ; then
+  dnl do not search for sem_init if NT-thread model is enabled
+  :
+else
 # 'Real Time' functions on Solaris
 # posix4 on Solaris 2.6
 # pthread (first!) on Linux
 AC_SEARCH_LIBS(sem_init, pthread rt posix4)
+fi
 
 # check if we need libintl for locale functions
 AC_CHECK_LIB(intl, textdomain,
@@ -4088,6 +4158,11 @@ then
         CXX="$CXX -pthread"
     fi
     posix_threads=yes
+elif test $with_nt_threads = yes
+then
+    posix_threads=no
+    AC_DEFINE(NT_THREADS, 1,
+        [Define to 1 if you want to use native NT threads])
 else
     if test ! -z "$withval" -a -d "$withval"
     then LDFLAGS="$LDFLAGS -L$withval"
@@ -4592,6 +4667,15 @@ else
 fi
 
 # checks for library functions
+if test $with_nt_threads = yes ; then
+  dnl GCC(mingw) 4.4+ require and use posix threads(pthreads-w32)
+  dnl and host may contain installed pthreads-w32.
+  dnl Skip checks for some functions declared in pthreads-w32 if
+  dnl NT-thread model is enabled.
+  ac_cv_func_pthread_kill=skip
+  ac_cv_func_sem_open=skip
+  ac_cv_func_sched_setscheduler=skip
+fi
 AC_CHECK_FUNCS([ \
   accept4 alarm bind_textdomain_codeset chmod chown clock close_range confstr \
   copy_file_range ctermid dup dup3 execv explicit_bzero explicit_memset \
@@ -5521,6 +5605,10 @@ dnl actually works.  For FreeBSD versions <= 7.2,
 dnl the kernel module that provides POSIX semaphores
 dnl isn't loaded by default, so an attempt to call
 dnl sem_open results in a 'Signal 12' error.
+if test $with_nt_threads = yes ; then
+  dnl skip posix semaphores test if NT-thread model is enabled
+  ac_cv_posix_semaphores_enabled=no
+fi
 AC_CACHE_CHECK([whether POSIX semaphores are enabled], [ac_cv_posix_semaphores_enabled],
   AC_RUN_IFELSE([
     AC_LANG_SOURCE([
@@ -5554,6 +5642,14 @@ AS_VAR_IF([ac_cv_posix_semaphores_enabled], [no], [
 ])
 
 dnl Multiprocessing check for broken sem_getvalue
+if test $with_nt_threads = yes ; then
+  dnl Skip test if NT-thread model is enabled.
+  dnl NOTE the test case below fail for pthreads-w32 as:
+  dnl - SEM_FAILED is not defined;
+  dnl - sem_open is a stub;
+  dnl - sem_getvalue work(!).
+  ac_cv_broken_sem_getvalue=skip
+fi
 AC_CACHE_CHECK([for broken sem_getvalue], [ac_cv_broken_sem_getvalue],
   AC_RUN_IFELSE([
     AC_LANG_SOURCE([
