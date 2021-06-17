@@ -988,13 +988,21 @@ class PyBuildExt(build_ext):
         if (self.config_h_vars.get('FLOCK_NEEDS_LIBBSD', False)):
             # May be necessary on AIX for flock function
             libs = ['bsd']
-        self.add(Extension('fcntl', ['fcntlmodule.c'],
-                           libraries=libs))
+        if not MS_WINDOWS:
+            self.add(Extension('fcntl', ['fcntlmodule.c'],
+                               libraries=libs))
+        else:
+            self.missing.append('fcntl')
         # pwd(3)
-        self.add(Extension('pwd', ['pwdmodule.c']))
+        if not MS_WINDOWS:
+            self.add(Extension('pwd', ['pwdmodule.c']))
+        else:
+            self.missing.append('pwd')
         # grp(3)
-        if not VXWORKS:
+        if not VXWORKS and not MS_WINDOWS:
             self.add(Extension('grp', ['grpmodule.c']))
+        else:
+            self.missing.append('grp')
         # spwd, shadow passwords
         if (self.config_h_vars.get('HAVE_GETSPNAM', False) or
                 self.config_h_vars.get('HAVE_GETSPENT', False)):
@@ -1016,7 +1024,10 @@ class PyBuildExt(build_ext):
 
         # Lance Ellinghaus's syslog module
         # syslog daemon interface
-        self.add(Extension('syslog', ['syslogmodule.c']))
+        if not MS_WINDOWS:
+            self.add(Extension('syslog', ['syslogmodule.c']))
+        else:
+            self.missing.append('syslog')
 
         # Python interface to subinterpreter C-API.
         self.add(Extension('_xxsubinterpreters', ['_xxsubinterpretersmodule.c']))
@@ -1042,8 +1053,11 @@ class PyBuildExt(build_ext):
         self.add(Extension('_csv', ['_csv.c']))
 
         # POSIX subprocess module helper.
-        self.add(Extension('_posixsubprocess', ['_posixsubprocess.c'],
+        if not MS_WINDOWS:
+            self.add(Extension('_posixsubprocess', ['_posixsubprocess.c'],
                            extra_compile_args=['-DPy_BUILD_CORE_MODULE']))
+        else:
+            self.missing.append('_posixsubprocess')
 
     def detect_test_extensions(self):
         # Python C API test module
@@ -1238,12 +1252,15 @@ class PyBuildExt(build_ext):
             self.missing.append('_crypt')
             return
 
-        if self.compiler.find_library_file(self.lib_dirs, 'crypt'):
-            libs = ['crypt']
-        else:
-            libs = []
+        if not MS_WINDOWS:
+            if self.compiler.find_library_file(self.lib_dirs, 'crypt'):
+                libs = ['crypt']
+            else:
+                libs = []
 
-        self.add(Extension('_crypt', ['_cryptmodule.c'], libraries=libs))
+            self.add(Extension('_crypt', ['_cryptmodule.c'], libraries=libs))
+        else:
+            self.missing.append('_crypt')
 
     def detect_socket(self):
         # socket(2)
