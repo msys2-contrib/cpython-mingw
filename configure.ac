@@ -2494,8 +2494,20 @@ AC_CHECK_SIZEOF(off_t, [], [
 ])
 
 AC_MSG_CHECKING(whether to enable large file support)
+have_largefile_support=no
 if test "$ac_cv_sizeof_off_t" -gt "$ac_cv_sizeof_long" -a \
 	"$ac_cv_sizeof_long_long" -ge "$ac_cv_sizeof_off_t"; then
+  have_largefile_support=yes
+else
+  case $host in
+  *-*-mingw*)
+    dnl Activate on windows platforms (32&64-bit) where off_t(4) < fpos_t(8)
+    have_largefile_support=yes
+    ;;
+  esac
+fi
+
+if test $have_largefile_support = yes ; then
   AC_DEFINE(HAVE_LARGEFILE_SUPPORT, 1,
   [Defined to enable large file support when an off_t is bigger than a long
    and long long is at least as big as an off_t. You may need
