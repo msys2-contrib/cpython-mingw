@@ -1937,13 +1937,31 @@ _Py_wrealpath(const wchar_t *path,
 #endif
 
 
-#ifndef MS_WINDOWS
 int
 _Py_isabs(const wchar_t *path)
 {
-    return (path[0] == SEP);
-}
+#ifdef MS_WINDOWS
+    size_t i = wcslen(path);
+    if (i >= 3) {
+        if (iswalpha(path[0]) && path[1] == L':' && _Py_issep(path[2])) {
+            return 1;
+        }
+    }
+    return 0;
+#else
+    return _Py_issep(path[0]);
 #endif
+}
+
+int
+_Py_issep(const wchar_t ch)
+{
+#ifdef MS_WINDOWS
+    return ch == SEP || ch == ALTSEP;
+#else
+    return ch == SEP;
+#endif
+}
 
 
 /* Get an absolute path.
