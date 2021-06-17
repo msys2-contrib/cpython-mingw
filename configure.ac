@@ -3338,6 +3338,13 @@ else
 fi])
 AC_MSG_RESULT($with_dbmliborder)
 
+# Determine if windows modules should be used.
+AC_SUBST(USE_WIN32_MODULE)
+USE_WIN32_MODULE='#'
+case $host in
+  *-*-mingw*) USE_WIN32_MODULE=;;
+esac
+
 # Templates for things AC_DEFINEd more than once.
 # For a single AC_DEFINE, no template is needed.
 AH_TEMPLATE(_REENTRANT,
