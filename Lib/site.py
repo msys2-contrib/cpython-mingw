@@ -299,7 +299,7 @@ def _getuserbase():
     def joinuser(*args):
         return os.path.expanduser(os.path.join(*args))
 
-    if os.name == "nt":
+    if os.name == "nt" and not sys._is_mingw:
         base = os.environ.get("APPDATA") or "~"
         return joinuser(base, _get_implementation())
 
@@ -320,7 +320,7 @@ def _get_path(userbase):
 
     implementation = _get_implementation()
     implementation_lower = implementation.lower()
-    if os.name == 'nt':
+    if os.name == 'nt' and not sys._is_mingw:
         ver_nodot = sys.winver.replace('.', '')
         return f'{userbase}\\{implementation}{ver_nodot}\\site-packages'
 
@@ -399,7 +399,7 @@ def getsitepackages(prefixes=None):
             abi_thread = 't'
         else:
             abi_thread = ''
-        if os.sep == '/':
+        if os.name == 'posix' or sys._is_mingw:
             libdirs = [sys.platlibdir]
             if sys.platlibdir != "lib":
                 libdirs.append("lib")
@@ -430,7 +430,7 @@ def setquit():
     The repr of each object contains a hint at how it works.
 
     """
-    if os.sep == '\\':
+    if sys.platform == 'win32':
         eof = 'Ctrl-Z plus Return'
     else:
         eof = 'Ctrl-D (i.e. EOF)'
