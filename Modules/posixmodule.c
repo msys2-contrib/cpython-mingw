@@ -296,6 +296,32 @@
 #  define HAVE_PIPE       1
 #  define HAVE_FSYNC      1
 #  define fsync _commit
+#elif defined(__MINGW32__)	/* GCC for windows hosts */
+/* getlogin is detected by configure on mingw-w64 */
+#  undef HAVE_GETLOGIN
+/* opendir is detected by configure on mingw-w64, and for some reason
+things don't work as expected. For example, os.listdir always returns
+the cwd's directory listing instead of the one specified. By 
+un-defining, this, os.listdir will use the one which uses native
+windows API. */
+#  undef HAVE_OPENDIR
+/*#    define HAVE_GETCWD     1 - detected by configure*/
+#  define HAVE_GETPPID    1
+#  define HAVE_GETLOGIN   1
+#  define HAVE_SPAWNV     1
+#  define HAVE_WSPAWNV    1
+#  define HAVE_WEXECV     1
+/*#    define HAVE_EXECV	     1 - detected by configure*/
+#  define HAVE_PIPE	     1
+#  define HAVE_POPEN	     1
+#  define HAVE_SYSTEM	   1
+#  define HAVE_CWAIT      1
+#  define HAVE_FSYNC      1
+#  define fsync _commit
+#  include <winioctl.h>
+#  ifndef _MAX_ENV
+#    define _MAX_ENV	32767
+#  endif
 #endif
 
 
@@ -1745,9 +1771,9 @@ error:
 */
 #include <crt_externs.h>
 #define USE_DARWIN_NS_GET_ENVIRON 1
-#elif !defined(_MSC_VER) && (!defined(__WATCOMC__) || defined(__QNX__) || defined(__VXWORKS__))
+#elif !defined(MS_WINDOWS) && (!defined(__WATCOMC__) || defined(__QNX__) || defined(__VXWORKS__))
 extern char **environ;
-#endif /* !_MSC_VER */
+#endif /* !MS_WINDOWS */
 
 static PyObject *
 convertenviron(void)
