@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 #include "gdbmerrno.h"
 extern const char * gdbm_strerror(gdbm_error);
 #endif
