@@ -141,6 +141,13 @@ exec_prefix=	@exec_prefix@
 # Install prefix for data files
 datarootdir=    @datarootdir@
 
+# Locations needed for semi-native fixup of sysconfig.
+srcdir_b2h=		@srcdir_b2h@
+VPATH_b2h=		@VPATH_b2h@
+abs_srcdir_b2h=		@abs_srcdir_b2h@
+abs_builddir_b2h=	@abs_builddir_b2h@
+prefix_b2h=		@prefix_b2h@
+
 # Expanded directories
 BINDIR=		@bindir@
 LIBDIR=		@libdir@
