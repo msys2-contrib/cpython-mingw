@@ -35,6 +35,10 @@
 #  define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>              // CRITICAL_SECTION
+/* winpthreads are involved via windows header, so need undef _POSIX_THREADS after header include */
+#if defined(_POSIX_THREADS)
+#undef _POSIX_THREADS
+#endif
 
 /* options */
 /* emulated condition variables are provided for those that want
