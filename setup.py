@@ -1855,7 +1855,12 @@ class PyBuildExt(build_ext):
             if (sysconfig.get_config_var('HAVE_SEM_OPEN') and not
                 sysconfig.get_config_var('POSIX_SEMAPHORES_NOT_ENABLED')):
                 multiprocessing_srcs.append('_multiprocessing/semaphore.c')
+        multiprocessing_libs = []
+        if MS_WINDOWS:
+            multiprocessing_libs += ['ws2_32']
         self.add(Extension('_multiprocessing', multiprocessing_srcs,
+                           define_macros={},
+                           libraries=multiprocessing_libs,
                            include_dirs=["Modules/_multiprocessing"]))
 
         if (not MS_WINDOWS and
