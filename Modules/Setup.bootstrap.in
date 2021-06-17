@@ -8,7 +8,7 @@
 # module C APIs are used in core
 atexit atexitmodule.c
 faulthandler faulthandler.c
-posix posixmodule.c
+@INITSYS@ posixmodule.c
 _signal signalmodule.c
 _tracemalloc _tracemalloc.c
 
