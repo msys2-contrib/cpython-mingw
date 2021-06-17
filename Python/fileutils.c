@@ -1,4 +1,5 @@
 #include "Python.h"
+#include "iscygpty.h"
 #include "pycore_fileutils.h"
 #include "osdefs.h"               // SEP
 #include <locale.h>
@@ -71,7 +72,7 @@ _Py_device_encoding(int fd)
     int valid;
     Py_BEGIN_ALLOW_THREADS
     _Py_BEGIN_SUPPRESS_IPH
-    valid = isatty(fd);
+    valid = isatty(fd) || is_cygpty(fd);
     _Py_END_SUPPRESS_IPH
     Py_END_ALLOW_THREADS
     if (!valid)
