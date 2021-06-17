@@ -3,3 +3,6 @@
 # The purpose of this file is to conditionally enable certain modules
 # based on configure-time options.
 
+# init system calls(posix/nt/...) for INITFUNC (used by makesetup)
+@INITSYS@ -DPy_BUILD_CORE_BUILTIN -I$(srcdir)/Include/internal posixmodule.c
+
