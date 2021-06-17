@@ -1,4 +1,5 @@
 #include "Python.h"
+#include "iscygpty.h"
 #include "pycore_fileutils.h"
 #include "osdefs.h"               // SEP
 #include <locale.h>
@@ -70,7 +71,7 @@ _Py_device_encoding(int fd)
 #endif
     int valid;
     _Py_BEGIN_SUPPRESS_IPH
-    valid = isatty(fd);
+    valid = isatty(fd) || is_cygpty(fd);
     _Py_END_SUPPRESS_IPH
     if (!valid)
         Py_RETURN_NONE;
