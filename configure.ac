@@ -8221,6 +8221,7 @@ PY_STDLIB_MOD([_testsinglephase], [test "$TEST_MODULES" = yes], [test "$ac_cv_fu
 PY_STDLIB_MOD([_testexternalinspection], [test "$TEST_MODULES" = yes])
 PY_STDLIB_MOD([xxsubtype], [test "$TEST_MODULES" = yes])
 PY_STDLIB_MOD([_xxtestfuzz], [test "$TEST_MODULES" = yes])
+PY_STDLIB_MOD([_testconsole], [test "$TEST_MODULES" = yes -a "$MACHDEP" = "win32"])
 PY_STDLIB_MOD([_ctypes_test],
   [test "$TEST_MODULES" = yes], [test "$have_libffi" = yes -a "$ac_cv_func_dlopen" = yes],
   [], [$LIBM])

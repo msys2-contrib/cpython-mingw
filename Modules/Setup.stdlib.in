@@ -182,6 +182,7 @@
 @MODULE__TESTSINGLEPHASE_TRUE@_testsinglephase _testsinglephase.c
 @MODULE__TESTEXTERNALINSPECTION_TRUE@_testexternalinspection _testexternalinspection.c
 @MODULE__CTYPES_TEST_TRUE@_ctypes_test _ctypes/_ctypes_test.c
+@MODULE__TESTCONSOLE_TRUE@_testconsole ../PC/_testconsole.c
 
 # Limited API template modules; must be built as shared modules.
 @MODULE_XXLIMITED_TRUE@xxlimited xxlimited.c
