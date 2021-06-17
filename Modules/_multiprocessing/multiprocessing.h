@@ -21,6 +21,9 @@
 #  endif
 #  define SEM_HANDLE HANDLE
 #  define SEM_VALUE_MAX LONG_MAX
+#  if defined(HAVE_SEM_OPEN) && defined(_POSIX_THREADS)
+#      include <semaphore.h>
+#  endif
 #else
 #  include <fcntl.h>                 /* O_CREAT and O_EXCL */
 #  if defined(HAVE_SEM_OPEN) && !defined(POSIX_SEMAPHORES_NOT_ENABLED)
