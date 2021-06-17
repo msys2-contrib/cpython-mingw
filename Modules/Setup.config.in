@@ -1,0 +1,5 @@
+# This file is transmogrified into Setup.config by config.status.
+
+# The purpose of this file is to conditionally enable certain modules
+# based on configure-time options.
+
