@@ -2390,6 +2390,8 @@ class PyBuildExt(build_ext):
         openssl_includes = split_var('OPENSSL_INCLUDES', '-I')
         openssl_libdirs = split_var('OPENSSL_LDFLAGS', '-L')
         openssl_libs = split_var('OPENSSL_LIBS', '-l')
+        if MS_WINDOWS:
+            openssl_libs += tuple(['ws2_32'])
         if not openssl_libs:
             # libssl and libcrypto not found
             self.missing.extend(['_ssl', '_hashlib'])
