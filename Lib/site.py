@@ -398,7 +398,7 @@ def setquit():
     The repr of each object contains a hint at how it works.
 
     """
-    if os.sep == '\\':
+    if sys.platform == 'win32':
         eof = 'Ctrl-Z plus Return'
     else:
         eof = 'Ctrl-D (i.e. EOF)'
