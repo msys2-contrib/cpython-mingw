@@ -3287,7 +3287,7 @@ if test -z "$SHLIB_SUFFIX"; then
 	*)	   SHLIB_SUFFIX=.so;;
 	esac
 	case $host_os in
-	mingw*)    SHLIB_SUFFIX=.dll;;
+	mingw*)    SHLIB_SUFFIX=.pyd;;
 	esac
 fi
 AC_MSG_RESULT($SHLIB_SUFFIX)
@@ -5947,6 +5947,68 @@ esac
 # check for endianness
 AC_C_BIGENDIAN
 
+AC_SUBST(PYD_PLATFORM_TAG)
+# Special case of PYD_PLATFORM_TAG with python build with mingw. 
+# Python can with compiled with clang or gcc and linked
+# to msvcrt or ucrt. To avoid conflicts between them
+# we are selecting the extension as based on the compiler
+# and the runtime they link to
+#   gcc + x86_64 + msvcrt = cp{version number}-x86_64
+#   gcc + i686 + msvcrt = cp{version number}-i686
+#   gcc + x86_64 + ucrt = cp{version number}-x86_64-ucrt
+#   clang + x86_64 + ucrt = cp{version number}-x86_64-clang
+#   clang + i686 + ucrt = cp{version number}-i686-clang
+
+PYD_PLATFORM_TAG=""
+case $host in
+  *-*-mingw*)
+    # check if we are linking to ucrt
+    AC_MSG_CHECKING(whether linking to ucrt)
+    AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+    #include <stdio.h>
+    #ifndef _UCRT
+        #error no ucrt
+    #endif
+    int main(){ return 0; }
+    ]])],[linking_to_ucrt=yes],[linking_to_ucrt=no])
+    AC_MSG_RESULT($linking_to_ucrt)
+    ;;
+esac
+case $host_os in
+    mingw*)
+  AC_MSG_CHECKING(PYD_PLATFORM_TAG)
+  case $host in
+  i686-*-mingw*)
+    if test -n "${cc_is_clang}"; then
+      # it is CLANG32
+      PYD_PLATFORM_TAG="mingw_i686_clang"
+    else
+      if test $linking_to_ucrt = no; then
+        PYD_PLATFORM_TAG="mingw_i686"
+      else
+        PYD_PLATFORM_TAG="mingw_i686_ucrt"
+      fi
+    fi
+    ;;
+  x86_64-*-mingw*)
+    if test -n "${cc_is_clang}"; then
+      # it is CLANG64
+      PYD_PLATFORM_TAG="mingw_x86_64_clang"
+    else
+      if test $linking_to_ucrt = no; then
+        PYD_PLATFORM_TAG="mingw_x86_64"
+      else
+        PYD_PLATFORM_TAG="mingw_x86_64_ucrt"
+      fi
+    fi
+    ;;
+  aarch64-*-mingw*)
+    PYD_PLATFORM_TAG+="mingw_aarch64"
+    ;;
+  esac
+  AC_MSG_RESULT($PYD_PLATFORM_TAG)
+esac
+
 # ABI version string for Python extension modules.  This appears between the
 # periods in shared library file names, e.g. foo.<SOABI>.so.  It is calculated
 # from the following attributes which affect the ABI of this Python build (in
@@ -5979,7 +6041,12 @@ if test "$Py_DEBUG" = 'true' -a "$with_trace_refs" != "yes"; then
 fi
 
 AC_SUBST(EXT_SUFFIX)
-EXT_SUFFIX=.${SOABI}${SHLIB_SUFFIX}
+VERSION_NO_DOTS=$(echo $LDVERSION | tr -d .)
+if test -n "${PYD_PLATFORM_TAG}"; then
+  EXT_SUFFIX=".cp${VERSION_NO_DOTS}-${PYD_PLATFORM_TAG}${SHLIB_SUFFIX}"
+else
+  EXT_SUFFIX=.${SOABI}${SHLIB_SUFFIX}
+fi
 
 AC_MSG_CHECKING(LDVERSION)
 LDVERSION='$(VERSION)$(ABIFLAGS)'
@@ -6618,12 +6685,6 @@ LABEL2:
 case "$ac_cv_computed_gotos" in yes*)
   AC_DEFINE(HAVE_COMPUTED_GOTOS, 1,
   [Define if the C compiler supports computed gotos.])
-esac
-case $host_os in
-    mingw*)
-	dnl Synchronized with _PyImport_DynLoadFiletab (dynload_win.c)
-	dnl Do not use more then one dot on this platform !
-	EXT_SUFFIX=-$SOABI$SHLIB_SUFFIX;;
 esac
 
 case $ac_sys_system in
