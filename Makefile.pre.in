@@ -171,6 +171,7 @@ CONFINCLUDEPY=	$(CONFINCLUDEDIR)/python$(LDVERSION)
 # Symbols used for using shared libraries
 SHLIB_SUFFIX=	@SHLIB_SUFFIX@
 EXT_SUFFIX=	@EXT_SUFFIX@
+PYD_PLATFORM_TAG = @PYD_PLATFORM_TAG@
 LDSHARED=	@LDSHARED@ $(PY_LDFLAGS)
 BLDSHARED=	@BLDSHARED@ $(PY_CORE_LDFLAGS)
 LDCXXSHARED=	@LDCXXSHARED@
@@ -1304,8 +1305,7 @@ Python/dynload_hpux.o: $(srcdir)/Python/dynload_hpux.c Makefile
 
 Python/dynload_win.o: $(srcdir)/Python/dynload_win.c Makefile
 	$(CC) -c $(PY_CORE_CFLAGS) \
-		-DSHLIB_SUFFIX='"$(SHLIB_SUFFIX)"' \
-		-DEXT_SUFFIX='"$(EXT_SUFFIX)"' \
+		-DPYD_PLATFORM_TAG='"$(PYD_PLATFORM_TAG)"' \
 		-o $@ $(srcdir)/Python/dynload_win.c
 
 Python/sysmodule.o: $(srcdir)/Python/sysmodule.c Makefile $(srcdir)/Include/pydtrace.h
@@ -2270,7 +2270,7 @@ libainstall: all python-config
 	@if test "$(STATIC_LIBPYTHON)" = 1; then \
 		if test -d $(LIBRARY); then :; else \
 			if test "$(PYTHONFRAMEWORKDIR)" = no-framework; then \
-				if test "$(SHLIB_SUFFIX)" = .dll; then \
+				if test "$(SHLIB_SUFFIX)" = .dll -o "$(SHLIB_SUFFIX)" = .pyd; then \
 					$(INSTALL_DATA) $(LDLIBRARY) $(DESTDIR)$(LIBPL) ; \
 				else \
 					$(INSTALL_DATA) $(LIBRARY) $(DESTDIR)$(LIBPL)/$(LIBRARY) ; \
