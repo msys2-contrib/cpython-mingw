@@ -123,6 +123,91 @@ class Tests(unittest.TestCase):
         from time import mktime, gmtime
         mktime(gmtime())
 
+    def test_c_ext_build(self):
+        import tempfile
+        import sys
+        import subprocess
+        import textwrap
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmppro:
+            subprocess.check_call([sys.executable, "-m", "ensurepip", "--user"])
+            with Path(tmppro, "setup.py").open("w") as f:
+                f.write(
+                    textwrap.dedent(
+                        """\
+                                    from setuptools import setup, Extension
+
+                                    setup(
+                                        name='cwrapper',
+                                        version='1.0',
+                                        ext_modules=[
+                                            Extension(
+                                                'cwrapper',
+                                                sources=['cwrapper.c']),
+                                        ],
+                                    )
+                                """
+                    )
+                )
+            with Path(tmppro, "cwrapper.c").open("w") as f:
+                f.write(
+                    textwrap.dedent(
+                        """\
+                                    #include <Python.h>
+                                    static PyObject *
+                                    helloworld(PyObject *self, PyObject *args)
+                                    {
+                                        printf("Hello World\\n");
+                                        return Py_None;
+                                    }
+                                    static PyMethodDef
+                                    myMethods[] = {
+                                        { "helloworld", helloworld, METH_NOARGS, "Prints Hello World" },
+                                        { NULL, NULL, 0, NULL }
+                                    };
+                                    static struct PyModuleDef cwrapper = {
+                                        PyModuleDef_HEAD_INIT,
+                                        "cwrapper",
+                                        "Test Module",
+                                        -1,
+                                        myMethods
+                                    };
+
+                                    PyMODINIT_FUNC
+                                    PyInit_cwrapper(void)
+                                    {
+                                        return PyModule_Create(&cwrapper);
+                                    }
+                                """
+                    )
+                )
+            subprocess.check_call(
+                [sys.executable, "-c", "import struct"],
+            )
+            subprocess.check_call(
+                [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "wheel",
+                ],
+            )
+            subprocess.check_call(
+                [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    tmppro,
+                ],
+            )
+            subprocess.check_call(
+                [sys.executable, "-c", "import cwrapper"],
+            )
+
+
 
 def suite():
     return unittest.TestLoader().loadTestsFromName(__name__)
