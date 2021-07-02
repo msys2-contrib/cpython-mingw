@@ -3958,6 +3958,7 @@ then
 	*-*-mingw*)
 	DYNLOADFILE="dynload_win.o"
 	extra_machdep_objs="$extra_machdep_objs PC/dl_nt.o"
+	CFLAGS_NODIST="$CFLAGS_NODIST -DMS_DLL_ID='\"$VERSION\"'"
 	;;
 	esac
 fi
