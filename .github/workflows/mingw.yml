@@ -52,6 +52,7 @@ jobs:
           set -ex
           pkgver='3.9.5'
           _pybasever='3.9'
+          CFLAGS="-O2"
           
           PREFIX_WIN=$(cygpath -wm ${MINGW_PREFIX})
           if [ ${{ matrix.msystem }} == "CLANG64" ]
