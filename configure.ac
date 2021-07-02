@@ -5942,7 +5942,21 @@ AC_MSG_RESULT(done)
 case $host in
   *-*-mingw*)
     LIBS="$LIBS -lversion -lshlwapi"
-    RCFLAGS="$RCFLAGS -O COFF"
+
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
+      #include <stdio.h>
+      #include "Include/patchlevel.h"
+      int main() {
+        fprintf (
+          fopen ("conftest.out","w"),
+          "%d",
+          PY_MICRO_VERSION * 1000 + PY_RELEASE_LEVEL * 10 + PY_RELEASE_SERIAL);
+        return 0;
+      }
+    ]])], [FIELD3=`cat conftest.out`])
+
+    RCFLAGS="$RCFLAGS -DFIELD3=$FIELD3 -O COFF"
+
     case $host in
       i686*)  RCFLAGS="$RCFLAGS --target=pe-i386" ;;
       x86_64*)  RCFLAGS="$RCFLAGS --target=pe-x86-64" ;;
