@@ -5944,9 +5944,12 @@ case $host in
   *-*-mingw*)
     LIBS="$LIBS -lversion -lshlwapi"
 
+    AC_MSG_CHECKING([FIELD3])
+    SAVE_CFLAGS=$CFLAGS
+    CFLAGS="-I $srcdir/Include"
     AC_RUN_IFELSE([AC_LANG_SOURCE([[
       #include <stdio.h>
-      #include "Include/patchlevel.h"
+      #include "patchlevel.h"
       int main() {
         fprintf (
           fopen ("conftest.out","w"),
@@ -5955,7 +5958,8 @@ case $host in
         return 0;
       }
     ]])], [FIELD3=`cat conftest.out`])
-
+    CFLAGS=$SAVE_CFLAGS
+    AC_MSG_RESULT([${FIELD3}])
     RCFLAGS="$RCFLAGS -DFIELD3=$FIELD3 -O COFF"
 
     case $host in
