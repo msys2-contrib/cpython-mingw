@@ -27,14 +27,40 @@ Feel free to extend.
 
 import os
 import unittest
+import sysconfig
 
 if "MSYSTEM" in os.environ:
     SEP = "/"
 else:
     SEP = "\\"
 
+_UCRT = "clang" in sysconfig.get_platform() or "ucrt" in sysconfig.get_platform()
+
 
 class Tests(unittest.TestCase):
+
+    def test_ctypes_find_library(self):
+        from ctypes.util import find_library
+        from ctypes import cdll
+        self.assertTrue(cdll.msvcrt)
+        if _UCRT:
+            self.assertIsNone(find_library('c'))
+        else:
+            self.assertEqual(find_library('c'), 'msvcrt.dll')
+
+    def test_ctypes_dlopen(self):
+        import ctypes
+        import sys
+        self.assertEqual(ctypes.RTLD_GLOBAL, 0)
+        self.assertEqual(ctypes.RTLD_GLOBAL,  ctypes.RTLD_LOCAL)
+        self.assertFalse(hasattr(sys, 'setdlopenflags'))
+        self.assertFalse(hasattr(sys, 'getdlopenflags'))
+        self.assertFalse([n for n in dir(os) if n.startswith("RTLD_")])
+
+    def test_strftime(self):
+        import time
+        with self.assertRaises(ValueError):
+            time.strftime('%Y', (12345,) + (0,) * 8)
 
     def test_sep(self):
         self.assertEqual(os.sep, SEP)
@@ -66,6 +92,7 @@ class Tests(unittest.TestCase):
         import sqlite3
         import ssl
         import ctypes
+        import curses
 
     def test_socket_inet_ntop(self):
         import socket
