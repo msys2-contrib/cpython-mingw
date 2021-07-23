@@ -1136,7 +1136,7 @@ class BytesTest(BaseBytesTest, unittest.TestCase):
 
         if os.name == 'nt':
             # Windows (MSCRT)
-            ptr_format = '0x%0{}X'.format(2 * sizeof_ptr)
+            ptr_format = '0x%0{}x'.format(2 * sizeof_ptr)
             def ptr_formatter(ptr):
                 return (ptr_format % ptr)
         else:
