@@ -54,6 +54,10 @@ if os.name == "nt":
 
     def find_library(name):
         if name in ('c', 'm'):
+            if sys._is_mingw:
+                if sys._is_mingw_ucrt:
+                    return None
+                return 'msvcrt.dll'
             return find_msvcrt()
         # See MSDN for the REAL search order.
         for directory in os.environ['PATH'].split(os.pathsep):
