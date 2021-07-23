@@ -51,45 +51,16 @@ jobs:
         run: |
           set -ex
 
-          CFLAGS="-O2"
-          
-          PREFIX_WIN=$(cygpath -wm ${MINGW_PREFIX})
           if [ ${{ matrix.msystem }} == "CLANG64" ]
           then
             export CC=clang
             export CXX=clang++
           fi
           autoreconf -vfi
-          CFLAGS+=" -fwrapv -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32_WINNT=0x0601"
-          CXXFLAGS+=" -fwrapv -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32_WINNT=0x0601"
-          CPPFLAGS+=" -I${PREFIX_WIN}/include/ncurses "
-          CFLAGS+=" -DNDEBUG "
-          CXXFLAGS+=" -DNDEBUG "
-          _extra_config+=("--enable-optimizations")
 
-          # Workaround for conftest error on 64-bit builds
-          export ac_cv_working_tzset=no
-
-          # Workaround for when dlfcn exists on Windows, which causes
-          # some conftests to succeed when they shouldn't (we don't use dlfcn).
-          export ac_cv_header_dlfcn_h=no
-          export ac_cv_lib_dl_dlopen=no
-          export ac_cv_have_decl_RTLD_GLOBAL=no
-          export ac_cv_have_decl_RTLD_LAZY=no
-          export ac_cv_have_decl_RTLD_LOCAL=no
-          export ac_cv_have_decl_RTLD_NOW=no
-          export ac_cv_have_decl_RTLD_DEEPBIND=no
-          export ac_cv_have_decl_RTLD_MEMBER=no
-          export ac_cv_have_decl_RTLD_NODELETE=no
-          export ac_cv_have_decl_RTLD_NOLOAD=no
-          
-          export CFLAGS
-          export CXXFLAGS
-          export CPPFLAGS
-          
           rm -Rf _build && mkdir _build && cd _build
-          
-          MSYSTEM=MINGW ../configure \
+
+          ../configure \
             --prefix=${MINGW_PREFIX} \
             --host=${MINGW_CHOST} \
             --build=${MINGW_CHOST} \
@@ -101,89 +72,68 @@ jobs:
             --without-ensurepip \
             --without-c-locale-coercion \
             --enable-loadable-sqlite-extensions \
-            "${_extra_config[@]}" \
-            OPT=""
+            --enable-optimizations
+
           # We patch importlib which is embedded in C headers, so regenerate them
           make regen-importlib
 
           make -j8
-          
-          # Add missing venvlauncher files (issue #7014)
-          # FIXME: build these from PC/launcher.c instead
-          cp python.exe venvlauncher.exe
-          cp pythonw.exe venvwlauncher.exe
+
+      - name: Run Smoke Test (build)
+        shell: msys2 {0}
+        run: |
+          SMOKETESTS="$(pwd)/mingw_smoketests.py"
+          cd _build
+          ./python.exe "$SMOKETESTS"
+          MSYSTEM= ./python.exe "$SMOKETESTS"
+
+      - name: Run tests
+        shell: msys2 {0}
+        run: |
+          IGNOREFILE="$(pwd)/mingw_ignorefile.txt"
+          cd _build
+          MSYSTEM= ./python.exe -m test -j8 --ignorefile "$IGNOREFILE" -W
+
+      - name: Run broken tests
+        continue-on-error: true
+        shell: msys2 {0}
+        run: |
+          IGNOREFILE="$(pwd)/mingw_ignorefile.txt"
+          cd _build
+          MSYSTEM= ./python.exe -m test -j8 --matchfile "$IGNOREFILE" -W
 
       - name: Install
         shell: msys2 {0}
         run: |
           set -ex
-
           cd _build
-          _pybasever=$(./python.exe -c "import sys; print(sys.winver);")
-
-          # now install things
 
           pkgdir=python_pkgdir
 
-          PREFIX_WIN=$(cygpath -wm ${MINGW_PREFIX})
-          MSYSTEM=MINGW \
-          MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
           make -j1 install DESTDIR="${pkgdir}"
 
-          # gdb pretty printers for debugging Python itself; to use:
-          # python
-          # sys.path.append('C:/msys64/mingw64/share/gdb/python3')
-          # import python_gdb
-          # reload(python_gdb)
-          # end
-
-          cp -f "${pkgdir}${MINGW_PREFIX}"/lib/python${_pybasever}/config-${_pybasever}/libpython${_pybasever}.dll.a "${pkgdir}${MINGW_PREFIX}"/lib/libpython${_pybasever}.dll.a
-
-          # Need for building boost python module
-          cp -f "${pkgdir}${MINGW_PREFIX}"/lib/python${_pybasever}/config-${_pybasever}/libpython${_pybasever}.dll.a "${pkgdir}${MINGW_PREFIX}"/lib/libpython${_pybasever}.dll.a
-
+          # Fix shebangs
+          _pybasever=$(./python.exe -c "import sys; print(sys.winver);")
           for fscripts in 2to3 2to3-${_pybasever} idle3 idle${_pybasever} pydoc3 pydoc${_pybasever}; do
               sed -i "s|$(cygpath -w ${MINGW_PREFIX} | sed 's|\\|\\\\|g')/bin/python${_pybasever}.exe|/usr/bin/env python${_pybasever}.exe|g" "${pkgdir}${MINGW_PREFIX}"/bin/${fscripts}
           done
+          sed -i "s|#!${pkgdir}${MINGW_PREFIX}/bin/python${_pybasever}.exe|#!/usr/bin/env python${_pybasever}.exe|" "${pkgdir}${MINGW_PREFIX}"/lib/python${_pybasever}/config-${_pybasever}/python-config.py
 
-
+          # Create version-less aliases
           cp "${pkgdir}${MINGW_PREFIX}"/bin/python3.exe "${pkgdir}${MINGW_PREFIX}"/bin/python.exe
           cp "${pkgdir}${MINGW_PREFIX}"/bin/python3w.exe "${pkgdir}${MINGW_PREFIX}"/bin/pythonw.exe
           cp "${pkgdir}${MINGW_PREFIX}"/bin/python3-config "${pkgdir}${MINGW_PREFIX}"/bin/python-config
           cp "${pkgdir}${MINGW_PREFIX}"/bin/idle3 "${pkgdir}${MINGW_PREFIX}"/bin/idle
           cp "${pkgdir}${MINGW_PREFIX}"/bin/pydoc3 "${pkgdir}${MINGW_PREFIX}"/bin/pydoc
 
-          sed -i "s|#!${pkgdir}${MINGW_PREFIX}/bin/python${_pybasever}.exe|#!/usr/bin/env python${_pybasever}.exe|" "${pkgdir}${MINGW_PREFIX}"/lib/python${_pybasever}/config-${_pybasever}/python-config.py
-
-          # fix permissons
-          find ${pkgdir}${MINGW_PREFIX} -type f \( -name "*.dll" -o -name "*.exe" \) | xargs chmod 0755
-
-          # replace paths in sysconfig
-          sed -i "s|${pkgdir}${MINGW_PREFIX}|${MINGW_PREFIX}|g" \
-          "${pkgdir}${MINGW_PREFIX}"/lib/python${_pybasever}/lib-dynload/_sysconfigdata*.py \
-          "${pkgdir}${MINGW_PREFIX}"/lib/python${_pybasever}/smtpd.py
-
-          # install venv launchers
-          mkdir -p "${pkgdir}${MINGW_PREFIX}"/lib/python${_pybasever}/venv/scripts/nt
-          cp venvlauncher.exe "${pkgdir}${MINGW_PREFIX}"/lib/python${_pybasever}/venv/scripts/nt/python.exe
-          cp venvwlauncher.exe "${pkgdir}${MINGW_PREFIX}"/lib/python${_pybasever}/venv/scripts/nt/pythonw.exe
-
-      - name: Run Smoke Test
+      - name: Run Smoke Test (installed)
         shell: msys2 {0}
         run: |
-          SMOKETESTS="$(pwd)/.github/workflows/smoketests.py"
+          SMOKETESTS="$(pwd)/mingw_smoketests.py"
           cd _build
           cd python_pkgdir/${MINGW_PREFIX}/bin
           ./python.exe "$SMOKETESTS"
           MSYSTEM= ./python.exe "$SMOKETESTS"
-
-      - name: Run tests
-        continue-on-error: true
-        shell: msys2 {0}
-        run: |
-          cd _build
-          cd python_pkgdir/${MINGW_PREFIX}/bin
-          ./python.exe -m test -j4
 
       - name: Compress
         if: always()
