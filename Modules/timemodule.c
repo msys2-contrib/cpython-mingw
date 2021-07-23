@@ -783,7 +783,7 @@ time_strftime(PyObject *module, PyObject *args)
         return NULL;
     }
 
-#if defined(_MSC_VER) || (defined(__sun) && defined(__SVR4)) || defined(_AIX) || defined(__VXWORKS__)
+#if defined(MS_WINDOWS) || (defined(__sun) && defined(__SVR4)) || defined(_AIX) || defined(__VXWORKS__)
     if (buf.tm_year + 1900 < 1 || 9999 < buf.tm_year + 1900) {
         PyErr_SetString(PyExc_ValueError,
                         "strftime() requires year in [1; 9999]");
