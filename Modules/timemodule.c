@@ -41,7 +41,7 @@
 #  include <sanitizer/msan_interface.h>
 #endif
 
-#ifdef _MSC_VER
+#ifdef MS_WINDOWS
 #  define _Py_timezone _timezone
 #  define _Py_daylight _daylight
 #  define _Py_tzname _tzname
@@ -892,7 +892,7 @@ time_strftime(PyObject *module, PyObject *args)
 //
 // Android works with negative years on the emulator, but fails on some
 // physical devices (#123017).
-#if defined(_MSC_VER) || (defined(__sun) && defined(__SVR4)) || defined(_AIX) \
+#if defined(MS_WINDOWS) || (defined(__sun) && defined(__SVR4)) || defined(_AIX) \
     || defined(__VXWORKS__) || defined(__ANDROID__)
     if (buf.tm_year + 1900 < 1 || 9999 < buf.tm_year + 1900) {
         PyErr_SetString(PyExc_ValueError,
