@@ -2430,7 +2430,7 @@ dnl AC_MSG_RESULT($cpp_type)
 
 # checks for header files
 AC_HEADER_STDC
-AC_CHECK_HEADERS(asm/types.h crypt.h conio.h direct.h dlfcn.h errno.h \
+AC_CHECK_HEADERS(asm/types.h crypt.h conio.h direct.h errno.h \
 fcntl.h grp.h \
 ieeefp.h io.h langinfo.h libintl.h process.h \
 shadow.h signal.h stropts.h termios.h \
@@ -2444,6 +2444,12 @@ sys/times.h sys/types.h sys/uio.h sys/un.h sys/utsname.h sys/wait.h pty.h \
 libutil.h sys/resource.h netpacket/packet.h sysexits.h bluetooth.h \
 linux/tipc.h linux/random.h spawn.h util.h alloca.h endian.h \
 sys/endian.h sys/sysmacros.h linux/auxvec.h sys/auxv.h linux/memfd.h linux/wait.h sys/memfd.h sys/mman.h)
+
+case $host in
+  *-*-mingw*) ;;
+  *) AC_CHECK_HEADERS([dlfcn.h]);;
+esac
+
 AC_HEADER_DIRENT
 AC_HEADER_MAJOR
 
@@ -3115,7 +3121,12 @@ AC_MSG_RESULT($SHLIBS)
 
 # checks for libraries
 AC_CHECK_LIB(sendfile, sendfile)
-AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
+
+case $host in
+  *-*-mingw*) ;;
+  *) AC_CHECK_LIB(dl, dlopen) ;;	# Dynamic linking for SunOS/Solaris and SYSV
+esac
+
 AC_CHECK_LIB(dld, shl_load)	# Dynamic linking for HP-UX
 
 # checks for uuid.h location
@@ -5025,7 +5036,10 @@ then
   [define to 1 if your sem_getvalue is broken.])
 fi
 
-AC_CHECK_DECLS([RTLD_LAZY, RTLD_NOW, RTLD_GLOBAL, RTLD_LOCAL, RTLD_NODELETE, RTLD_NOLOAD, RTLD_DEEPBIND, RTLD_MEMBER], [], [], [[#include <dlfcn.h>]])
+case $host in
+  *-*-mingw*) ;;
+  *) AC_CHECK_DECLS([RTLD_LAZY, RTLD_NOW, RTLD_GLOBAL, RTLD_LOCAL, RTLD_NODELETE, RTLD_NOLOAD, RTLD_DEEPBIND, RTLD_MEMBER], [], [], [[#include <dlfcn.h>]]);;
+esac
 
 # determine what size digit to use for Python's longs
 AC_MSG_CHECKING([digit size for Python's longs])
