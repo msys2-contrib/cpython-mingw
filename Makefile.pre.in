@@ -2326,6 +2326,7 @@ endif
 # Install the dynamically loadable modules
 # This goes into $(exec_prefix)
 sharedinstall: all
+	MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
 	$(RUNSHARED) $(PYTHON_FOR_BUILD) $(srcdir)/setup.py install \
 	   	--prefix=$(prefix) \
 		--install-scripts=$(BINDIR) \
