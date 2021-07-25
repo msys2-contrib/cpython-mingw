@@ -3058,7 +3058,7 @@ AC_DEFINE([STDC_HEADERS], [1],
 
 # checks for header files
 AC_CHECK_HEADERS([ \
-  alloca.h asm/types.h bluetooth.h conio.h crypt.h direct.h dlfcn.h endian.h errno.h fcntl.h grp.h \
+  alloca.h asm/types.h bluetooth.h conio.h crypt.h direct.h endian.h errno.h fcntl.h grp.h \
   ieeefp.h io.h langinfo.h libintl.h libutil.h linux/auxvec.h sys/auxv.h linux/fs.h linux/limits.h linux/memfd.h \
   linux/random.h linux/soundcard.h \
   linux/tipc.h linux/wait.h netdb.h net/ethernet.h netinet/in.h netpacket/packet.h poll.h process.h pty.h \
@@ -3070,6 +3070,13 @@ AC_CHECK_HEADERS([ \
   sys/types.h sys/uio.h sys/un.h sys/utsname.h sys/wait.h sys/xattr.h sysexits.h syslog.h \
   termios.h util.h utime.h utmp.h \
 ])
+
+case $host in
+  *-*-mingw*) ;;
+  *) AC_CHECK_HEADERS([dlfcn.h]);;
+esac
+
+
 AC_HEADER_DIRENT
 AC_HEADER_MAJOR
 
@@ -3815,7 +3822,12 @@ AC_SUBST([PERF_TRAMPOLINE_OBJ])
 
 # checks for libraries
 AC_CHECK_LIB([sendfile], [sendfile])
-AC_CHECK_LIB([dl], [dlopen])       # Dynamic linking for SunOS/Solaris and SYSV
+
+case $host in
+  *-*-mingw*) ;;
+  *) AC_CHECK_LIB([dl], [dlopen]) ;;	# Dynamic linking for SunOS/Solaris and SYSV
+esac
+
 AC_CHECK_LIB([dld], [shl_load])    # Dynamic linking for HP-UX
 
 
@@ -6159,7 +6171,10 @@ AS_VAR_IF([ac_cv_broken_sem_getvalue], [yes], [
   )
 ])
 
-AC_CHECK_DECLS([RTLD_LAZY, RTLD_NOW, RTLD_GLOBAL, RTLD_LOCAL, RTLD_NODELETE, RTLD_NOLOAD, RTLD_DEEPBIND, RTLD_MEMBER], [], [], [[@%:@include <dlfcn.h>]])
+case $host in
+  *-*-mingw*) ;;
+  *) AC_CHECK_DECLS([RTLD_LAZY, RTLD_NOW, RTLD_GLOBAL, RTLD_LOCAL, RTLD_NODELETE, RTLD_NOLOAD, RTLD_DEEPBIND, RTLD_MEMBER], [], [], [[@%:@include <dlfcn.h>]])
+esac
 
 # determine what size digit to use for Python's longs
 AC_MSG_CHECKING([digit size for Python's longs])
