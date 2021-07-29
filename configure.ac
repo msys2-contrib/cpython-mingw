@@ -5146,11 +5146,12 @@ case $host in
   *-*-mingw*)
     # check if we are linking to ucrt
     AC_MSG_CHECKING(whether linking to ucrt)
-    AC_RUN_IFELSE([AC_LANG_SOURCE([[
+    AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
     #include <stdio.h>
-    int main(){
-      _UCRT;
-    }
+    #ifndef _UCRT
+        #error no ucrt
+    #endif
+    int main(){}
     ]])],[linking_to_ucrt=yes],[linking_to_ucrt=no])
     AC_MSG_RESULT($linking_to_ucrt)
     ;;
