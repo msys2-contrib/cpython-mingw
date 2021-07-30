@@ -5151,7 +5151,7 @@ case $host in
     #ifndef _UCRT
         #error no ucrt
     #endif
-    int main(){}
+    int main(){ return 0; }
     ]])],[linking_to_ucrt=yes],[linking_to_ucrt=no])
     AC_MSG_RESULT($linking_to_ucrt)
     ;;
