@@ -5959,22 +5959,20 @@ AC_MSG_RESULT(done)
 case $host in
   *-*-mingw*)
     LIBS="$LIBS -lversion -lshlwapi"
-
+    AC_PROG_AWK
+    if test "$AWK" = "gawk"; then
+      awk_extra_flag="--non-decimal-data"
+    fi
     AC_MSG_CHECKING([FIELD3])
-    SAVE_CFLAGS=$CFLAGS
-    CFLAGS="-I $srcdir/Include"
-    AC_RUN_IFELSE([AC_LANG_SOURCE([[
-      #include <stdio.h>
-      #include "patchlevel.h"
-      int main() {
-        fprintf (
-          fopen ("conftest.out","w"),
-          "%d",
-          PY_MICRO_VERSION * 1000 + PY_RELEASE_LEVEL * 10 + PY_RELEASE_SERIAL);
-        return 0;
-      }
-    ]])], [FIELD3=`cat conftest.out`])
-    CFLAGS=$SAVE_CFLAGS
+    FIELD3=$($AWK $awk_extra_flag '\
+      /^#define PY_RELEASE_LEVEL_/             {levels[$2]=$3}    \
+      /^#define PY_MICRO_VERSION[[:space:]]+/  {micro=$3}         \
+      /^#define PY_RELEASE_LEVEL[[:space:]]+/  {level=levels[$3]} \
+      /^#define PY_RELEASE_SERIAL[[:space:]]+/ {serial=$3}        \
+      END {print micro * 1000 + level * 10 + serial}' \
+      $srcdir/Include/patchlevel.h
+    )
+    
     AC_MSG_RESULT([${FIELD3}])
     RCFLAGS="$RCFLAGS -DFIELD3=$FIELD3 -O COFF"
 
