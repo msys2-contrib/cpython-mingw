@@ -383,17 +383,6 @@ AC_DEFINE_UNQUOTED(_PYTHONFRAMEWORK, "${PYTHONFRAMEWORK}", [framework name])
 # Set name for machine-dependent library files
 AC_ARG_VAR([MACHDEP], [name for machine-dependent library files])
 AC_MSG_CHECKING(MACHDEP)
-case $host in
-  *-*-mingw*)
-    # On those hosts MACHDEP is 'win', as platform specific files
-    # go in plat-$(MACHDEP), but runtime platform is 'win32'
-    test -z "$MACHDEP" && MACHDEP=win
-
-    dnl Configuration will be based only on "host triplet" as build
-    dnl must not depend from posix compatible environement.
-    ac_sys_system=ignore
-    ;;
-esac
 if test -z "$MACHDEP"
 then
     # avoid using uname for cross builds
@@ -411,6 +400,9 @@ then
 		;;
 	*-*-cygwin*)
 		ac_sys_system=Cygwin
+		;;
+	*-*-mingw*)
+		ac_sys_system=MINGW
 		;;
 	*-*-darwin*)
 		ac_sys_system=Darwin
@@ -461,6 +453,7 @@ then
 	linux*) MACHDEP="linux";;
 	cygwin*) MACHDEP="cygwin";;
 	darwin*) MACHDEP="darwin";;
+	mingw*) MACHDEP="win32";;
 	'')	MACHDEP="unknown";;
     esac
 fi
@@ -5236,7 +5229,7 @@ AC_MSG_RESULT($LDVERSION)
 
 # On Android and Cygwin the shared libraries must be linked with libpython.
 AC_SUBST(LIBPYTHON)
-if test -n "$ANDROID_API_LEVEL" -o "$MACHDEP" = "cygwin" -o "$MACHDEP" = "win"; then
+if test -n "$ANDROID_API_LEVEL" -o "$MACHDEP" = "cygwin" -o "$MACHDEP" = "win32"; then
   LIBPYTHON="-lpython${VERSION}${ABIFLAGS}"
 else
   LIBPYTHON=''
