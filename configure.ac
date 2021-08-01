@@ -4395,6 +4395,9 @@ char *r = crypt_r("", "", &d);
     [])
 )
 
+case $host in
+  *-*-mingw*) ;;
+  *)
 AC_CHECK_FUNCS(clock_gettime, [], [
     AC_CHECK_LIB(rt, clock_gettime, [
         LIBS="$LIBS -lrt"
@@ -4415,6 +4418,8 @@ AC_CHECK_FUNCS(clock_settime, [], [
         AC_DEFINE(HAVE_CLOCK_SETTIME, 1)
     ])
 ])
+  ;;
+esac
 
 AC_MSG_CHECKING(for major, minor, and makedev)
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
