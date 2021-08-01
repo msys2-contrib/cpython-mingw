@@ -74,9 +74,6 @@ jobs:
             --enable-loadable-sqlite-extensions \
             --enable-optimizations
 
-          # We patch importlib which is embedded in C headers, so regenerate them
-          make regen-importlib
-
           make -j8
 
       - name: Run Smoke Test (build)
