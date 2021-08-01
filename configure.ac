@@ -5820,6 +5820,9 @@ AC_CHECK_FUNCS([setpgrp],
 # check for namespace functions
 AC_CHECK_FUNCS([setns unshare])
 
+case $host in
+  *-*-mingw*) ;;
+  *)
 AC_CHECK_FUNCS([clock_gettime], [], [
     AC_CHECK_LIB([rt], [clock_gettime], [
         LIBS="$LIBS -lrt"
@@ -5846,6 +5849,8 @@ then
       ])
   ])
 fi
+  ;;
+esac
 
 # On Android before API level 23, clock_nanosleep returns the wrong value when
 # interrupted by a signal (https://issuetracker.google.com/issues/216495770).
