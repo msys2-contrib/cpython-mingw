@@ -4884,6 +4884,11 @@ done
 IFS=$as_save_IFS
 AC_MSG_RESULT([$DBM_CFLAGS $DBM_LIBS])
 
+case $host in
+  *-*-mingw*)
+    CFLAGS_NODIST="$CFLAGS_NODIST -D_WIN32_WINNT=0x0602";;
+esac
+
 # Templates for things AC_DEFINEd more than once.
 # For a single AC_DEFINE, no template is needed.
 AH_TEMPLATE([_REENTRANT],
