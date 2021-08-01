@@ -4547,6 +4547,11 @@ done
 IFS=$as_save_IFS
 AC_MSG_RESULT([$DBM_CFLAGS $DBM_LIBS])
 
+case $host in
+  *-*-mingw*)
+    CFLAGS_NODIST="$CFLAGS_NODIST -D_WIN32_WINNT=0x0602";;
+esac
+
 # Determine if windows modules should be used.
 AC_SUBST(USE_WIN32_MODULE)
 USE_WIN32_MODULE='#'
