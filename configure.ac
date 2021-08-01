@@ -2215,24 +2215,31 @@ dnl impact build process. When a new functionality is added, developers
 dnl are responsible to update configure script to avoid thread models
 dnl to be mixed.
 
-AC_MSG_CHECKING([for NT threads])
+AC_MSG_CHECKING([for --with-nt-threads])
 AC_ARG_WITH(nt-threads,
-            AS_HELP_STRING([--with-nt-threads], [build with windows threads]),
+            AS_HELP_STRING([--with-nt-threads], [build with windows threads (default is system-dependent)]),
 [
 	case $withval in
 	no)	with_nt_threads=no;;
 	yes)	with_nt_threads=yes;;
 	*)	with_nt_threads=yes;;
-	esac], [
-	with_nt_threads=no])
+	esac
+], [
+	case $host in
+		*-*-mingw*) with_nt_threads=yes;;
+		*) with_nt_threads=no;;
+	esac
+])
+AC_MSG_RESULT([$with_nt_threads])
+
 if test $with_nt_threads = yes ; then
+AC_MSG_CHECKING([whether linking with nt-threads work])
 AC_LINK_IFELSE([
     AC_LANG_PROGRAM([[]],[[_beginthread(0, 0, 0);]])
   ],
-  [with_nt_threads=yes],
-  [with_nt_threads=no])
+  [AC_MSG_RESULT([yes])],
+  [AC_MSG_ERROR([failed to link with nt-threads])])
 fi
-AC_MSG_RESULT([$with_nt_threads])
 
 if test $with_nt_threads = yes ; then
   dnl temporary default flag to avoid additional pthread checks
