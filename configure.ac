@@ -3489,6 +3489,11 @@ else
 fi])
 AC_MSG_RESULT($with_dbmliborder)
 
+case $host in
+  *-*-mingw*)
+    CFLAGS_NODIST="$CFLAGS_NODIST -D_WIN32_WINNT=0x0601";;
+esac
+
 # Determine if windows modules should be used.
 AC_SUBST(USE_WIN32_MODULE)
 USE_WIN32_MODULE='#'
