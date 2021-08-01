@@ -57,6 +57,13 @@ class Tests(unittest.TestCase):
         self.assertFalse(hasattr(sys, 'getdlopenflags'))
         self.assertFalse([n for n in dir(os) if n.startswith("RTLD_")])
 
+    def test_time_no_unix_stuff(self):
+        import time
+        self.assertFalse([n for n in dir(time) if n.startswith("clock_")])
+        self.assertFalse([n for n in dir(time) if n.startswith("CLOCK_")])
+        self.assertFalse([n for n in dir(time) if n.startswith("pthread_")])
+        self.assertFalse(hasattr(time, 'tzset'))
+
     def test_strftime(self):
         import time
         with self.assertRaises(ValueError):
