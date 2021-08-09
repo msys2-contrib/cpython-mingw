@@ -50,6 +50,7 @@ jobs:
             ${{ matrix.prefix }}-tk
             ${{ matrix.prefix }}-zlib
             ${{ matrix.prefix }}-xz
+            ${{ matrix.prefix }}-tzdata
 
       - name: Build Python
         shell: msys2 {0}
@@ -76,6 +77,7 @@ jobs:
             --without-ensurepip \
             --without-c-locale-coercion \
             --enable-loadable-sqlite-extensions \
+            --with-tzpath=${MINGW_PREFIX}/share/zoneinfo \
             --enable-optimizations
 
           make -j8
