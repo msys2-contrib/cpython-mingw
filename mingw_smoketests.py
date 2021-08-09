@@ -39,6 +39,12 @@ _UCRT = "clang" in sysconfig.get_platform() or "ucrt" in sysconfig.get_platform(
 
 class Tests(unittest.TestCase):
 
+    def test_zoneinfo(self):
+        # https://github.com/msys2-contrib/cpython-mingw/issues/32
+        import zoneinfo
+        self.assertTrue(any(os.path.exists(p) for p in zoneinfo.TZPATH))
+        zoneinfo.ZoneInfo("America/Sao_Paulo")
+
     def test_userdir_path_sep(self):
         # Make sure os.path and pathlib use the same path separators
         from unittest import mock
