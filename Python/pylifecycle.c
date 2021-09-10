@@ -307,7 +307,11 @@ _coerce_default_locale_settings(int warn, const _LocaleCoercionTarget *target)
     _Py_SetLocaleFromEnv(LC_ALL);
 
     /* Set the relevant locale environment variable */
+#ifdef MS_WINDOWS
+    if (!SetEnvironmentVariable("LC_CTYPE", newloc)) {
+#else
     if (setenv("LC_CTYPE", newloc, 1)) {
+#endif
         fprintf(stderr,
                 "Error setting LC_CTYPE, skipping C locale coercion\n");
         return 0;
@@ -416,7 +420,11 @@ _Py_SetLocaleFromEnv(int category)
         /* Some other ported code may check the environment variables (e.g. in
          * extension modules), so we make sure that they match the locale
          * configuration */
+#ifdef MS_WINDOWS
+        if (!SetEnvironmentVariable("LC_CTYPE", utf8_locale)) {
+#else
         if (setenv("LC_CTYPE", utf8_locale, 1)) {
+#endif
             fprintf(stderr, "Warning: failed setting the LC_CTYPE "
                             "environment variable to %s\n", utf8_locale);
         }
