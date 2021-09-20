@@ -3,7 +3,7 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
@@ -29,10 +29,15 @@ jobs:
         with:
           msystem: ${{ matrix.msystem }}
           release: false
+          update: true
           install: >-
             make
             binutils
+            autoconf
             autoconf-archive
+            automake-wrapper
+            tar
+            gzip
             ${{ matrix.prefix }}-toolchain
             ${{ matrix.prefix }}-expat
             ${{ matrix.prefix }}-bzip2
@@ -136,14 +141,14 @@ jobs:
         shell: msys2 {0}
         run: |
           cd _build
-          tar -I 'zstd --ultra -20' -cf python.tar.zst python_pkgdir/
+          tar -zcf python.tar.gz python_pkgdir/
 
       - name: Upload
         uses: actions/upload-artifact@v2
         if: always()
         with:
           name: build-${{ matrix.msystem }}
-          path: _build/python.tar.zst
+          path: _build/python.tar.gz
 
   cross:
     runs-on: ubuntu-latest
