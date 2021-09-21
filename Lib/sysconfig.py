@@ -795,8 +795,20 @@ def get_platform():
 
     """
     if os.name == 'nt':
-        if 'GCC' in sys.version:
-            return 'mingw'
+        if 'gcc' in sys.version.lower():
+            if 'ucrt' in sys.version.lower():
+                if 'amd64' in sys.version.lower():
+                    return 'mingw_x86_64_ucrt'
+                return 'mingw_i686_ucrt'
+            if 'clang' in sys.version.lower():
+                if 'amd64' in sys.version.lower():
+                    return 'mingw_x86_64_clang'
+                if 'arm64' in sys.version.lower():
+                    return 'mingw_aarch64'
+                return 'mingw_i686_clang'
+            if 'amd64' in sys.version.lower():
+                return 'mingw_x86_64'
+            return 'mingw_i686'
         if 'amd64' in sys.version.lower():
             return 'win-amd64'
         if '(arm)' in sys.version.lower():
