@@ -132,6 +132,13 @@ def convert_path (pathname):
         paths.remove('.')
     if not paths:
         return os.curdir
+    # On Windows, if paths is ['C:','folder','subfolder'] then
+    # os.path.join(*paths) will return 'C:folder\subfolder' which
+    # is thus relative to the CWD on that drive. So we work around
+    # this by adding a \ to path[0]
+    if (len(paths) > 0 and paths[0].endswith(':') and
+        sys.platform == "win32" and sys.version.find("GCC") >= 0):
+        paths[0] += '\\'
     return os.path.join(*paths)
 
 # convert_path ()
@@ -142,6 +149,10 @@ def change_root (new_root, pathname):
     relative, this is equivalent to "os.path.join(new_root,pathname)".
     Otherwise, it requires making 'pathname' relative and then joining the
     two, which is tricky on DOS/Windows and Mac OS.
+
+    If on Windows or OS/2 and both new_root and pathname are on different
+    drives, raises DistutilsChangeRootError as this is nonsensical,
+    otherwise use drive which can be in either of new_root or pathname.
     """
     if os.name == 'posix':
         if not os.path.isabs(pathname):
@@ -151,9 +162,20 @@ def change_root (new_root, pathname):
 
     elif os.name == 'nt':
         (drive, path) = os.path.splitdrive(pathname)
-        if path[0] == '\\':
+        if path[0] == os.sep:
             path = path[1:]
-        return os.path.join(new_root, path)
+        (drive_r, path_r) = os.path.splitdrive(new_root)
+        if path_r and path_r[0] == os.sep:
+            path_r = path_r[1:]
+        drive_used = ''
+        if len(drive) == 2 and len(drive_r) == 2 and drive != drive_r:
+            raise DistutilsChangeRootError("root and pathname not on same drive (%s, %s)"
+                   % (drive_r,drive))
+        elif len(drive_r) == 2:
+            drive_used = drive_r+os.sep
+        elif len(drive) == 2:
+            drive_used = drive+os.sep
+        return os.path.join(drive_used+path_r, path)
 
     else:
         raise DistutilsPlatformError("nothing known about platform '%s'" % os.name)
