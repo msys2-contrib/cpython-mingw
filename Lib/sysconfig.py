@@ -782,6 +782,8 @@ def get_platform():
 
     """
     if os.name == 'nt':
+        if 'GCC' in sys.version:
+            return 'mingw'
         if 'amd64' in sys.version.lower():
             return 'win-amd64'
         if '(arm)' in sys.version.lower():
