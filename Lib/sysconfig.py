@@ -49,13 +49,13 @@ _INSTALL_SCHEMES = {
         'data': '{base}',
         },
     'nt': {
-        'stdlib': '{installed_base}/Lib',
-        'platstdlib': '{base}/Lib',
-        'purelib': '{base}/Lib/site-packages',
-        'platlib': '{base}/Lib/site-packages',
-        'include': '{installed_base}/Include',
-        'platinclude': '{installed_base}/Include',
-        'scripts': '{base}/Scripts',
+        'stdlib': '{installed_base}/lib/python{py_version_short}',
+        'platstdlib': '{base}/lib/python{py_version_short}',
+        'purelib': '{base}/lib/python{py_version_short}/site-packages',
+        'platlib': '{base}/lib/python{py_version_short}/site-packages',
+        'include': '{installed_base}/include/python{py_version_short}',
+        'platinclude': '{installed_base}/include/python{py_version_short}',
+        'scripts': '{base}/bin',
         'data': '{base}',
         },
     # Downstream distributors can overwrite the default install scheme.
@@ -141,12 +141,12 @@ if _HAS_USER_BASE:
     _INSTALL_SCHEMES |= {
         # NOTE: When modifying "purelib" scheme, update site._get_path() too.
         'nt_user': {
-            'stdlib': '{userbase}/Python{py_version_nodot_plat}',
-            'platstdlib': '{userbase}/Python{py_version_nodot_plat}',
-            'purelib': '{userbase}/Python{py_version_nodot_plat}/site-packages',
-            'platlib': '{userbase}/Python{py_version_nodot_plat}/site-packages',
-            'include': '{userbase}/Python{py_version_nodot_plat}/Include',
-            'scripts': '{userbase}/Python{py_version_nodot_plat}/Scripts',
+            'stdlib': '{userbase}/lib/python{py_version_short}',
+            'platstdlib': '{userbase}/lib/python{py_version_short}',
+            'purelib': '{userbase}/lib/python{py_version_short}/site-packages',
+            'platlib': '{userbase}/lib/python{py_version_short}/site-packages',
+            'include': '{userbase}/include/python{py_version_short}',
+            'scripts': '{userbase}/bin',
             'data': '{userbase}',
             },
         'posix_user': {
@@ -584,7 +584,7 @@ def _init_non_posix(vars):
     except IndexError:
         pass
     vars['EXE'] = '.exe'
-    vars['VERSION'] = _PY_VERSION_SHORT_NO_DOT
+    vars['VERSION'] = _PY_VERSION_SHORT
     vars['BINDIR'] = os.path.dirname(_safe_realpath(sys.executable))
     vars['TZPATH'] = ''
 
