@@ -186,7 +186,7 @@ class build_ext(Command):
         # for extensions under windows use different directories
         # for Release and Debug builds.
         # also Python's library directory must be appended to library_dirs
-        if os.name == 'nt':
+        if os.name == 'nt' and not self.plat_name.startswith(('mingw')):
             # the 'libs' directory is for binary installs - we assume that
             # must be the *native* platform.  But we don't really support
             # cross-compiling via a binary install anyway, so we let it go.
@@ -712,6 +712,20 @@ class build_ext(Command):
         # pyconfig.h that MSVC groks.  The other Windows compilers all seem
         # to need it mentioned explicitly, though, so that's what we do.
         # Append '_d' to the python import library on debug builds.
+
+        # Use self.plat_name as it works even in case of
+        # cross-compilation (at least for mingw build).
+        if self.plat_name.startswith('mingw'):
+            from distutils import sysconfig
+            extra = []
+            for lib in (
+                sysconfig.get_config_var('BLDLIBRARY').split()
+                + sysconfig.get_config_var('SHLIBS').split()
+                ):
+                if lib.startswith('-l'):
+                    extra.append(lib[2:])
+            return ext.libraries + extra
+
         if sys.platform == "win32":
             from distutils._msvccompiler import MSVCCompiler
             if not isinstance(self.compiler, MSVCCompiler):
