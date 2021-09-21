@@ -2291,6 +2291,12 @@ libainstall: all python-config
 	else true; \
 	fi
 
+ifeq ($(shell uname -o),Msys)
+DESTDIRFINAL=$(DESTDIR)
+else
+DESTDIRFINAL=$(DESTDIR)/
+endif
+
 # Install the dynamically loadable modules
 # This goes into $(exec_prefix)
 sharedinstall: all
@@ -2298,9 +2304,9 @@ sharedinstall: all
 	   	--prefix=$(prefix) \
 		--install-scripts=$(BINDIR) \
 		--install-platlib=$(DESTSHARED) \
-		--root=$(DESTDIR)/
-	-rm $(DESTDIR)$(DESTSHARED)/_sysconfigdata_$(ABIFLAGS)_$(MACHDEP)_$(MULTIARCH).py
-	-rm -r $(DESTDIR)$(DESTSHARED)/__pycache__
+		--root=$(DESTDIRFINAL)
+	-rm $(DESTDIRFINAL)$(DESTSHARED)/_sysconfigdata_$(ABIFLAGS)_$(MACHDEP)_$(MULTIARCH).py
+	-rm -r $(DESTDIRFINAL)$(DESTSHARED)/__pycache__
 
 # Here are a couple of targets for MacOSX again, to install a full
 # framework-based Python. frameworkinstall installs everything, the
