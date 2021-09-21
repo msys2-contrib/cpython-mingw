@@ -1617,7 +1617,9 @@ class PyBuildExt(build_ext):
             self.add(Extension('msvcrt', [os.path.join(pc_srcdir, p)
                                for p in ['msvcrtmodule.c']]))
 
-            self.add(Extension('_winapi', ['_winapi.c']))
+            # Added to Setup.config.in as now needed earlier since I
+            # use subprocess (which uses Popen) in cygwinccompiler.py
+            # self.add(Extension('_winapi', ['_winapi.c']))
 
             self.add(Extension('_msi', [os.path.join(pc_srcdir, p)
                                for p in ['_msi.c']],
