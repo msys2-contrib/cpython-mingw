@@ -56,6 +56,7 @@ from distutils.errors import (DistutilsExecError, CCompilerError,
         CompileError, UnknownFileError)
 from distutils.version import LooseVersion
 from distutils.spawn import find_executable
+from subprocess import Popen, PIPE, check_output
 
 def get_msvcr():
     """Include the appropriate MSVC runtime library if Python was built
@@ -371,7 +372,7 @@ def check_config_h():
         return (CONFIG_H_UNCERTAIN,
                 "couldn't read '%s': %s" % (fn, exc.strerror))
 
-RE_VERSION = re.compile(br'(\d+\.\d+(\.\d+)*)')
+RE_VERSION = re.compile(br'[\D\s]*(\d+\.\d+(\.\d+)*)[\D\s]*')
 
 def _find_exe_version(cmd):
     """Find the version of an executable by running `cmd` in the shell.
@@ -400,7 +401,16 @@ def get_versions():
 
     If not possible it returns None for it.
     """
-    commands = ['gcc -dumpversion', 'ld -v', 'dllwrap --version']
+    gcc = os.environ.get('CC') or 'gcc'
+    ld = 'ld'
+    out = Popen(gcc+' --print-prog-name ld', shell=True, stdout=PIPE).stdout
+    try:
+        ld = test=str(out.read(),encoding='utf-8').strip()
+    finally:
+        out.close()
+    dllwrap = os.environ.get('DLLWRAP') or 'dllwrap'
+    # MinGW64 doesn't have i686-w64-mingw32-ld, so instead we ask gcc.
+    commands = [gcc+' -dumpversion', ld+' -v', dllwrap+' --version']
     return tuple([_find_exe_version(cmd) for cmd in commands])
 
 def is_cygwingcc():
