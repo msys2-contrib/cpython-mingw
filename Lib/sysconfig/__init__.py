@@ -586,6 +586,7 @@ def get_config_var(name):
     return get_config_vars().get(name)
 
 
+# make sure to change site._get_platform() when changing this function
 def get_platform():
     """Return a string that identifies the current platform.
 
@@ -613,6 +614,28 @@ def get_platform():
 
     For other non-POSIX platforms, currently just returns :data:`sys.platform`."""
     if os.name == 'nt':
+        if sys._is_mingw:
+            platform = 'mingw'
+            if 'amd64' in sys.version.lower():
+                platform += '_x86_64'
+            elif 'arm64' in sys.version.lower():
+                platform += '_aarch64'
+            elif 'arm' in sys.version.lower():
+                platform += '_armv7'
+            else:
+                platform += '_i686'
+
+            if 'ucrt' in sys.version.lower():
+                platform += '_ucrt'
+            else:
+                platform += "_msvcrt"
+
+            if 'clang' in sys.version.lower():
+                platform += "_llvm"
+            else:
+                platform += "_gnu"
+
+            return platform
         if 'amd64' in sys.version.lower():
             return 'win-amd64'
         if '(arm)' in sys.version.lower():
