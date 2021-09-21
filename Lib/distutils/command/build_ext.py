@@ -221,9 +221,10 @@ class build_ext(Command):
         if sys.platform[:6] == 'cygwin':
             if sys.executable.startswith(os.path.join(sys.exec_prefix, "bin")):
                 # building third party extensions
+                config_dir_name = os.path.basename(sysconfig.get_config_var('LIBPL'))
                 self.library_dirs.append(os.path.join(sys.prefix, "lib",
                                                       "python" + get_python_version(),
-                                                      "config"))
+                                                      config_dir_name))
             else:
                 # building python standard extensions
                 self.library_dirs.append('.')
