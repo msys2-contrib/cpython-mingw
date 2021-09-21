@@ -363,7 +363,8 @@ class install(Command):
 
         # Convert directories from Unix /-separated syntax to the local
         # convention.
-        self.convert_paths('lib', 'purelib', 'platlib',
+        self.convert_paths('base', 'platbase',
+                           'lib', 'purelib', 'platlib',
                            'scripts', 'data', 'headers')
         if HAS_USER_SITE:
             self.convert_paths('userbase', 'usersite')
