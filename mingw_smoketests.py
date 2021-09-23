@@ -139,6 +139,9 @@ class Tests(unittest.TestCase):
         import ctypes
         import curses
 
+    def test_c_modules_import(self):
+        import _decimal
+
     def test_socket_inet_ntop(self):
         import socket
         self.assertTrue(hasattr(socket, "inet_ntop"))
