@@ -116,7 +116,7 @@ _testconsole_read_output_impl(PyObject *module, PyObject *file)
     Py_RETURN_NONE;
 }
 
-#include "clinic\_testconsole.c.h"
+#include "clinic/_testconsole.c.h"
 
 PyMethodDef testconsole_methods[] = {
     _TESTCONSOLE_WRITE_INPUT_METHODDEF
