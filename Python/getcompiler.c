@@ -20,6 +20,8 @@
 #define ARCH_SUFFIX " 64 bit (AMD64)"
 #elif defined(__aarch64__)
 #define ARCH_SUFFIX " 64 bit (ARM64)"
+#elif defined(__arm__)
+#define ARCH_SUFFIX " 32 bit (ARM)"
 #else
 #define ARCH_SUFFIX " 32 bit"
 #endif
