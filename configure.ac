@@ -6030,6 +6030,9 @@ case $host_os in
   aarch64-*-mingw*)
     PYD_PLATFORM_TAG+="mingw_aarch64"
     ;;
+  armv7-*-mingw*)
+    PYD_PLATFORM_TAG+="mingw_armv7"
+    ;;
   esac
   AC_MSG_RESULT($PYD_PLATFORM_TAG)
 esac
