@@ -808,14 +808,25 @@ class PyBuildExt(build_ext):
                         elif line.startswith("End of search list"):
                             in_incdirs = False
                         elif (is_gcc or is_clang) and line.startswith("LIBRARY_PATH"):
-                            for d in line.strip().split("=")[1].split(":"):
+                            for d in line.strip().split("=")[1].split(os.pathsep):
                                 d = os.path.normpath(d)
-                                if '/gcc/' not in d:
+                                if '/gcc/' not in d and '/clang/' not in d:
                                     add_dir_to_list(self.compiler.library_dirs,
                                                     d)
                         elif (is_gcc or is_clang) and in_incdirs and '/gcc/' not in line and '/clang/' not in line:
                             add_dir_to_list(self.compiler.include_dirs,
                                             line.strip())
+            if is_clang:
+                ret = run_command('%s -print-search-dirs >%s' % (CC, tmpfile))
+                if ret == 0:
+                    with open(tmpfile) as fp:
+                        for line in fp.readlines():
+                            if line.startswith("libraries:"):
+                                for d in line.strip().split("=")[1].split(os.pathsep):
+                                    d = os.path.normpath(d)
+                                    if '/gcc/' not in d and '/clang/' not in d:
+                                        add_dir_to_list(self.compiler.library_dirs,
+                                                        d)
         finally:
             os.unlink(tmpfile)
 
