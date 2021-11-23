@@ -3403,7 +3403,7 @@ else
 fi
 
 if test "$with_system_ffi" = "yes" && test -n "$PKG_CONFIG"; then
-    LIBFFI_INCLUDEDIR="`"$PKG_CONFIG" libffi --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ *$//'`"
+    LIBFFI_INCLUDEDIR="`"$PKG_CONFIG" libffi --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ .*$//'`"
 else
     LIBFFI_INCLUDEDIR=""
 fi
@@ -5596,7 +5596,7 @@ then
 fi
 
 if test -n "$PKG_CONFIG"; then
-    NCURSESW_INCLUDEDIR="`"$PKG_CONFIG" ncursesw --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ *$//'`"
+    NCURSESW_INCLUDEDIR="`"$PKG_CONFIG" ncursesw --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ .*$//'`"
 else
     NCURSESW_INCLUDEDIR=""
 fi
@@ -5604,9 +5604,7 @@ AC_SUBST(NCURSESW_INCLUDEDIR)
 
 # first curses header check
 ac_save_cppflags="$CPPFLAGS"
-if test "$cross_compiling" = no; then
-  CPPFLAGS="$CPPFLAGS -I$NCURSESW_INCLUDEDIR"
-fi
+CPPFLAGS="$CPPFLAGS -I$NCURSESW_INCLUDEDIR"
 
 AC_CHECK_HEADERS(curses.h ncurses.h)
 
