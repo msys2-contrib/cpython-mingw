@@ -6929,7 +6929,7 @@ AS_VAR_IF([have_panel], [no], [
 ])
 
 if test -n "$PKG_CONFIG"; then
-    NCURSESW_INCLUDEDIR="`"$PKG_CONFIG" ncursesw --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ *$//'`"
+    NCURSESW_INCLUDEDIR="`"$PKG_CONFIG" ncursesw --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ .*$//'`"
 else
     NCURSESW_INCLUDEDIR=""
 fi
@@ -6937,9 +6937,7 @@ AC_SUBST(NCURSESW_INCLUDEDIR)
 
 # first curses header check
 ac_save_cppflags="$CPPFLAGS"
-if test "$cross_compiling" = no; then
-  CPPFLAGS="$CPPFLAGS -I$NCURSESW_INCLUDEDIR"
-fi
+CPPFLAGS="$CPPFLAGS -I$NCURSESW_INCLUDEDIR"
 
 # On Solaris, term.h requires curses.h
 AC_CHECK_HEADERS([term.h], [], [], [
