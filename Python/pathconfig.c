@@ -20,6 +20,30 @@ extern "C" {
 #include <windows.h>
 #endif
 
+static int
+Py_StartsWithA(const char * str, const char * prefix)
+{
+    while(*prefix)
+    {
+        if(*prefix++ != *str++)
+            return 0;
+    }
+
+    return 1;
+}
+
+static int
+Py_StartsWithW(const wchar_t * str, const wchar_t * prefix)
+{
+    while(*prefix)
+    {
+        if(*prefix++ != *str++)
+            return 0;
+    }
+
+    return 1;
+}
+
 char
 Py_GetSepA(const char *name)
 {
@@ -30,7 +54,7 @@ Py_GetSepA(const char *name)
      * The "\\?\" prefix .. indicate that the path should be passed to the system with minimal
      * modification, which means that you cannot use forward slashes to represent path separators
      */
-    if (name != NULL && memcmp(name, "\\\\?\\", sizeof("\\\\?\\") - sizeof(char)) == 0)
+    if (name != NULL && Py_StartsWithA(name, "\\\\?\\") != 0)
     {
         return '\\';
     }
@@ -82,7 +106,7 @@ Py_GetSepW(const wchar_t *name)
      * The "\\?\" prefix .. indicate that the path should be passed to the system with minimal
      * modification, which means that you cannot use forward slashes to represent path separators
      */
-    if (name != NULL && memcmp(name, L"\\\\?\\", sizeof(L"\\\\?\\") - sizeof(wchar_t)) == 0)
+    if (name != NULL && Py_StartsWithW(name, L"\\\\?\\") != 0)
     {
         return L'\\';
     }
