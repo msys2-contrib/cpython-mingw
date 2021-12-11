@@ -83,10 +83,11 @@ Py_GetAltSepA(const char *name)
 void
 Py_NormalizeSepsA(char *name)
 {
+    assert(name != NULL);
     char sep = Py_GetSepA(name);
     char altsep = Py_GetAltSepA(name);
     char* seps;
-    if (strlen(name) > 1 && name[1] == ':') {
+    if (name[0] != '\0' && name[1] == ':') {
         name[0] = toupper(name[0]);
     }
     seps = strchr(name, altsep);
@@ -135,10 +136,11 @@ Py_GetAltSepW(const wchar_t *name)
 void
 Py_NormalizeSepsW(wchar_t *name)
 {
+    assert(name != NULL);
     wchar_t sep = Py_GetSepW(name);
     wchar_t altsep = Py_GetAltSepW(name);
     wchar_t* seps;
-    if (wcslen(name) > 1 && name[1] == L':') {
+    if (name[0] != L'\0' && name[1] == L':') {
         name[0] = towupper(name[0]);
     }
     seps = wcschr(name, altsep);
