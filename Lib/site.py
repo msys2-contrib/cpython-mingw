@@ -315,6 +315,32 @@ def _getuserbase():
 
     return joinuser("~", ".local")
 
+# Copy of sysconfig.get_platform() but only for MinGW
+def _get_platform():
+    if os.name == 'nt':
+        if sys._is_mingw:
+            platform = 'mingw'
+            if 'amd64' in sys.version.lower():
+                platform += '_x86_64'
+            elif 'arm64' in sys.version.lower():
+                platform += '_aarch64'
+            elif 'arm' in sys.version.lower():
+                platform += '_armv7'
+            else:
+                platform += '_i686'
+
+            if 'ucrt' in sys.version.lower():
+                platform += '_ucrt'
+            else:
+                platform += "_msvcrt"
+
+            if 'clang' in sys.version.lower():
+                platform += "_llvm"
+            else:
+                platform += "_gnu"
+
+            return platform
+    return sys.platform
 
 # Same to sysconfig.get_path('purelib', os.name+'_user')
 def _get_path(userbase):
@@ -326,7 +352,10 @@ def _get_path(userbase):
 
     implementation = _get_implementation()
     implementation_lower = implementation.lower()
-    if os.name == 'nt' and not sys._is_mingw:
+    if os.name == 'nt':
+        if sys._is_mingw:
+            return f'{userbase}/lib/{implementation_lower}{version[0]}.{version[1]}-{_get_platform()}{abi_thread}/site-packages'
+
         ver_nodot = sys.winver.replace('.', '')
         return f'{userbase}\\{implementation}{ver_nodot}\\site-packages'
 
