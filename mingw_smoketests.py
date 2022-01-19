@@ -214,7 +214,14 @@ class Tests(unittest.TestCase):
         ext_suffixes = importlib.machinery.EXTENSION_SUFFIXES
         self.assertTrue(ext_suffix in ext_suffixes)
         self.assertTrue(".pyd" in ext_suffixes)
-        self.assertEqual(sys.winver, ".".join(map(str, sys.version_info[:2])))
+        if sysconfig.get_platform().startswith('mingw_i686'):
+             self.assertEqual(sys.winver, ".".join(map(str, sys.version_info[:2])) + '-32')
+        elif sysconfig.get_platform().startswith('mingw_aarch64'):
+            self.assertEqual(sys.winver, ".".join(map(str, sys.version_info[:2])) + '-arm64')
+        elif sysconfig.get_platform().startswith('mingw_armv7'):
+            self.assertEqual(sys.winver, ".".join(map(str, sys.version_info[:2])) + '-arm32')
+        else:
+            self.assertEqual(sys.winver, ".".join(map(str, sys.version_info[:2])))
         self.assertEqual(platform.python_implementation(), "CPython")
         self.assertEqual(platform.system(), "Windows")
         self.assertTrue(isinstance(sys.api_version, int) and sys.api_version > 0)
