@@ -140,20 +140,20 @@ if _HAS_USER_BASE:
     _INSTALL_SCHEMES |= {
         # NOTE: When modifying "purelib" scheme, update site._get_path() too.
         'nt_user': {
-            'stdlib': '{userbase}/lib/python{py_version_short}',
-            'platstdlib': '{userbase}/lib/python{py_version_short}',
-            'purelib': '{userbase}/lib/python{py_version_short}/site-packages',
-            'platlib': '{userbase}/lib/python{py_version_short}/site-packages',
-            'include': '{userbase}/include/python{py_version_short}',
+            'stdlib': '{userbase}/lib/python{py_version_short_plat}',
+            'platstdlib': '{userbase}/lib/python{py_version_short_plat}',
+            'purelib': '{userbase}/lib/python{py_version_short_plat}/site-packages',
+            'platlib': '{userbase}/lib/python{py_version_short_plat}/site-packages',
+            'include': '{userbase}/include/python{py_version_short_plat}',
             'scripts': '{userbase}/bin',
             'data': '{userbase}',
             },
         'posix_user': {
-            'stdlib': '{userbase}/{platlibdir}/python{py_version_short}',
-            'platstdlib': '{userbase}/{platlibdir}/python{py_version_short}',
-            'purelib': '{userbase}/lib/python{py_version_short}/site-packages',
-            'platlib': '{userbase}/lib/python{py_version_short}/site-packages',
-            'include': '{userbase}/include/python{py_version_short}',
+            'stdlib': '{userbase}/{platlibdir}/python{py_version_short_plat}',
+            'platstdlib': '{userbase}/{platlibdir}/python{py_version_short_plat}',
+            'purelib': '{userbase}/lib/python{py_version_short_plat}/site-packages',
+            'platlib': '{userbase}/lib/python{py_version_short_plat}/site-packages',
+            'include': '{userbase}/include/python{py_version_short_plat}',
             'scripts': '{userbase}/bin',
             'data': '{userbase}',
             },
@@ -695,6 +695,10 @@ def get_config_vars(*args):
             _CONFIG_VARS['py_version_nodot_plat'] = sys.winver.replace('.', '')
         except AttributeError:
             _CONFIG_VARS['py_version_nodot_plat'] = ''
+        if os.name == 'nt' and _POSIX_BUILD:
+            _CONFIG_VARS['py_version_short_plat'] = f'{_PY_VERSION_SHORT}-{get_platform()}'
+        else:
+            _CONFIG_VARS['py_version_short_plat'] = _PY_VERSION_SHORT
 
         if os.name == 'nt' and not _POSIX_BUILD:
             _init_non_posix(_CONFIG_VARS)
@@ -747,7 +751,7 @@ def get_config_var(name):
     """
     return get_config_vars().get(name)
 
-
+# make sure to change site._get_platform() while changing this function
 def get_platform():
     """Return a string that identifies the current platform.
 
