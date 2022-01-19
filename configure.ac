@@ -4809,10 +4809,24 @@ then
 	esac
 	case $host in
 	*-*-mingw*)
-	DYNLOADFILE="dynload_win.o"
-	extra_machdep_objs="$extra_machdep_objs PC/dl_nt.o"
-	CFLAGS_NODIST="$CFLAGS_NODIST -DMS_DLL_ID='\"$VERSION\"' -DPY3_DLLNAME='L\"$DLLLIBRARY\"'"
-	;;
+    DYNLOADFILE="dynload_win.o"
+    extra_machdep_objs="$extra_machdep_objs PC/dl_nt.o"
+    CFLAGS_NODIST="$CFLAGS_NODIST -DPY3_DLLNAME='L\"$DLLLIBRARY\"'"
+    case $host in
+        i686*)
+                CFLAGS_NODIST="$CFLAGS_NODIST -DMS_DLL_ID='\"${VERSION}-32\"'"
+            ;;
+        armv7*)
+                CFLAGS_NODIST="$CFLAGS_NODIST -DMS_DLL_ID='\"${VERSION}-arm32\"'"
+            ;;
+        aarch64*)
+                CFLAGS_NODIST="$CFLAGS_NODIST -DMS_DLL_ID='\"${VERSION}-arm64\"'"
+            ;;
+            *)
+                CFLAGS_NODIST="$CFLAGS_NODIST -DMS_DLL_ID='\"$VERSION\"'"
+            ;;
+      esac
+    ;;
 	esac
 fi
 AC_MSG_RESULT($DYNLOADFILE)
