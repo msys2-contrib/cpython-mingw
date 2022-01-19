@@ -72,7 +72,7 @@ if HAS_USER_SITE:
     INSTALL_SCHEMES['nt_user'] = {
         'purelib': '$usersite',
         'platlib': '$usersite',
-        'headers': '$userbase/include/python$py_version_short$abiflags/$dist_name',
+        'headers': '$userbase/include/python$py_version_short_plat$abiflags/$dist_name',
         'scripts': '$userbase/bin',
         'data'   : '$userbase',
         }
@@ -81,7 +81,7 @@ if HAS_USER_SITE:
         'purelib': '$usersite',
         'platlib': '$usersite',
         'headers':
-            '$userbase/include/python$py_version_short$abiflags/$dist_name',
+            '$userbase/include/python$py_version_short_plat$abiflags/$dist_name',
         'scripts': '$userbase/bin',
         'data'   : '$userbase',
         }
@@ -311,6 +311,7 @@ class install(Command):
                             'py_version': py_version,
                             'py_version_short': '%d.%d' % sys.version_info[:2],
                             'py_version_nodot': '%d%d' % sys.version_info[:2],
+                            'py_version_short_plat': f'{sys.version_info[0]}.{sys.version_info[1]}-{get_platform()}' if os.name == 'nt' and 'gcc' in sys.version.lower() else f'{sys.version_info[0]}.{sys.version_info[1]}',
                             'sys_prefix': prefix,
                             'prefix': prefix,
                             'sys_exec_prefix': exec_prefix,
