@@ -315,6 +315,26 @@ def _getuserbase():
 
     return joinuser("~", ".local")
 
+# Copy of sysconfig.get_platform() but only for MinGW
+def _get_platform():
+    if os.name == 'nt':
+        if 'gcc' in sys.version.lower():
+            if 'ucrt' in sys.version.lower():
+                if 'amd64' in sys.version.lower():
+                    return 'mingw_x86_64_ucrt'
+                return 'mingw_i686_ucrt'
+            if 'clang' in sys.version.lower():
+                if 'amd64' in sys.version.lower():
+                    return 'mingw_x86_64_clang'
+                if 'arm64' in sys.version.lower():
+                    return 'mingw_aarch64'
+                if 'arm' in sys.version.lower():
+                    return 'mingw_armv7'
+                return 'mingw_i686_clang'
+            if 'amd64' in sys.version.lower():
+                return 'mingw_x86_64'
+            return 'mingw_i686'
+    return sys.platform
 
 # Same to sysconfig.get_path('purelib', os.name+'_user')
 def _get_path(userbase):
@@ -326,9 +346,11 @@ def _get_path(userbase):
 
     implementation = _get_implementation()
     implementation_lower = implementation.lower()
-    if os.name == 'nt' and not _POSIX_BUILD:
-        ver_nodot = sys.winver.replace('.', '')
-        return f'{userbase}\\{implementation}{ver_nodot}\\site-packages'
+    if os.name == 'nt':
+        if not _POSIX_BUILD:
+            ver_nodot = sys.winver.replace('.', '')
+            return f'{userbase}\\{implementation}{ver_nodot}\\site-packages'
+        return f'{userbase}/lib/python{version[0]}.{version[1]}-{_get_platform()}/site-packages'
 
     if sys.platform == 'darwin' and sys._framework:
         return f'{userbase}/lib/{implementation_lower}/site-packages'
