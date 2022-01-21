@@ -162,7 +162,16 @@ jobs:
       - name: Install deps
         run: |
           pacman --noconfirm -Suuy
-          pacman --needed --noconfirm -S mingw-w64-gcc autoconf-archive autoconf automake python zip
+          pacman --needed --noconfirm -S mingw-w64-gcc autoconf-archive autoconf automake zip
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Check Python Version
+        run: |
+          which python
+          python --version
 
       - name: Build
         run: |
