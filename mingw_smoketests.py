@@ -226,6 +226,13 @@ class Tests(unittest.TestCase):
         import textwrap
         from pathlib import Path
 
+        if sysconfig.is_python_build():
+            # we are running this test without installing and is known
+            # to cause errors with building c-extensions
+            # so we are skipping this test
+            raise unittest.SkipTest("Skipping test as building c-extension isn't supported \
+                without installing python")
+
         with tempfile.TemporaryDirectory() as tmppro:
             subprocess.check_call([sys.executable, "-m", "ensurepip", "--user"])
             with Path(tmppro, "setup.py").open("w") as f:
