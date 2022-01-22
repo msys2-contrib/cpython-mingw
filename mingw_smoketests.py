@@ -34,7 +34,7 @@ if "MSYSTEM" in os.environ:
 else:
     SEP = "\\"
 
-_UCRT = "clang" in sysconfig.get_platform() or "ucrt" in sysconfig.get_platform()
+_UCRT = sysconfig.get_platform() not in ('mingw_x86_64', 'mingw_i686')
 
 
 class Tests(unittest.TestCase):
