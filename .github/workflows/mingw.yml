@@ -116,7 +116,7 @@ jobs:
           make -j1 install DESTDIR="${pkgdir}"
 
           # Fix shebangs
-          _pybasever=$(./python.exe -c "import sys; print(sys.winver);")
+          _pybasever=$(./python.exe -c "import sys; print(f'{sys.version_info[0]}.{sys.version_info[1]}');")
           for fscripts in 2to3 2to3-${_pybasever} idle3 idle${_pybasever} pydoc3 pydoc${_pybasever}; do
               sed -i "s|$(cygpath -w ${MINGW_PREFIX} | sed 's|\\|\\\\|g')/bin/python${_pybasever}.exe|/usr/bin/env python${_pybasever}.exe|g" "${pkgdir}${MINGW_PREFIX}"/bin/${fscripts}
           done
