@@ -724,7 +724,7 @@ class PyBuildExt(build_ext):
                             add_dir_to_list(self.compiler.include_dirs,
                                             line.strip())
             if is_clang:
-                ret = run_command('%s -print-search-dirs >%s' % (cc, tmpfile))
+                ret = run_command('%s -print-search-dirs >%s' % (CC, tmpfile))
                 if ret == 0:
                     with open(tmpfile) as fp:
                         for line in fp.readlines():
