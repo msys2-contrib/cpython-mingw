@@ -2659,7 +2659,7 @@ AC_MSG_RESULT([$with_nt_threads])
 if test $with_nt_threads = yes ; then
 AC_MSG_CHECKING([whether linking with nt-threads work])
 AC_LINK_IFELSE([
-    AC_LANG_PROGRAM([[]],[[_beginthread(0, 0, 0);]])
+    AC_LANG_PROGRAM([[#include <process.h>]],[[_beginthread(0, 0, 0);]])
   ],
   [AC_MSG_RESULT([yes])],
   [AC_MSG_ERROR([failed to link with nt-threads])])
