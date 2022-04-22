@@ -4702,11 +4702,14 @@ AC_MSG_RESULT($with_freelists)
 AC_MSG_CHECKING(for --with-c-locale-coercion)
 AC_ARG_WITH(c-locale-coercion,
             AS_HELP_STRING([--with-c-locale-coercion],
-              [enable C locale coercion to a UTF-8 based locale (default is yes)]))
+              [enable C locale coercion to a UTF-8 based locale (default is yes on Unix, no on Windows)]))
 
 if test -z "$with_c_locale_coercion"
 then
-    with_c_locale_coercion="yes"
+    case $host in
+      *-*-mingw*) with_c_locale_coercion="no";;
+      *) with_c_locale_coercion="yes";;
+    esac
 fi
 if test "$with_c_locale_coercion" != "no"
 then
