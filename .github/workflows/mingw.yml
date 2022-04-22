@@ -75,7 +75,6 @@ jobs:
             --with-system-ffi \
             --with-system-libmpdec \
             --without-ensurepip \
-            --without-c-locale-coercion \
             --enable-loadable-sqlite-extensions \
             --with-tzpath=${MINGW_PREFIX}/share/zoneinfo \
             --enable-optimizations
@@ -187,7 +186,6 @@ jobs:
             --with-system-ffi \
             --with-system-libmpdec \
             --without-ensurepip \
-            --without-c-locale-coercion \
             --enable-loadable-sqlite-extensions
 
           make -j8
