@@ -2886,7 +2886,7 @@ Py_FdIsInteractive(FILE *fp, const char *filename)
 int
 _Py_FdIsInteractive(FILE *fp, PyObject *filename)
 {
-    if (isatty((int)fileno(fp))) {
+    if (isatty((int)fileno(fp)) || is_cygpty((int)fileno(fp))) {
         return 1;
     }
     if (!Py_InteractiveFlag) {

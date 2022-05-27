@@ -1786,12 +1786,12 @@ _Py_write_impl(int fd, const void *buf, size_t count, int gil_held)
            depending on heap usage). */
         if (gil_held) {
             Py_BEGIN_ALLOW_THREADS
-            if (isatty(fd)) {
+            if (isatty(fd) || is_cygpty(fd)) {
                 count = 32767;
             }
             Py_END_ALLOW_THREADS
         } else {
-            if (isatty(fd)) {
+            if (isatty(fd) || is_cygpty(fd)) {
                 count = 32767;
             }
         }
