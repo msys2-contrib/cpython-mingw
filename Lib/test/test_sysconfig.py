@@ -17,7 +17,7 @@ import sysconfig
 from sysconfig import (get_paths, get_platform, get_config_vars,
                        get_path, get_path_names, _INSTALL_SCHEMES,
                        get_default_scheme, get_scheme_names, get_config_var,
-                       _expand_vars, _get_preferred_schemes, _main)
+                       _expand_vars, _get_preferred_schemes, _main, _POSIX_BUILD)
 import _osx_support
 
 
@@ -180,7 +180,7 @@ class TestSysConfig(unittest.TestCase):
         self.assertEqual(libpath, sysconfig.get_path('purelib', scheme='nt_venv'))
 
     def test_venv_scheme(self):
-        if sys.platform == 'win32':
+        if not _POSIX_BUILD and sys.platform == 'win32':
             self.assertEqual(
                 sysconfig.get_path('scripts', scheme='venv'),
                 sysconfig.get_path('scripts', scheme='nt_venv')
@@ -371,6 +371,10 @@ class TestSysConfig(unittest.TestCase):
             if HAS_USER_BASE:
                 user_path = get_path(name, 'posix_user')
                 expected = os.path.normpath(global_path.replace(base, user, 1))
+                if os.name == 'nt' and _POSIX_BUILD:
+                    expected = expected.replace(
+                        f'python{sysconfig.get_python_version()}',
+                        f'python{sysconfig.get_python_version()}-{get_platform()}')
                 # bpo-44860: platlib of posix_user doesn't use sys.platlibdir,
                 # whereas posix_prefix does.
                 if name == 'platlib':
