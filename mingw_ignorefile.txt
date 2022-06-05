@@ -29,6 +29,14 @@ test.test_strptime.TimeRETests.test_compile
 test.test_tools.test_i18n.Test_pygettext.test_POT_Creation_Date
 test.test_venv.BasicTest.*
 test.test_venv.EnsurePipTest.*
+test.test_sysconfig.TestSysConfig.test_user_similar
+test.test_tcl.TclTest.testLoadWithUNC
 # flaky
 test.test__xxsubinterpreters.*
 test.test_asyncio.test_subprocess.SubprocessProactorTests.test_stdin_broken_pipe
+test.test_asynchat.TestAsynchat.test_line_terminator2
+test.test_asyncgen.AsyncGenAsyncioTest.test_async_gen_asyncio_gc_aclose_09
+test.test_concurrent_futures.ThreadPoolShutdownTest.test_interpreter_shutdown
+test.test_asynchat.TestNotConnected.test_disallow_negative_terminator
+test.test_logging.SysLogHandlerTest.*
+test.test_logging.IPv6SysLogHandlerTest.*
