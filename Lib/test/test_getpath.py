@@ -852,6 +852,7 @@ DEFAULT_NAMESPACE = dict(
     ENV_PYTHONHOME="",
     ENV_PYTHONEXECUTABLE="",
     ENV___PYVENV_LAUNCHER__="",
+    ENV_MSYSTEM="",
     argv0="",
     py_setpath="",
     real_executable="",
@@ -891,6 +892,7 @@ class MockNTNamespace(dict):
         self.update(DEFAULT_NAMESPACE)
         self["config"] = DEFAULT_CONFIG.copy()
         self["os_name"] = "nt"
+        self["is_mingw"] = 0
         self["PLATLIBDIR"] = "DLLs"
         self["PYWINVER"] = "9.8-XY"
         self["VPATH"] = r"..\.."
@@ -1067,6 +1069,7 @@ class MockPosixNamespace(dict):
         self.update(DEFAULT_NAMESPACE)
         self["config"] = DEFAULT_CONFIG.copy()
         self["os_name"] = "posix"
+        self["is_mingw"] = 0
         self["PLATLIBDIR"] = "lib"
         self["WITH_NEXT_FRAMEWORK"] = 0
         super().__init__(*a, **kw)
