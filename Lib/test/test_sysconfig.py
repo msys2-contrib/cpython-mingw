@@ -210,7 +210,7 @@ class TestSysConfig(unittest.TestCase, VirtualEnvironmentMixin):
         self.assertEqual(libpath, sysconfig.get_path('purelib', scheme='nt_venv', vars=vars))
 
     def test_venv_scheme(self):
-        if sys.platform == 'win32':
+        if not sys._is_mingw and sys.platform == 'win32':
             self.assertEqual(
                 sysconfig.get_path('scripts', scheme='venv'),
                 sysconfig.get_path('scripts', scheme='nt_venv')
@@ -430,6 +430,10 @@ class TestSysConfig(unittest.TestCase, VirtualEnvironmentMixin):
             if HAS_USER_BASE:
                 user_path = get_path(name, 'posix_user')
                 expected = os.path.normpath(global_path.replace(base, user, 1))
+                if os.name == 'nt' and sys._is_mingw:
+                    expected = expected.replace(
+                        f'python{sysconfig.get_python_version()}',
+                        f'python{sysconfig.get_python_version()}-{get_platform()}')
                 # bpo-44860: platlib of posix_user doesn't use sys.platlibdir,
                 # whereas posix_prefix does.
                 if name == 'platlib':

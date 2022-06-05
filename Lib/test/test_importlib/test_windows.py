@@ -24,6 +24,29 @@ def get_platform():
             'x64' : 'win-amd64',
             'arm' : 'win-arm32',
         }
+    if os.name == 'nt':
+        if sys._is_mingw:
+            platform = "mingw"
+            if "amd64" in sys.version.lower():
+                platform += "_x86_64"
+            elif "arm64" in sys.version.lower():
+                platform += "_aarch64"
+            elif "arm" in sys.version.lower():
+                platform += "_armv7"
+            else:
+                platform += "_i686"
+
+            if "ucrt" in sys.version.lower():
+                platform += "_ucrt"
+            else:
+                platform += "_msvcrt"
+
+            if "clang" in sys.version.lower():
+                platform += "_llvm"
+            else:
+                platform += "_gnu"
+
+            return platform
     if ('VSCMD_ARG_TGT_ARCH' in os.environ and
         os.environ['VSCMD_ARG_TGT_ARCH'] in TARGET_TO_PLAT):
         return TARGET_TO_PLAT[os.environ['VSCMD_ARG_TGT_ARCH']]
