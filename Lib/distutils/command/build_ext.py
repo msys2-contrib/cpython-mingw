@@ -227,7 +227,7 @@ class build_ext(Command):
                                                       config_dir_name))
             else:
                 # building python standard extensions
-                self.library_dirs.append('.')
+                self.library_dirs.append(sysconfig.project_base)
 
         # For building extensions with a shared Python library,
         # Python's library directory must be appended to library_dirs
@@ -238,7 +238,7 @@ class build_ext(Command):
                 self.library_dirs.append(sysconfig.get_config_var('LIBDIR'))
             else:
                 # building python standard extensions
-                self.library_dirs.append('.')
+                self.library_dirs.append(sysconfig.project_base)
 
         # The argument parsing will result in self.define being a string, but
         # it has to be a list of 2-tuples.  All the preprocessor symbols
