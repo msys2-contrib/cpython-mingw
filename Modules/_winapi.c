@@ -1552,10 +1552,16 @@ _winapi_LCMapStringEx_impl(PyObject *module, PyObject *locale, DWORD flags,
                            PyObject *src)
 /*[clinic end generated code: output=8ea4c9d85a4a1f23 input=2fa6ebc92591731b]*/
 {
+#if WINVER >= 0x0602
     if (flags & (LCMAP_SORTHANDLE | LCMAP_HASH | LCMAP_BYTEREV |
                  LCMAP_SORTKEY)) {
         return PyErr_Format(PyExc_ValueError, "unsupported flags");
     }
+#else
+    if (flags & (LCMAP_BYTEREV | LCMAP_SORTKEY)) {
+        return PyErr_Format(PyExc_ValueError, "unsupported flags");
+    }
+#endif
 
     wchar_t *locale_ = PyUnicode_AsWideCharString(locale, NULL);
     if (!locale_) {
