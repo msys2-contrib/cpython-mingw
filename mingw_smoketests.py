@@ -29,7 +29,7 @@ import os
 import unittest
 import sysconfig
 
-if "MSYSTEM" in os.environ:
+if os.environ.get("MSYSTEM", ""):
     SEP = "/"
 else:
     SEP = "\\"
