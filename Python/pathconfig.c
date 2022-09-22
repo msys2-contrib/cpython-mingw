@@ -2,7 +2,7 @@
 
 #include "Python.h"
 #include "marshal.h"              // PyMarshal_ReadObjectFromString
-#include "osdefs.h"               // DELIM
+#include "osdefs.h"               // DELIM, SEP
 #include "pycore_initconfig.h"
 #include "pycore_fileutils.h"
 #include "pycore_pathconfig.h"
@@ -50,7 +50,6 @@ Py_StartsWithW(const wchar_t * str, const wchar_t * prefix)
 char
 Py_GetSepA(const char *name)
 {
-    char* msystem = (char*)2; /* So that non Windows use / as sep */
     static char sep = '\0';
 #ifdef _WIN32
     /* https://msdn.microsoft.com/en-gb/library/windows/desktop/aa365247%28v=vs.85%29.aspx
@@ -65,12 +64,14 @@ Py_GetSepA(const char *name)
     if (sep != '\0')
         return sep;
 #if defined(__MINGW32__)
-    msystem = Py_GETENV("MSYSTEM");
-#endif
-    if (msystem != NULL)
+    char* msystem = getenv("MSYSTEM");
+    if (msystem != NULL && strcmp(msystem, "") != 0)
         sep = '/';
     else
         sep = '\\';
+#else
+    sep = SEP;
+#endif
     return sep;
 }
 
@@ -103,7 +104,6 @@ Py_NormalizeSepsA(char *name)
 wchar_t
 Py_GetSepW(const wchar_t *name)
 {
-    char* msystem = (char*)2; /* So that non Windows use / as sep */
     static wchar_t sep = L'\0';
 #ifdef _WIN32
     /* https://msdn.microsoft.com/en-gb/library/windows/desktop/aa365247%28v=vs.85%29.aspx
@@ -118,12 +118,14 @@ Py_GetSepW(const wchar_t *name)
     if (sep != L'\0')
         return sep;
 #if defined(__MINGW32__)
-    msystem = Py_GETENV("MSYSTEM");
-#endif
-    if (msystem != NULL)
+    char* msystem = getenv("MSYSTEM");
+    if (msystem != NULL && strcmp(msystem, "") != 0)
         sep = L'/';
     else
         sep = L'\\';
+#else
+    sep = SEP;
+#endif
     return sep;
 }
 
