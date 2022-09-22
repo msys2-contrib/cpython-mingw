@@ -64,7 +64,7 @@ Py_GetSepA(const char *name)
 #if defined(__MINGW32__)
     msystem = Py_GETENV("MSYSTEM");
 #endif
-    if (msystem != NULL)
+    if (msystem != NULL && strcmp(msystem, "") != 0)
         sep = '/';
     else
         sep = '\\';
@@ -117,7 +117,7 @@ Py_GetSepW(const wchar_t *name)
 #if defined(__MINGW32__)
     msystem = Py_GETENV("MSYSTEM");
 #endif
-    if (msystem != NULL)
+    if (msystem != NULL && strcmp(msystem, "") != 0)
         sep = L'/';
     else
         sep = L'\\';
