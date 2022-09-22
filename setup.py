@@ -81,7 +81,7 @@ def get_platform():
 # as otherwise all the io redirection will fail.
 # Arguably, this could happen inside the real os.system
 # rather than this monkey patch.
-if sys.platform == "win32" and "MSYSTEM" in os.environ:
+if sys.platform == "win32" and os.environ.get("MSYSTEM", ""):
     os_system = os.system
     def msys_system(command):
         command_in_sh = 'sh.exe -c "%s"' % command.replace("\\", "\\\\")
