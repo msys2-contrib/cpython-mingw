@@ -162,7 +162,6 @@ locale_is_ascii(const char *str)
 static int
 locale_decode_monetary(PyObject *dict, struct lconv *lc)
 {
-#ifndef MS_WINDOWS
     int change_locale;
     change_locale = (!locale_is_ascii(lc->int_curr_symbol)
                      || !locale_is_ascii(lc->currency_symbol)
@@ -198,11 +197,7 @@ locale_decode_monetary(PyObject *dict, struct lconv *lc)
         }
     }
 
-#define GET_LOCALE_STRING(ATTR) PyUnicode_DecodeLocale(lc->ATTR, NULL)
-#else  /* MS_WINDOWS */
-/* Use _W_* fields of Windows struct lconv */
-#define GET_LOCALE_STRING(ATTR) PyUnicode_FromWideChar(lc->_W_ ## ATTR, -1)
-#endif /* MS_WINDOWS */
+    #define GET_LOCALE_STRING(ATTR) PyUnicode_DecodeLocale(lc->ATTR, NULL)
 
     int res = -1;
 
@@ -275,12 +270,8 @@ _locale_localeconv_impl(PyObject *module)
         Py_DECREF(obj); \
     } while (0)
 
-#ifdef MS_WINDOWS
-/* Use _W_* fields of Windows struct lconv */
-#define GET_LOCALE_STRING(ATTR) PyUnicode_FromWideChar(lc->_W_ ## ATTR, -1)
-#else
 #define GET_LOCALE_STRING(ATTR) PyUnicode_DecodeLocale(lc->ATTR, NULL)
-#endif
+
 #define RESULT_STRING(s)\
     do { \
         x = GET_LOCALE_STRING(s); \
