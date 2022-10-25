@@ -167,7 +167,7 @@ jobs:
           pacman --noconfirm -Suuy
           pacman --needed --noconfirm -S mingw-w64-gcc autoconf-archive autoconf automake zip
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
@@ -234,7 +234,7 @@ jobs:
           apt-get update -qq
           apt-get install -qqy autoconf-archive
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
