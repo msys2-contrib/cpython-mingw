@@ -150,7 +150,7 @@ jobs:
           tar -zcf python.tar.gz python_pkgdir/
 
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: build-${{ matrix.msystem }}
@@ -201,7 +201,7 @@ jobs:
           zip -r install.zip _build/install
 
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-cross-gcc-x86_64
           path: install.zip
@@ -271,7 +271,7 @@ jobs:
           zip -r install.zip _build/install
 
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-cross-llvm-mingw-${{ matrix.arch }}
           path: install.zip
