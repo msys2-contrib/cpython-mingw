@@ -225,6 +225,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(platform.python_implementation(), "CPython")
         self.assertEqual(platform.system(), "Windows")
         self.assertTrue(isinstance(sys.api_version, int) and sys.api_version > 0)
+        self.assertEqual(sysconfig.get_config_var('SOABI'), sysconfig.get_config_var('EXT_SUFFIX'))
 
     def test_c_ext_build(self):
         import tempfile
