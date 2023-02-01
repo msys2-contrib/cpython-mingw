@@ -59,7 +59,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Register Sphinx problem matcher
       run: echo "::add-matcher::.github/problem-matchers/sphinx.json"
-    - uses: actions/cache@v3
+    - uses: actions/cache@v3.2.4
       with:
         path: ~/.cache/pip
         key: ubuntu-doc-${{ hashFiles('Doc/requirements.txt') }}
