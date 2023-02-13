@@ -975,7 +975,9 @@ class PyBuildExt(build_ext):
         self.addext(Extension('spwd', ['spwdmodule.c']))
 
         # select(2); not on ancient System V
-        self.addext(Extension('select', ['selectmodule.c']))
+        self.addext(Extension(
+            'select', ['selectmodule.c'],
+            libraries=(['ws2_32'] if MS_WINDOWS else None)))
 
         # Memory-mapped files (also works on Win32).
         self.addext(Extension('mmap', ['mmapmodule.c']))
