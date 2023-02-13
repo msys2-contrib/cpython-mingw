@@ -1418,11 +1418,12 @@ class PyBuildExt(build_ext):
                         include_dirs=include_dirs,
                         extra_compile_args=extra_compile_args,
                         extra_link_args=extra_link_args,
-                        libraries=[],
+                        libraries=(['ole32', 'oleaut32', 'uuid'] if MS_WINDOWS else []),
                         sources=sources)
         self.add(ext)
         # function my_sqrt() needs libm for sqrt()
-        self.addext(Extension('_ctypes_test', ['_ctypes/_ctypes_test.c']))
+        self.addext(Extension('_ctypes_test', ['_ctypes/_ctypes_test.c'],
+                              libraries=(['oleaut32'] if MS_WINDOWS else [])))
 
         ffi_inc = sysconfig.get_config_var("LIBFFI_INCLUDEDIR")
         ffi_lib = None
