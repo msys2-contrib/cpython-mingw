@@ -1331,7 +1331,8 @@ class PyBuildExt(build_ext):
             sysconfig.get_config_var('POSIX_SEMAPHORES_NOT_ENABLED')
         ):
             multiprocessing_srcs.append('_multiprocessing/semaphore.c')
-        self.addext(Extension('_multiprocessing', multiprocessing_srcs))
+        self.addext(Extension('_multiprocessing', multiprocessing_srcs,
+                              libraries=(['ws2_32'] if MS_WINDOWS else None)))
         self.addext(Extension('_posixshmem', ['_multiprocessing/posixshmem.c']))
 
     def detect_uuid(self):
