@@ -22,7 +22,9 @@
 #include <io.h>
 #include <conio.h>
 #include <sys/locking.h>
+#ifdef _DEBUG
 #include <crtdbg.h>
+#endif
 #include <windows.h>
 
 #ifdef _MSC_VER
