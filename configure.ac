@@ -7727,6 +7727,16 @@ PY_STDLIB_MOD([_ssl], [], [test "$ac_cv_working_openssl_ssl" = yes],
 PY_STDLIB_MOD([_hashlib], [], [test "$ac_cv_working_openssl_hashlib" = yes],
   [$OPENSSL_INCLUDES], [$OPENSSL_LDFLAGS $OPENSSL_LDFLAGS_RPATH $LIBCRYPTO_LIBS])
 
+dnl windows specific modules
+PY_STDLIB_MOD([msvcrt], [test "$MACHDEP" = "win32"])
+PY_STDLIB_MOD([_winapi], [test "$MACHDEP" = "win32"])
+PY_STDLIB_MOD([_msi], [test "$MACHDEP" = "win32"], [], [],
+  [-lmsi -lcabinet -lrpcrt4])
+PY_STDLIB_MOD([winsound], [test "$MACHDEP" = "win32"], [], [],
+  [-lwinmm])
+PY_STDLIB_MOD([_overlapped], [test "$MACHDEP" = "win32"], [], [],
+  [-lws2_32])
+
 dnl test modules
 PY_STDLIB_MOD([_testcapi], [test "$TEST_MODULES" = yes])
 PY_STDLIB_MOD([_testclinic], [test "$TEST_MODULES" = yes])
