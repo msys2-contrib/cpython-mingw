@@ -27,7 +27,7 @@
  * Author: Kostya Serebryany
  */
 
-#ifdef _MSC_VER
+#ifdef MS_WINDOWS
 # include <windows.h>
 #endif
 
