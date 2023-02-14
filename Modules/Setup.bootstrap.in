@@ -40,3 +40,8 @@ _symtable symtablemodule.c
 
 # for systems without $HOME env, used by site._getuserbase()
 @MODULE_PWD_TRUE@pwd pwdmodule.c
+
+# build-in modules for windows platform:
+@MODULE_WINREG_TRUE@winreg ../PC/winreg.c
+@MODULE_MSVCRT_TRUE@msvcrt -DPy_BUILD_CORE ../PC/msvcrtmodule.c
+@MODULE__WINAPI_TRUE@_winapi _winapi.c
