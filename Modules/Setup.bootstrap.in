@@ -36,3 +36,5 @@ _symtable symtablemodule.c
 
 # build-in modules for windows platform:
 @USE_WIN32_MODULE@winreg ../PC/winreg.c
+@MODULE_MSVCRT_TRUE@msvcrt -DPy_BUILD_CORE ../PC/msvcrtmodule.c
+@MODULE__WINAPI_TRUE@_winapi _winapi.c
