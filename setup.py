@@ -1286,6 +1286,19 @@ class PyBuildExt(build_ext):
         # macOS-only, needs SystemConfiguration and CoreFoundation framework
         self.addext(Extension('_scproxy', ['_scproxy.c']))
 
+        # Windows-only modules
+        if MS_WINDOWS:
+            srcdir = sysconfig.get_config_var('srcdir')
+            pc_srcdir = os.path.abspath(os.path.join(srcdir, 'PC'))
+
+            self.addext(Extension('_msi', 
+                                [os.path.join(pc_srcdir, '_msi.c')]))
+
+            self.addext(Extension('winsound', 
+                                [os.path.join(pc_srcdir, 'winsound.c')]))
+
+            self.addext(Extension('_overlapped', ['overlapped.c']))
+
     def detect_compress_exts(self):
         # Andrew Kuchling's zlib module.
         self.addext(Extension('zlib', ['zlibmodule.c']))
