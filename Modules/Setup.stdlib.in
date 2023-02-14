@@ -160,6 +160,13 @@
 # _scproxy needs SystemConfiguration and CoreFoundation framework
 @MODULE__SCPROXY_TRUE@_scproxy _scproxy.c
 
+############################################################################
+# Windows specific modules
+
+@MODULE__OVERLAPPED_TRUE@_overlapped overlapped.c
+@MODULE__MSI_TRUE@_msi ../PC/_msi.c
+@MODULE_WINSOUND_TRUE@winsound ../PC/winsound.c
+
 
 ############################################################################
 # Test modules
