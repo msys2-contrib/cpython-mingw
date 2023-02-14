@@ -40,7 +40,9 @@
 
 
 #include "windows.h"
+#if defined(Py_DEBUG)
 #include <crtdbg.h>
+#endif
 #include "winreparse.h"
 
 #include "pycore_runtime.h"       // _Py_ID
