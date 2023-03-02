@@ -262,7 +262,7 @@ class Tests(unittest.TestCase):
                                     helloworld(PyObject *self, PyObject *args)
                                     {
                                         printf("Hello World\\n");
-                                        return Py_None;
+                                        Py_RETURN_NONE;
                                     }
                                     static PyMethodDef
                                     myMethods[] = {
