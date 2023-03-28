@@ -631,8 +631,12 @@ OPENSSL_LDFLAGS
 OPENSSL_LIBS
 OPENSSL_INCLUDES
 ENSUREPIP
+RCFLAGS
+AWK
 SRCDIRS
+PYTHON_OBJS_FROZENMAIN
 THREADHEADERS
+NCURSESW_INCLUDEDIR
 WHEEL_PKG_DIR
 LIBPL
 PY_ENABLE_SHARED
@@ -642,6 +646,7 @@ LIBPYTHON
 EXT_SUFFIX
 ALT_SOABI
 SOABI
+PYD_PLATFORM_TAG
 LIBC
 LIBM
 HAVE_GETHOSTBYNAME
@@ -658,6 +663,8 @@ DTRACE_OBJS
 DTRACE_HEADERS
 DFLAGS
 DTRACE
+USE_PWD_MODULE
+USE_WIN32_MODULE
 TCLTK_LIBS
 TCLTK_INCLUDES
 LIBFFI_INCLUDEDIR
@@ -704,6 +711,7 @@ READELF
 ARFLAGS
 ac_ct_AR
 AR
+WINDRES
 GNULD
 EXPORTSFROM
 EXPORTSYMS
@@ -738,6 +746,12 @@ CFLAGS
 CC
 EXPORT_MACOSX_DEPLOYMENT_TARGET
 CONFIGURE_MACOSX_DEPLOYMENT_TARGET
+INITSYS
+abs_builddir_b2h
+abs_srcdir_b2h
+srcdir_b2h
+prefix_b2h
+VPATH_b2h
 _PYTHON_HOST_PLATFORM
 MACHDEP
 FRAMEWORKINSTALLAPPSPREFIX
@@ -793,7 +807,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -829,6 +842,7 @@ with_trace_refs
 with_assertions
 enable_optimizations
 with_lto
+with_nt_threads
 with_address_sanitizer
 with_memory_sanitizer
 with_undefined_behavior_sanitizer
@@ -917,7 +931,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1170,15 +1183,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1316,7 +1320,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1469,7 +1473,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1552,6 +1555,8 @@ Optional Packages:
   --with-assertions       build with C assertions enabled (default is no)
   --with-lto              enable Link-Time-Optimization in any build (default
                           is no)
+  --with-nt-threads       build with windows threads (default is
+                          system-dependent)
   --with-address-sanitizer
                           enable AddressSanitizer memory error detector,
                           'asan' (default is no)
@@ -1589,7 +1594,7 @@ Optional Packages:
   --with-pymalloc         enable specialized mallocs (default is yes)
   --with-c-locale-coercion
                           enable C locale coercion to a UTF-8 based locale
-                          (default is yes)
+                          (default is yes on Unix, no on Windows)
   --with-valgrind         enable Valgrind support (default is no)
   --with-dtrace           enable DTrace support (default is no)
   --with-libm=STRING      override libm math library to STRING (default is
@@ -3331,6 +3336,7 @@ if test -z "$MACHDEP"
 then
     # avoid using uname for cross builds
     if test "$cross_compiling" = yes; then
+       ac_sys_release=
        # ac_sys_system and ac_sys_release are used for setting
        # a lot of different things including 'define_xopen_source'
        # in the case statement below.
@@ -3344,6 +3350,30 @@ then
 	*-*-cygwin*)
 		ac_sys_system=Cygwin
 		;;
+	*-*-mingw*)
+		ac_sys_system=MINGW
+		;;
+	*-*-darwin*)
+		ac_sys_system=Darwin
+		ac_sys_release=$(echo $host | sed -n 's/.*-^0-9\+\(0-9\+\)/\1/p')
+		if test -z "$ac_sys_release"; then
+			# A reasonable default.
+			ac_sys_release=11
+		fi
+		# Use the last released version number for old versions.
+	        if test "$ac_sys_release" = "9" ; then
+			ac_sys_release=9.8
+	        elif test "$ac_sys_release" = "10" ; then
+			ac_sys_release=10.8
+	        elif test "$ac_sys_release" = "11" ; then
+			ac_sys_release=11.4.0
+	        elif test "$ac_sys_release" = "12" ; then
+			ac_sys_release=12.0.0
+		else
+		# ..and .0.0 for unknown versions.
+			ac_sys_release=${ac_sys_release}.0.0
+		fi
+		;;
 	*-*-vxworks*)
 	    ac_sys_system=VxWorks
 	    ;;
@@ -3352,7 +3382,6 @@ then
 		MACHDEP="unknown"
 		as_fn_error $? "cross build not supported for $host" "$LINENO" 5
 	esac
-	ac_sys_release=
     else
 	ac_sys_system=`uname -s`
 	if test "$ac_sys_system" = "AIX" \
@@ -3373,6 +3402,7 @@ then
 	linux*) MACHDEP="linux";;
 	cygwin*) MACHDEP="cygwin";;
 	darwin*) MACHDEP="darwin";;
+	mingw*) MACHDEP="win32";;
 	'')	MACHDEP="unknown";;
     esac
 fi
@@ -3397,12 +3427,26 @@ if test "$cross_compiling" = yes; then
 	*-*-vxworks*)
 		_host_cpu=$host_cpu
 		;;
+	*-*-mingw*)
+		_host_cpu=
+		;;
+	*-*-darwin*)
+		_host_cpu=
+		;;
 	*)
 		# for now, limit cross builds to known configurations
 		MACHDEP="unknown"
 		as_fn_error $? "cross build not supported for $host" "$LINENO" 5
 	esac
 	_PYTHON_HOST_PLATFORM="$MACHDEP${_host_cpu:+-$_host_cpu}"
+
+	case "$host_os" in
+	mingw*)
+	# As sys.platform() return 'win32' to build python and extantions
+	# we will use 'mingw' (in setup.py and etc.)
+	_PYTHON_HOST_PLATFORM=mingw
+	;;
+	esac
 fi
 
 # Some systems cannot stand _XOPEN_SOURCE being defined at all; they
@@ -3522,6 +3566,148 @@ then
 $as_echo "#define _INCLUDE__STDC_A1_SOURCE 1" >>confdefs.h
 
 fi
+
+# On 'semi-native' build systems (MSYS*/Cygwin targeting MinGW-w64)
+# _sysconfigdata.py will contain paths that are correct only in the
+# build environment. This means external modules will fail to build
+# without setting up the same env and also that the build of Python
+# itself will fail as the paths are not correct for the host tools.
+#
+# Also, getpath.c uses GetModuleFileNameW (replacing \ with /) and
+# compares that with the define VPATH (passed in via command-line)
+# to determine whether it's the build- or the installed-Python.
+#
+# To work around these issues a set of _b2h variables are created:
+# VPATH_b2h, prefix_b2h, srcdir_b2h, abs_srcdir_b2h
+# and abs_builddir_b2h
+# .. where b2h stands for build to host. sysconfig.py replaces path
+# prefixes matching the non-b2h versions with the b2h equivalents.
+#
+# (note this assumes the host compilers are native and *not* cross
+#  - in the 'semi-native' scenario only that is.)
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute host location of VPATH" >&5
+$as_echo_n "checking absolute host location of VPATH... " >&6; }
+VPATH_b2h=$(cd $srcdir && pwd)
+  case $build_os in
+    mingw*)
+      case $host_os in
+        mingw*) VPATH_b2h=$(cd $srcdir && pwd -W) ;;
+        *) ;;
+      esac
+      ;;
+    cygwin*)
+      case $host_os in
+        mingw*) VPATH_b2h=$(cygpath -w -m $srcdir) ;;
+        *) ;;
+      esac
+      ;;
+  esac
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $VPATH_b2h" >&5
+$as_echo "$VPATH_b2h" >&6; }
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute host location of prefix" >&5
+$as_echo_n "checking absolute host location of prefix... " >&6; }
+prefix_b2h=$(cd $prefix && pwd)
+  case $build_os in
+    mingw*)
+      case $host_os in
+        mingw*) prefix_b2h=$(cd $prefix && pwd -W) ;;
+        *) ;;
+      esac
+      ;;
+    cygwin*)
+      case $host_os in
+        mingw*) prefix_b2h=$(cygpath -w -m $prefix) ;;
+        *) ;;
+      esac
+      ;;
+  esac
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $prefix_b2h" >&5
+$as_echo "$prefix_b2h" >&6; }
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute host location of srcdir" >&5
+$as_echo_n "checking absolute host location of srcdir... " >&6; }
+srcdir_b2h=$(cd $srcdir && pwd)
+  case $build_os in
+    mingw*)
+      case $host_os in
+        mingw*) srcdir_b2h=$(cd $srcdir && pwd -W) ;;
+        *) ;;
+      esac
+      ;;
+    cygwin*)
+      case $host_os in
+        mingw*) srcdir_b2h=$(cygpath -w -m $srcdir) ;;
+        *) ;;
+      esac
+      ;;
+  esac
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $srcdir_b2h" >&5
+$as_echo "$srcdir_b2h" >&6; }
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute host location of abs_srcdir" >&5
+$as_echo_n "checking absolute host location of abs_srcdir... " >&6; }
+abs_srcdir_b2h=$(cd $srcdir && pwd)
+  case $build_os in
+    mingw*)
+      case $host_os in
+        mingw*) abs_srcdir_b2h=$(cd $srcdir && pwd -W) ;;
+        *) ;;
+      esac
+      ;;
+    cygwin*)
+      case $host_os in
+        mingw*) abs_srcdir_b2h=$(cygpath -w -m $srcdir) ;;
+        *) ;;
+      esac
+      ;;
+  esac
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $abs_srcdir_b2h" >&5
+$as_echo "$abs_srcdir_b2h" >&6; }
+
+my_builddir=.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking Absolute host location of abs_builddir" >&5
+$as_echo_n "checking Absolute host location of abs_builddir... " >&6; }
+abs_builddir_b2h=$(cd $my_builddir && pwd)
+  case $build_os in
+    mingw*)
+      case $host_os in
+        mingw*) abs_builddir_b2h=$(cd $my_builddir && pwd -W) ;;
+        *) ;;
+      esac
+      ;;
+    cygwin*)
+      case $host_os in
+        mingw*) abs_builddir_b2h=$(cygpath -w -m $my_builddir) ;;
+        *) ;;
+      esac
+      ;;
+  esac
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $abs_builddir_b2h" >&5
+$as_echo "$abs_builddir_b2h" >&6; }
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for init system calls" >&5
+$as_echo_n "checking for init system calls... " >&6; }
+
+case $host in
+  *-*-mingw*)	INITSYS=nt;;
+  *)		INITSYS=posix;;
+esac
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $INITSYS" >&5
+$as_echo "$INITSYS" >&6; }
 
 # Record the configure-time value of MACOSX_DEPLOYMENT_TARGET,
 # it may influence the way we can build extensions, so distutils
@@ -5413,6 +5599,30 @@ if test x$MULTIARCH != x; then
 fi
 
 
+# initialize default configuration
+py_config=
+case $host in
+  *-*-mingw*) py_config=mingw ;;
+esac
+if test -n "$py_config" ; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: loading configure defaults from .../Misc/config_$py_config\"" >&5
+$as_echo "$as_me: loading configure defaults from .../Misc/config_$py_config\"" >&6;}
+  . "$srcdir/Misc/config_$py_config"
+fi
+
+# initialize defaults for cross-builds
+if test "$cross_compiling" = yes; then
+  py_config=$host_os
+  case $py_config in
+    mingw32*) py_config=mingw32 ;;
+  esac
+  if test -f "$srcdir/Misc/cross_$py_config" ; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: loading cross defaults from .../Misc/cross_$py_config\"" >&5
+$as_echo "$as_me: loading cross defaults from .../Misc/cross_$py_config\"" >&6;}
+    . "$srcdir/Misc/cross_$py_config"
+  fi
+fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for -Wl,--no-as-needed" >&5
 $as_echo_n "checking for -Wl,--no-as-needed... " >&6; }
 save_LDFLAGS="$LDFLAGS"
@@ -6022,6 +6232,13 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>confdefs.h
 	;;
 
   esac
+  case $host in
+    *-*-mingw*)
+        LDLIBRARY='libpython$(LDVERSION).dll.a'
+        DLLLIBRARY='libpython$(LDVERSION).dll'
+        BLDLIBRARY='-L. -lpython$(LDVERSION)'
+        ;;
+  esac
 else # shared is disabled
   PY_ENABLE_SHARED=0
   case $ac_sys_system in
@@ -6029,6 +6246,10 @@ else # shared is disabled
           BLDLIBRARY='$(LIBRARY)'
           LDLIBRARY='libpython$(LDVERSION).dll.a'
           ;;
+  esac
+  case $host in
+    *-*-mingw*)
+          LDLIBRARY='libpython$(LDVERSION).a';;
   esac
 fi
 
@@ -6038,6 +6259,100 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LDLIBRARY" >&5
 $as_echo "$LDLIBRARY" >&6; }
+
+
+if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}windres", so it can be a program name with args.
+set dummy ${ac_tool_prefix}windres; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_WINDRES+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$WINDRES"; then
+  ac_cv_prog_WINDRES="$WINDRES" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_WINDRES="${ac_tool_prefix}windres"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+WINDRES=$ac_cv_prog_WINDRES
+if test -n "$WINDRES"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $WINDRES" >&5
+$as_echo "$WINDRES" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_prog_WINDRES"; then
+  ac_ct_WINDRES=$WINDRES
+  # Extract the first word of "windres", so it can be a program name with args.
+set dummy windres; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_ac_ct_WINDRES+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$ac_ct_WINDRES"; then
+  ac_cv_prog_ac_ct_WINDRES="$ac_ct_WINDRES" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_ac_ct_WINDRES="windres"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+ac_ct_WINDRES=$ac_cv_prog_ac_ct_WINDRES
+if test -n "$ac_ct_WINDRES"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_WINDRES" >&5
+$as_echo "$ac_ct_WINDRES" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_ct_WINDRES" = x; then
+    WINDRES=""
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    WINDRES=$ac_ct_WINDRES
+  fi
+else
+  WINDRES="$ac_cv_prog_WINDRES"
+fi
+
 
 
 if test -n "$ac_tool_prefix"; then
@@ -7044,6 +7359,26 @@ fi
 
 
 
+if test "x$cross_compiling" = xyes; then
+    function cross_arch
+    {
+        case $host in
+	  x86_64*darwin*)
+	    echo i386
+          ;;
+	  x86_64*)
+            echo x86_64
+	  ;;
+	  *)
+            echo i386
+	  ;;
+	esac
+    }
+    ARCH_PROG=cross_arch
+else
+    ARCH_PROG=/usr/bin/arch
+fi
+
 # The -arch flags for universal builds on macOS
 UNIVERSAL_ARCH_FLAGS=
 
@@ -7649,7 +7984,7 @@ $as_echo_n "checking which MACOSX_DEPLOYMENT_TARGET to use... " >&6; }
                     ;;
                 esac
             else
-                if test `/usr/bin/arch` = "i386"
+                if test "$($ARCH_PROG)" = "i386"
                 then
                     # 10.4 was the first release to support Intel archs
                     cur_target="10.4"
@@ -7731,6 +8066,62 @@ then
 	BASECFLAGS="$BASECFLAGS $ac_arch_flags"
 fi
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for --with-nt-threads" >&5
+$as_echo_n "checking for --with-nt-threads... " >&6; }
+
+# Check whether --with-nt-threads was given.
+if test "${with_nt_threads+set}" = set; then :
+  withval=$with_nt_threads;
+	case $withval in
+	no)	with_nt_threads=no;;
+	yes)	with_nt_threads=yes;;
+	*)	with_nt_threads=yes;;
+	esac
+
+else
+
+	case $host in
+		*-*-mingw*) with_nt_threads=yes;;
+		*) with_nt_threads=no;;
+	esac
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_nt_threads" >&5
+$as_echo "$with_nt_threads" >&6; }
+
+if test $with_nt_threads = yes ; then
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether linking with nt-threads work" >&5
+$as_echo_n "checking whether linking with nt-threads work... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+    #include <process.h>
+int
+main ()
+{
+_beginthread(0, 0, 0);
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  as_fn_error $? "failed to link with nt-threads" "$LINENO" 5
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+
+if test $with_nt_threads = yes ; then
+      ac_cv_pthread_is_default=no
+  ac_cv_kthread=no
+  ac_cv_pthread=no
+  else
 # On some compilers, pthreads are available without further options
 # (e.g. MacOS X). On some of these systems, the compiler will not
 # complain if unaccepted options are passed (e.g. gcc on Mac OS X).
@@ -7933,6 +8324,8 @@ fi
 $as_echo "$ac_cv_pthread" >&6; }
 fi
 
+fi
+
 # If we have set a CC compiler flag for thread support then
 # check if it works for CXX, too.
 ac_cv_cxx_thread=no
@@ -7954,6 +8347,9 @@ elif test "$ac_cv_pthread" = "yes"
 then
   CXX="$CXX -pthread"
   ac_cv_cxx_thread=yes
+elif test $with_nt_threads = yes
+then
+    ac_cv_cxx_thread=always
 fi
 
 if test $ac_cv_cxx_thread = yes
@@ -8088,10 +8484,10 @@ $as_echo "#define STDC_HEADERS 1" >>confdefs.h
 
 fi
 
-for ac_header in asm/types.h crypt.h conio.h direct.h dlfcn.h errno.h \
+for ac_header in asm/types.h crypt.h conio.h direct.h errno.h \
 fcntl.h grp.h \
-ieeefp.h io.h langinfo.h libintl.h process.h pthread.h \
-sched.h shadow.h signal.h stropts.h termios.h \
+ieeefp.h io.h langinfo.h libintl.h process.h \
+shadow.h signal.h stropts.h termios.h \
 utime.h \
 poll.h sys/devpoll.h sys/epoll.h sys/poll.h \
 sys/audioio.h sys/xattr.h sys/bsdtty.h sys/event.h sys/file.h sys/ioctl.h \
@@ -8103,6 +8499,359 @@ libutil.h sys/resource.h netpacket/packet.h sysexits.h bluetooth.h \
 linux/tipc.h linux/random.h spawn.h util.h alloca.h endian.h \
 sys/endian.h sys/sysmacros.h linux/auxvec.h sys/auxv.h linux/memfd.h linux/wait.h sys/memfd.h \
 sys/mman.h sys/eventfd.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+
+case $host in
+  *-*-mingw*) ;;
+  *) for ac_header in dlfcn.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "dlfcn.h" "ac_cv_header_dlfcn_h" "$ac_includes_default"
+if test "x$ac_cv_header_dlfcn_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DLFCN_H 1
+_ACEOF
+
+fi
+
+done
+;;
+esac
+
+ac_header_dirent=no
+for ac_hdr in dirent.h sys/ndir.h sys/dir.h ndir.h; do
+  as_ac_Header=`$as_echo "ac_cv_header_dirent_$ac_hdr" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_hdr that defines DIR" >&5
+$as_echo_n "checking for $ac_hdr that defines DIR... " >&6; }
+if eval \${$as_ac_Header+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+#include <$ac_hdr>
+
+int
+main ()
+{
+if ((DIR *) 0)
+return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$as_ac_Header=yes"
+else
+  eval "$as_ac_Header=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$as_ac_Header
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_hdr" | $as_tr_cpp` 1
+_ACEOF
+
+ac_header_dirent=$ac_hdr; break
+fi
+
+done
+# Two versions of opendir et al. are in -ldir and -lx on SCO Xenix.
+if test $ac_header_dirent = dirent.h; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing opendir" >&5
+$as_echo_n "checking for library containing opendir... " >&6; }
+if ${ac_cv_search_opendir+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char opendir ();
+int
+main ()
+{
+return opendir ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' dir; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_opendir=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_opendir+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_opendir+:} false; then :
+
+else
+  ac_cv_search_opendir=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_opendir" >&5
+$as_echo "$ac_cv_search_opendir" >&6; }
+ac_res=$ac_cv_search_opendir
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+fi
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing opendir" >&5
+$as_echo_n "checking for library containing opendir... " >&6; }
+if ${ac_cv_search_opendir+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char opendir ();
+int
+main ()
+{
+return opendir ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' x; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_opendir=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_opendir+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_opendir+:} false; then :
+
+else
+  ac_cv_search_opendir=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_opendir" >&5
+$as_echo "$ac_cv_search_opendir" >&6; }
+ac_res=$ac_cv_search_opendir
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+fi
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether sys/types.h defines makedev" >&5
+$as_echo_n "checking whether sys/types.h defines makedev... " >&6; }
+if ${ac_cv_header_sys_types_h_makedev+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+int
+main ()
+{
+return makedev(0, 0);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_header_sys_types_h_makedev=yes
+else
+  ac_cv_header_sys_types_h_makedev=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_header_sys_types_h_makedev" >&5
+$as_echo "$ac_cv_header_sys_types_h_makedev" >&6; }
+
+if test $ac_cv_header_sys_types_h_makedev = no; then
+ac_fn_c_check_header_mongrel "$LINENO" "sys/mkdev.h" "ac_cv_header_sys_mkdev_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_mkdev_h" = xyes; then :
+
+$as_echo "#define MAJOR_IN_MKDEV 1" >>confdefs.h
+
+fi
+
+
+
+  if test $ac_cv_header_sys_mkdev_h = no; then
+    ac_fn_c_check_header_mongrel "$LINENO" "sys/sysmacros.h" "ac_cv_header_sys_sysmacros_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_sysmacros_h" = xyes; then :
+
+$as_echo "#define MAJOR_IN_SYSMACROS 1" >>confdefs.h
+
+fi
+
+
+  fi
+fi
+
+
+# If using nt threads, don't look for pthread.h or thread.h
+if test "x$with_nt_threads" = xno ; then
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ANSI C header files" >&5
+$as_echo_n "checking for ANSI C header files... " >&6; }
+if ${ac_cv_header_stdc+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <float.h>
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_header_stdc=yes
+else
+  ac_cv_header_stdc=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+if test $ac_cv_header_stdc = yes; then
+  # SunOS 4.x string.h does not declare mem*, contrary to ANSI.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <string.h>
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "memchr" >/dev/null 2>&1; then :
+
+else
+  ac_cv_header_stdc=no
+fi
+rm -f conftest*
+
+fi
+
+if test $ac_cv_header_stdc = yes; then
+  # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdlib.h>
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "free" >/dev/null 2>&1; then :
+
+else
+  ac_cv_header_stdc=no
+fi
+rm -f conftest*
+
+fi
+
+if test $ac_cv_header_stdc = yes; then
+  # /bin/cc in Irix-4.0.5 gets non-ANSI ctype macros unless using -ansi.
+  if test "$cross_compiling" = yes; then :
+  :
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <ctype.h>
+#include <stdlib.h>
+#if ((' ' & 0x0FF) == 0x020)
+# define ISLOWER(c) ('a' <= (c) && (c) <= 'z')
+# define TOUPPER(c) (ISLOWER(c) ? 'A' + ((c) - 'a') : (c))
+#else
+# define ISLOWER(c) \
+		   (('a' <= (c) && (c) <= 'i') \
+		     || ('j' <= (c) && (c) <= 'r') \
+		     || ('s' <= (c) && (c) <= 'z'))
+# define TOUPPER(c) (ISLOWER(c) ? ((c) | 0x40) : (c))
+#endif
+
+#define XOR(e, f) (((e) && !(f)) || (!(e) && (f)))
+int
+main ()
+{
+  int i;
+  for (i = 0; i < 256; i++)
+    if (XOR (islower (i), ISLOWER (i))
+	|| toupper (i) != TOUPPER (i))
+      return 2;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+else
+  ac_cv_header_stdc=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_header_stdc" >&5
+$as_echo "$ac_cv_header_stdc" >&6; }
+if test $ac_cv_header_stdc = yes; then
+
+$as_echo "#define STDC_HEADERS 1" >>confdefs.h
+
+fi
+
+for ac_header in pthread.h sched.h thread.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -8323,6 +9072,7 @@ fi
   fi
 fi
 
+fi
 
 # bluetooth/bluetooth.h has been known to not compile with -std=c99.
 # http://permalink.gmane.org/gmane.linux.bluez.kernel/22294
@@ -9264,8 +10014,19 @@ _ACEOF
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable large file support" >&5
 $as_echo_n "checking whether to enable large file support... " >&6; }
+have_largefile_support=no
 if test "$ac_cv_sizeof_off_t" -gt "$ac_cv_sizeof_long" -a \
 	"$ac_cv_sizeof_long_long" -ge "$ac_cv_sizeof_off_t"; then
+  have_largefile_support=yes
+else
+  case $host in
+  *-*-mingw*)
+        have_largefile_support=yes
+    ;;
+  esac
+fi
+
+if test $have_largefile_support = yes ; then
 
 $as_echo "#define HAVE_LARGEFILE_SUPPORT 1" >>confdefs.h
 
@@ -9331,6 +10092,9 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_t" >&5
 $as_echo_n "checking for pthread_t... " >&6; }
 have_pthread_t=no
+if test $with_nt_threads = yes ; then
+    have_pthread_t=skip
+else
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -9459,6 +10223,7 @@ else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
+fi
 CC="$ac_save_cc"
 
 
@@ -9479,7 +10244,7 @@ case $ac_sys_system/$ac_sys_release in
     if test "${enable_universalsdk}"; then
 	    :
     else
-        LIBTOOL_CRUFT="${LIBTOOL_CRUFT} -arch_only `/usr/bin/arch`"
+        LIBTOOL_CRUFT="${LIBTOOL_CRUFT} -arch_only $($ARCH_PROG)"
     fi
     LIBTOOL_CRUFT=$LIBTOOL_CRUFT' -install_name $(PYTHONFRAMEWORKINSTALLDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
     LIBTOOL_CRUFT=$LIBTOOL_CRUFT' -compatibility_version $(VERSION) -current_version $(VERSION)';;
@@ -9519,7 +10284,7 @@ fi
 
 
     if test "${ac_osx_32bit}" = "yes"; then
-    	case `/usr/bin/arch` in
+    	case $($ARCH_PROG) in
     	i386)
     		MACOSX_DEFAULT_ARCH="i386"
     		;;
@@ -9531,7 +10296,7 @@ fi
     		;;
     	esac
     else
-    	case `/usr/bin/arch` in
+    	case $($ARCH_PROG) in
     	i386)
     		MACOSX_DEFAULT_ARCH="x86_64"
     		;;
@@ -9707,6 +10472,9 @@ if test -z "$SHLIB_SUFFIX"; then
 	CYGWIN*)   SHLIB_SUFFIX=.dll;;
 	*)	   SHLIB_SUFFIX=.so;;
 	esac
+	case $host_os in
+	mingw*)    SHLIB_SUFFIX=.pyd;;
+	esac
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SHLIB_SUFFIX" >&5
 $as_echo "$SHLIB_SUFFIX" >&6; }
@@ -9833,6 +10601,12 @@ then
 		LDCXXSHARED="g++ -shared -Wl,--enable-auto-image-base";;
 	*)	LDSHARED="ld";;
 	esac
+	case $host in
+	*-*-mingw*)
+		LDSHARED='$(CC) -shared -Wl,--enable-auto-image-base'
+		LDCXXSHARED='$(CXX) -shared -Wl,--enable-auto-image-base'
+		;;
+	esac
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LDSHARED" >&5
 $as_echo "$LDSHARED" >&6; }
@@ -9944,6 +10718,11 @@ _ACEOF
 	VxWorks*)
 		LINKFORSHARED='-Wl,-export-dynamic';;
 	esac
+	case $host in
+	*-*-mingw*)
+		# for https://bugs.python.org/issue40458 on MINGW
+		LINKFORSHARED="-Wl,--stack,2000000";;
+	esac
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LINKFORSHARED" >&5
 $as_echo "$LINKFORSHARED" >&6; }
@@ -10031,7 +10810,10 @@ _ACEOF
 
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
+
+case $host in
+  *-*-mingw*) ;;
+  *) { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
 $as_echo_n "checking for dlopen in -ldl... " >&6; }
 if ${ac_cv_lib_dl_dlopen+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -10075,7 +10857,9 @@ _ACEOF
   LIBS="-ldl $LIBS"
 
 fi
-	# Dynamic linking for SunOS/Solaris and SYSV
+ ;;	# Dynamic linking for SunOS/Solaris and SYSV
+esac
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for shl_load in -ldld" >&5
 $as_echo_n "checking for shl_load in -ldld... " >&6; }
 if ${ac_cv_lib_dld_shl_load+:} false; then :
@@ -10280,6 +11064,9 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
+if test $with_nt_threads = yes ; then
+    :
+else
 # 'Real Time' functions on Solaris
 # posix4 on Solaris 2.6
 # pthread (first!) on Linux
@@ -10339,8 +11126,13 @@ if test "$ac_res" != no; then :
 
 fi
 
+fi
 
 # check if we need libintl for locale functions
+case $host in
+  *-*-mingw*)
+        ;;
+  *)
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for textdomain in -lintl" >&5
 $as_echo_n "checking for textdomain in -lintl... " >&6; }
 if ${ac_cv_lib_intl_textdomain+:} false; then :
@@ -10384,6 +11176,8 @@ $as_echo "#define WITH_LIBINTL 1" >>confdefs.h
         LIBS="-lintl $LIBS"
 fi
 
+  ;;
+esac
 
 # checks for system dependent C++ extensions support
 case "$ac_sys_system" in
@@ -10822,7 +11616,7 @@ $as_echo "$as_me: WARNING: --with(out)-system-ffi is ignored on this platform" >
 fi
 
 if test "$with_system_ffi" = "yes" && test -n "$PKG_CONFIG"; then
-    LIBFFI_INCLUDEDIR="`"$PKG_CONFIG" libffi --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ *$//'`"
+    LIBFFI_INCLUDEDIR="`"$PKG_CONFIG" libffi --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ .*$//'`"
 else
     LIBFFI_INCLUDEDIR=""
 fi
@@ -10947,6 +11741,25 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_dbmliborder" >&5
 $as_echo "$with_dbmliborder" >&6; }
 
+case $host in
+  *-*-mingw*)
+    CFLAGS_NODIST="$CFLAGS_NODIST -D_WIN32_WINNT=0x0601";;
+esac
+
+# Determine if windows modules should be used.
+
+USE_WIN32_MODULE='#'
+case $host in
+  *-*-mingw*) USE_WIN32_MODULE=;;
+esac
+
+# Determine if pwdmodule should be used.
+
+USE_PWD_MODULE=
+case $host in
+  *-*-mingw*) USE_PWD_MODULE='#';;
+esac
+
 # Templates for things AC_DEFINEd more than once.
 # For a single AC_DEFINE, no template is needed.
 
@@ -10981,6 +11794,12 @@ then
         CXX="$CXX -pthread"
     fi
     posix_threads=yes
+elif test $with_nt_threads = yes
+then
+    posix_threads=no
+
+$as_echo "#define NT_THREADS 1" >>confdefs.h
+
 else
     if test ! -z "$withval" -a -d "$withval"
     then LDFLAGS="$LDFLAGS -L$withval"
@@ -11751,7 +12570,10 @@ fi
 
 if test -z "$with_c_locale_coercion"
 then
-    with_c_locale_coercion="yes"
+    case $host in
+      *-*-mingw*) with_c_locale_coercion="no";;
+      *) with_c_locale_coercion="yes";;
+    esac
 fi
 if test "$with_c_locale_coercion" != "no"
 then
@@ -11921,6 +12743,27 @@ then
 	fi
 	;;
 	esac
+	case $host in
+	*-*-mingw*)
+    DYNLOADFILE="dynload_win.o"
+    extra_machdep_objs="$extra_machdep_objs PC/dl_nt.o"
+    CFLAGS_NODIST="$CFLAGS_NODIST -DPY3_DLLNAME='L\"$DLLLIBRARY\"'"
+    case $host in
+        i686*)
+                CFLAGS_NODIST="$CFLAGS_NODIST -DMS_DLL_ID='\"${VERSION}-32\"'"
+            ;;
+        armv7*)
+                CFLAGS_NODIST="$CFLAGS_NODIST -DMS_DLL_ID='\"${VERSION}-arm32\"'"
+            ;;
+        aarch64*)
+                CFLAGS_NODIST="$CFLAGS_NODIST -DMS_DLL_ID='\"${VERSION}-arm64\"'"
+            ;;
+            *)
+                CFLAGS_NODIST="$CFLAGS_NODIST -DMS_DLL_ID='\"$VERSION\"'"
+            ;;
+      esac
+    ;;
+	esac
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DYNLOADFILE" >&5
 $as_echo "$DYNLOADFILE" >&6; }
@@ -11951,6 +12794,11 @@ $as_echo "$MACHDEP_OBJS" >&6; }
 fi
 
 # checks for library functions
+if test $with_nt_threads = yes ; then
+          ac_cv_func_pthread_kill=skip
+  ac_cv_func_sem_open=skip
+  ac_cv_func_sched_setscheduler=skip
+fi
 for ac_func in alarm accept4 setitimer getitimer bind_textdomain_codeset chown \
  clock confstr close_range copy_file_range ctermid dup3 execv explicit_bzero \
  explicit_memset faccessat fchmod fchmodat fchown fchownat \
@@ -12898,10 +13746,14 @@ $as_echo_n "checking for inet_pton... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
+#ifdef _WIN32
+#include <ws2tcpip.h>
+#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 
 int
 main ()
@@ -13382,6 +14234,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 fi
 
 
+case $host in
+  *-*-mingw*) ;;
+  *)
 for ac_func in clock_gettime
 do :
   ac_fn_c_check_func "$LINENO" "clock_gettime" "ac_cv_func_clock_gettime"
@@ -13559,6 +14414,8 @@ fi
 fi
 done
 
+  ;;
+esac
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for major" >&5
 $as_echo_n "checking for major... " >&6; }
@@ -14081,6 +14938,18 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $was_it_defined" >&5
 $as_echo "$was_it_defined" >&6; }
 
+for ac_header in ws2tcpip.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "ws2tcpip.h" "ac_cv_header_ws2tcpip_h" "$ac_includes_default"
+if test "x$ac_cv_header_ws2tcpip_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_WS2TCPIP_H 1
+_ACEOF
+
+fi
+
+done
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for addrinfo" >&5
 $as_echo_n "checking for addrinfo... " >&6; }
 if ${ac_cv_struct_addrinfo+:} false; then :
@@ -14088,7 +14957,12 @@ if ${ac_cv_struct_addrinfo+:} false; then :
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <netdb.h>
+
+#ifdef HAVE_WS2TCPIP_H
+#  include <ws2tcpip.h>
+#else
+#  include <netdb.h>
+#endif
 int
 main ()
 {
@@ -14121,8 +14995,15 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#		include <sys/types.h>
-#		include <sys/socket.h>
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
 int
 main ()
 {
@@ -14989,6 +15870,9 @@ _ACEOF
 # the kernel module that provides POSIX semaphores
 # isn't loaded by default, so an attempt to call
 # sem_open results in a 'Signal 12' error.
+if test $with_nt_threads = yes ; then
+    ac_cv_posix_semaphores_enabled=no
+fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether POSIX semaphores are enabled" >&5
 $as_echo_n "checking whether POSIX semaphores are enabled... " >&6; }
 if ${ac_cv_posix_semaphores_enabled+:} false; then :
@@ -15042,6 +15926,9 @@ fi
 # Multiprocessing check for broken sem_getvalue
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for broken sem_getvalue" >&5
 $as_echo_n "checking for broken sem_getvalue... " >&6; }
+if test $with_nt_threads = yes ; then
+            ac_cv_broken_sem_getvalue=skip
+fi
 if ${ac_cv_broken_sem_getvalue+:} false; then :
   $as_echo_n "(cached) " >&6
 else
@@ -15094,7 +15981,9 @@ $as_echo "#define HAVE_BROKEN_SEM_GETVALUE 1" >>confdefs.h
 
 fi
 
-ac_fn_c_check_decl "$LINENO" "RTLD_LAZY" "ac_cv_have_decl_RTLD_LAZY" "#include <dlfcn.h>
+case $host in
+  *-*-mingw*) ;;
+  *) ac_fn_c_check_decl "$LINENO" "RTLD_LAZY" "ac_cv_have_decl_RTLD_LAZY" "#include <dlfcn.h>
 "
 if test "x$ac_cv_have_decl_RTLD_LAZY" = xyes; then :
   ac_have_decl=1
@@ -15182,7 +16071,8 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define HAVE_DECL_RTLD_MEMBER $ac_have_decl
 _ACEOF
-
+;;
+esac
 
 # determine what size digit to use for Python's longs
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking digit size for Python's longs" >&5
@@ -15595,6 +16485,84 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
  esac
 
 
+
+# Special case of PYD_PLATFORM_TAG with python build with mingw.
+# Python can with compiled with clang or gcc and linked
+# to msvcrt or ucrt. To avoid conflicts between them
+# we are selecting the extension as based on the compiler
+# and the runtime they link to
+#   gcc + x86_64 + msvcrt = cp{version number}-x86_64
+#   gcc + i686 + msvcrt = cp{version number}-i686
+#   gcc + x86_64 + ucrt = cp{version number}-x86_64-ucrt
+#   clang + x86_64 + ucrt = cp{version number}-x86_64-clang
+#   clang + i686 + ucrt = cp{version number}-i686-clang
+
+PYD_PLATFORM_TAG=""
+case $host in
+  *-*-mingw*)
+    # check if we are linking to ucrt
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether linking to ucrt" >&5
+$as_echo_n "checking whether linking to ucrt... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+    #include <stdio.h>
+    #ifndef _UCRT
+        #error no ucrt
+    #endif
+    int main(){ return 0; }
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  linking_to_ucrt=yes
+else
+  linking_to_ucrt=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $linking_to_ucrt" >&5
+$as_echo "$linking_to_ucrt" >&6; }
+    ;;
+esac
+case $host_os in
+    mingw*)
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking PYD_PLATFORM_TAG" >&5
+$as_echo_n "checking PYD_PLATFORM_TAG... " >&6; }
+  case $host in
+  i686-*-mingw*)
+    if test -n "${cc_is_clang}"; then
+      # it is CLANG32
+      PYD_PLATFORM_TAG="mingw_i686_clang"
+    else
+      if test $linking_to_ucrt = no; then
+        PYD_PLATFORM_TAG="mingw_i686"
+      else
+        PYD_PLATFORM_TAG="mingw_i686_ucrt"
+      fi
+    fi
+    ;;
+  x86_64-*-mingw*)
+    if test -n "${cc_is_clang}"; then
+      # it is CLANG64
+      PYD_PLATFORM_TAG="mingw_x86_64_clang"
+    else
+      if test $linking_to_ucrt = no; then
+        PYD_PLATFORM_TAG="mingw_x86_64"
+      else
+        PYD_PLATFORM_TAG="mingw_x86_64_ucrt"
+      fi
+    fi
+    ;;
+  aarch64-*-mingw*)
+    PYD_PLATFORM_TAG+="mingw_aarch64"
+    ;;
+  armv7-*-mingw*)
+    PYD_PLATFORM_TAG+="mingw_armv7"
+    ;;
+  esac
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PYD_PLATFORM_TAG" >&5
+$as_echo "$PYD_PLATFORM_TAG" >&6; }
+esac
+
 # ABI version string for Python extension modules.  This appears between the
 # periods in shared library file names, e.g. foo.<SOABI>.so.  It is calculated
 # from the following attributes which affect the ABI of this Python build (in
@@ -15634,7 +16602,12 @@ _ACEOF
 fi
 
 
-EXT_SUFFIX=.${SOABI}${SHLIB_SUFFIX}
+VERSION_NO_DOTS=$(echo $LDVERSION | tr -d .)
+if test -n "${PYD_PLATFORM_TAG}"; then
+  EXT_SUFFIX=".cp${VERSION_NO_DOTS}-${PYD_PLATFORM_TAG}${SHLIB_SUFFIX}"
+else
+  EXT_SUFFIX=.${SOABI}${SHLIB_SUFFIX}
+fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking LDVERSION" >&5
 $as_echo_n "checking LDVERSION... " >&6; }
@@ -15644,7 +16617,7 @@ $as_echo "$LDVERSION" >&6; }
 
 # On Android and Cygwin the shared libraries must be linked with libpython.
 
-if test -n "$ANDROID_API_LEVEL" -o "$MACHDEP" = "cygwin"; then
+if test -n "$ANDROID_API_LEVEL" -o "$MACHDEP" = "cygwin" -o "$MACHDEP" = "win32"; then
   LIBPYTHON="-lpython${VERSION}${ABIFLAGS}"
 else
   LIBPYTHON=''
@@ -16430,11 +17403,16 @@ $as_echo "#define HAVE_STAT_TV_NSEC2 1" >>confdefs.h
 
 fi
 
+if test -n "$PKG_CONFIG"; then
+    NCURSESW_INCLUDEDIR="`"$PKG_CONFIG" ncursesw --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ .*$//'`"
+else
+    NCURSESW_INCLUDEDIR=""
+fi
+
+
 # first curses header check
 ac_save_cppflags="$CPPFLAGS"
-if test "$cross_compiling" = no; then
-  CPPFLAGS="$CPPFLAGS -I/usr/include/ncursesw"
-fi
+CPPFLAGS="$CPPFLAGS -I$NCURSESW_INCLUDEDIR"
 
 for ac_header in curses.h ncurses.h
 do :
@@ -17013,6 +17991,9 @@ $as_echo "#define PY_FORMAT_SIZE_T \"z\"" >>confdefs.h
 fi
 
 ac_fn_c_check_type "$LINENO" "socklen_t" "ac_cv_type_socklen_t" "
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -17163,8 +18144,25 @@ do
   THREADHEADERS="$THREADHEADERS \$(srcdir)/$h"
 done
 
+case $host in
+  *-*-mingw*)
+                        CPPFLAGS="-I\$(srcdir)/PC $CPPFLAGS -I."
+    ;;
+esac
+
+
+PYTHON_OBJS_FROZENMAIN="Python/frozenmain.o"
+case $host in
+  *-*-mingw*)
+        PYTHON_OBJS_FROZENMAIN=
+    ;;
+esac
+
 
 SRCDIRS="Parser Objects Python Modules Modules/_io Programs"
+case $host in
+  *-*-mingw*) SRCDIRS="$SRCDIRS PC";;
+esac
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for build directories" >&5
 $as_echo_n "checking for build directories... " >&6; }
 for dir in $SRCDIRS; do
@@ -17174,6 +18172,81 @@ for dir in $SRCDIRS; do
 done
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
 $as_echo "done" >&6; }
+
+# For mingw build need additional library for linking
+case $host in
+  *-*-mingw*)
+    LIBS="$LIBS -lversion -lshlwapi"
+    for ac_prog in gawk mawk nawk awk
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_AWK+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$AWK"; then
+  ac_cv_prog_AWK="$AWK" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_AWK="$ac_prog"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+AWK=$ac_cv_prog_AWK
+if test -n "$AWK"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $AWK" >&5
+$as_echo "$AWK" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$AWK" && break
+done
+
+    if test "$AWK" = "gawk"; then
+      awk_extra_flag="--non-decimal-data"
+    fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking FIELD3" >&5
+$as_echo_n "checking FIELD3... " >&6; }
+    FIELD3=$($AWK $awk_extra_flag '\
+      /^#define PY_RELEASE_LEVEL_/             {levels[$2]=$3}    \
+      /^#define PY_MICRO_VERSION[[:space:]]+/  {micro=$3}         \
+      /^#define PY_RELEASE_LEVEL[[:space:]]+/  {level=levels[$3]} \
+      /^#define PY_RELEASE_SERIAL[[:space:]]+/ {serial=$3}        \
+      END {print micro * 1000 + level * 10 + serial}' \
+      $srcdir/Include/patchlevel.h
+    )
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${FIELD3}" >&5
+$as_echo "${FIELD3}" >&6; }
+    RCFLAGS="$RCFLAGS -DFIELD3=$FIELD3 -O COFF"
+
+    case $host in
+      i686*)  RCFLAGS="$RCFLAGS --target=pe-i386" ;;
+      x86_64*)  RCFLAGS="$RCFLAGS --target=pe-x86-64" ;;
+      *) ;;
+    esac
+  ;;
+  *)
+  ;;
+esac
+
 
 # Availability of -O2:
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for -O2" >&5
@@ -17746,8 +18819,8 @@ fi
     if ! $found; then
         OPENSSL_INCLUDES=
         for ssldir in $ssldirs; do
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for openssl/ssl.h in $ssldir" >&5
-$as_echo_n "checking for openssl/ssl.h in $ssldir... " >&6; }
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for include/openssl/ssl.h in $ssldir" >&5
+$as_echo_n "checking for include/openssl/ssl.h in $ssldir... " >&6; }
             if test -f "$ssldir/include/openssl/ssl.h"; then
                 OPENSSL_INCLUDES="-I$ssldir/include"
                 OPENSSL_LDFLAGS="-L$ssldir/lib"
@@ -18064,7 +19137,7 @@ fi
 
 
 # generate output files
-ac_config_files="$ac_config_files Makefile.pre Misc/python.pc Misc/python-embed.pc Misc/python-config.sh"
+ac_config_files="$ac_config_files Makefile.pre Modules/Setup.config Misc/python.pc Misc/python-embed.pc Misc/python-config.sh"
 
 ac_config_files="$ac_config_files Modules/ld_so_aix"
 
@@ -18649,6 +19722,7 @@ ac_pwd='$ac_pwd'
 srcdir='$srcdir'
 INSTALL='$INSTALL'
 MKDIR_P='$MKDIR_P'
+AWK='$AWK'
 test -n "\$AWK" || AWK=awk
 _ACEOF
 
@@ -18766,6 +19840,7 @@ do
     "Mac/Resources/framework/Info.plist") CONFIG_FILES="$CONFIG_FILES Mac/Resources/framework/Info.plist" ;;
     "Mac/Resources/app/Info.plist") CONFIG_FILES="$CONFIG_FILES Mac/Resources/app/Info.plist" ;;
     "Makefile.pre") CONFIG_FILES="$CONFIG_FILES Makefile.pre" ;;
+    "Modules/Setup.config") CONFIG_FILES="$CONFIG_FILES Modules/Setup.config" ;;
     "Misc/python.pc") CONFIG_FILES="$CONFIG_FILES Misc/python.pc" ;;
     "Misc/python-embed.pc") CONFIG_FILES="$CONFIG_FILES Misc/python-embed.pc" ;;
     "Misc/python-config.sh") CONFIG_FILES="$CONFIG_FILES Misc/python-config.sh" ;;
@@ -19376,7 +20451,7 @@ fi
 
 echo "creating Makefile" >&6
 $SHELL $srcdir/Modules/makesetup -c $srcdir/Modules/config.c.in \
-			-s Modules \
+			-s Modules Modules/Setup.config \
 			Modules/Setup.local $srcdir/Modules/Setup
 mv config.c Modules
 

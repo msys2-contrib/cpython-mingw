@@ -1265,6 +1265,9 @@
 /* Define to 1 if you have the `tgamma' function. */
 #undef HAVE_TGAMMA
 
+/* Define to 1 if you have the <thread.h> header file. */
+#undef HAVE_THREAD_H
+
 /* Define to 1 if you have the `timegm' function. */
 #undef HAVE_TIMEGM
 
@@ -1371,6 +1374,9 @@
 
 /* Define to 1 if you have the `writev' function. */
 #undef HAVE_WRITEV
+
+/* Define to 1 if you have the <ws2tcpip.h> header file. */
+#undef HAVE_WS2TCPIP_H
 
 /* Define if the zlib library has inflateCopy */
 #undef HAVE_ZLIB_COPY
