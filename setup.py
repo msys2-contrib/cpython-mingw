@@ -1434,6 +1434,10 @@ class PyBuildExt(build_ext):
                         extra_compile_args=extra_compile_args,
                         extra_link_args=extra_link_args,
                         libraries=(['ole32', 'oleaut32', 'uuid'] if MS_WINDOWS else []),
+                        export_symbols=(
+                            ['DllGetClassObject PRIVATE', 'DllCanUnloadNow PRIVATE']
+                            if MS_WINDOWS else None
+                        ),
                         sources=sources)
         self.add(ext)
         # function my_sqrt() needs libm for sqrt()
