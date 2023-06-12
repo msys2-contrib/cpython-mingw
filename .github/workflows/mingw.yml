@@ -225,6 +225,7 @@ jobs:
     container:
       image: mstorsjo/llvm-mingw:latest
     strategy:
+      fail-fast: false
       matrix:
         arch: ['x86_64', 'i686', 'aarch64', 'armv7']
     steps:
@@ -233,6 +234,8 @@ jobs:
       - name: Install deps
         run: |
           export DEBIAN_FRONTEND=noninteractive
+          apt-get update -qq
+          apt-get install -qqy software-properties-common
           add-apt-repository --yes ppa:deadsnakes/ppa
           apt-get update -qq
           apt-get install -qqy autoconf-archive python3.10-dev python3.10
@@ -274,6 +277,7 @@ jobs:
     needs: [cross-llvm-mingw]
     runs-on: windows-latest
     strategy:
+      fail-fast: false
       matrix:
         arch: ['x86_64', 'i686']
     steps:
