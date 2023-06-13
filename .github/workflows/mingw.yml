@@ -19,6 +19,8 @@ jobs:
             prefix: mingw-w64-clang-x86_64
           #- msystem: CLANG32
           #  prefix: mingw-w64-clang-i686
+    env:
+      MSYS: "winjitdebug"
     steps:
       - name: Setup git
         run: |
