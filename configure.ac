@@ -7848,7 +7848,7 @@ PY_STDLIB_MOD([_overlapped], [test "$MACHDEP" = "win32"], [], [],
 dnl test modules
 PY_STDLIB_MOD([_testcapi], [test "$TEST_MODULES" = yes])
 PY_STDLIB_MOD([_testclinic], [test "$TEST_MODULES" = yes])
-PY_STDLIB_MOD([_testinternalcapi], [test "$TEST_MODULES" = yes])
+PY_STDLIB_MOD([_testinternalcapi], [test "$TEST_MODULES" = yes], [], [-DPY3_DLLNAME="\"$DLLLIBRARY\""], [])
 PY_STDLIB_MOD([_testbuffer], [test "$TEST_MODULES" = yes])
 PY_STDLIB_MOD([_testimportmultiple], [test "$TEST_MODULES" = yes], [test "$ac_cv_func_dlopen" = yes])
 PY_STDLIB_MOD([_testmultiphase], [test "$TEST_MODULES" = yes], [test "$ac_cv_func_dlopen" = yes])
