@@ -171,8 +171,7 @@ static char *GetPythonImport (HINSTANCE hModule)
    Return whether the DLL was found.
 */
 extern HMODULE PyWin_DLLhModule;
-static int
-_Py_CheckPython3(void)
+int _Py_CheckPython3(void)
 {
     static int python3_checked = 0;
     static HANDLE hPython3;
@@ -226,9 +225,9 @@ dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
     dl_funcptr p;
     char funcname[258], *import_python;
 
-#ifdef Py_ENABLE_SHARED
-    _Py_CheckPython3();
-#endif /* Py_ENABLE_SHARED */
+#ifdef _MSC_VER
+    _Py_CheckPython3(); 
+#endif /* _MSC_VER */
 
     wchar_t *wpathname = PyUnicode_AsWideCharString(pathname, NULL);
     if (wpathname == NULL)
