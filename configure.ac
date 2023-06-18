@@ -6807,7 +6807,7 @@ AC_MSG_RESULT(done)
 # For mingw build need additional library for linking
 case $host in
   *-*-mingw*)
-    LIBS="$LIBS -lversion -lshlwapi -lpathcch"
+    LIBS="$LIBS -lversion -lshlwapi -lpathcch -lbcrypt"
     AC_PROG_AWK
     if test "$AWK" = "gawk"; then
       awk_extra_flag="--non-decimal-data"
