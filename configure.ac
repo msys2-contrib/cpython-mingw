@@ -202,9 +202,11 @@ AC_SUBST([FREEZE_MODULE])
 AC_SUBST([FREEZE_MODULE_DEPS])
 AC_SUBST([PYTHON_FOR_BUILD_DEPS])
 
+NATIVE_PYTHON_SEARCH_PATH_MINGW=`echo $host | grep -Eq 'mingw*' && echo "$MINGW_PREFIX/bin" || echo $PATH`
 AC_CHECK_PROGS([PYTHON_FOR_REGEN],
   [python$PACKAGE_VERSION python3.10 python3.9 python3.8 python3.7 python3.6 python3 python],
-  [python3])
+  [python3],
+  [$NATIVE_PYTHON_SEARCH_PATH_MINGW])
 AC_SUBST(PYTHON_FOR_REGEN)
 
 AC_MSG_CHECKING([Python for regen version])
