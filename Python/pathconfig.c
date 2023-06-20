@@ -127,7 +127,7 @@ Py_GetSepW(const wchar_t *name)
     return sep;
 }
 
-static wchar_t
+wchar_t
 Py_GetAltSepW(const wchar_t *name)
 {
     char sep = Py_GetSepW(name);
