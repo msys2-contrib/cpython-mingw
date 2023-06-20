@@ -355,6 +355,12 @@ corresponding Unix manual entries for more information on calls.");
 #  elif defined(__MINGW32__)	/* GCC for windows hosts */
 /* getlogin is detected by configure on mingw-w64 */
 #    undef HAVE_GETLOGIN
+/* opendir is detected by configure on mingw-w64, and for some reason
+things don't work as expected. For example, os.listdir always returns
+the cwd's directory listing instead of the one specified. By 
+un-defining, this, os.listdir will use the one which uses native
+windows API. */
+#    undef HAVE_OPENDIR
 /*#    define HAVE_GETCWD     1 - detected by configure*/
 #    define HAVE_GETPPID    1
 #    define HAVE_GETLOGIN   1
