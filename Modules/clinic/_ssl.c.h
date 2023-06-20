@@ -2733,7 +2733,7 @@ exit:
     return return_value;
 }
 
-#if defined(_MSC_VER)
+#if defined(_WIN32)
 
 PyDoc_STRVAR(_ssl_enum_certificates__doc__,
 "enum_certificates($module, /, store_name)\n"
@@ -2813,9 +2813,9 @@ exit:
     return return_value;
 }
 
-#endif /* defined(_MSC_VER) */
+#endif /* defined(_WIN32) */
 
-#if defined(_MSC_VER)
+#if defined(_WIN32)
 
 PyDoc_STRVAR(_ssl_enum_crls__doc__,
 "enum_crls($module, /, store_name)\n"
@@ -2894,7 +2894,7 @@ exit:
     return return_value;
 }
 
-#endif /* defined(_MSC_VER) */
+#endif /* defined(_WIN32) */
 
 #ifndef _SSL_ENUM_CERTIFICATES_METHODDEF
     #define _SSL_ENUM_CERTIFICATES_METHODDEF
