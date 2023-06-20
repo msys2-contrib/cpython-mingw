@@ -61,6 +61,25 @@
 /* HELPER FUNCTIONS for getpath.py */
 
 static PyObject *
+getpath_normpath(PyObject *Py_UNUSED(self), PyObject *args)
+{
+    PyObject *r = NULL;
+    PyObject *pathobj;
+    wchar_t *path;
+    if (!PyArg_ParseTuple(args, "U", &pathobj)) {
+        return NULL;
+    }
+    Py_ssize_t len;
+    wchar_t *buffer = PyUnicode_AsWideCharString(pathobj, &len);
+    if (!buffer) {
+        return NULL;
+    }
+    r = PyUnicode_FromWideChar(_Py_normpath(buffer, len), -1);
+    PyMem_Free(buffer);
+    return r;
+}
+
+static PyObject *
 getpath_abspath(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *r = NULL;
@@ -94,6 +113,12 @@ getpath_basename(PyObject *Py_UNUSED(self), PyObject *args)
     }
     Py_ssize_t end = PyUnicode_GET_LENGTH(path);
     Py_ssize_t pos = PyUnicode_FindChar(path, SEP, 0, end, -1);
+#ifdef ALTSEP
+    if (pos < 0) {
+        // try using altsep
+        pos = PyUnicode_FindChar(path, ALTSEP, 0, end, -1);
+    }
+#endif
     if (pos < 0) {
         return Py_NewRef(path);
     }
@@ -110,6 +135,12 @@ getpath_dirname(PyObject *Py_UNUSED(self), PyObject *args)
     }
     Py_ssize_t end = PyUnicode_GET_LENGTH(path);
     Py_ssize_t pos = PyUnicode_FindChar(path, SEP, 0, end, -1);
+#ifdef ALTSEP
+    if (pos < 0) {
+        // try using altsep
+        pos = PyUnicode_FindChar(path, ALTSEP, 0, end, -1);
+    }
+#endif
     if (pos < 0) {
         return Py_GetConstant(Py_CONSTANT_EMPTY_STR);
     }
@@ -564,6 +595,7 @@ done:
 
 
 static PyMethodDef getpath_methods[] = {
+    {"normpath", getpath_normpath, METH_VARARGS, NULL},
     {"abspath", getpath_abspath, METH_VARARGS, NULL},
     {"basename", getpath_basename, METH_VARARGS, NULL},
     {"dirname", getpath_dirname, METH_VARARGS, NULL},
@@ -919,6 +951,11 @@ _PyConfig_InitPathConfig(PyConfig *config, int compute_path_config)
 #else
         !decode_to_dict(dict, "os_name", "posix") ||
 #endif
+#ifdef __MINGW32__
+        !int_to_dict(dict, "is_mingw", 1) ||
+#else
+        !int_to_dict(dict, "is_mingw", 0) ||
+#endif
 #ifdef WITH_NEXT_FRAMEWORK
         !int_to_dict(dict, "WITH_NEXT_FRAMEWORK", 1) ||
 #else
@@ -950,6 +987,9 @@ _PyConfig_InitPathConfig(PyConfig *config, int compute_path_config)
 #endif
 #ifndef MS_WINDOWS
         PyDict_SetItemString(dict, "winreg", Py_None) < 0 ||
+#endif
+#ifdef __MINGW32__
+        !env_to_dict(dict, "ENV_MSYSTEM", 0) ||
 #endif
         PyDict_SetItemString(dict, "__builtins__", PyEval_GetBuiltins()) < 0
     ) {
