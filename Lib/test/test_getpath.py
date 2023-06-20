@@ -1151,6 +1151,9 @@ class MockNTNamespace(dict):
         except AttributeError:
             raise KeyError(key) from None
 
+    def normpath(self, path):
+        return ntpath.normpath(path)
+
     def abspath(self, path):
         if self.isabs(path):
             return path
@@ -1328,6 +1331,9 @@ class MockPosixNamespace(dict):
             return getattr(self, key)
         except AttributeError:
             raise KeyError(key) from None
+
+    def normpath(self, path):
+        return path
 
     def abspath(self, path):
         if self.isabs(path):
