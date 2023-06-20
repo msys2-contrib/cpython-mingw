@@ -8755,7 +8755,7 @@ PY_STDLIB_MOD([_zstd], [], [test "$have_libzstd" = yes],
 
 dnl OpenSSL bindings
 PY_STDLIB_MOD([_ssl], [], [test "$ac_cv_working_openssl_ssl" = yes],
-  [$OPENSSL_INCLUDES], [$OPENSSL_LDFLAGS $OPENSSL_LDFLAGS_RPATH $OPENSSL_LIBS])
+  [$OPENSSL_INCLUDES], [$OPENSSL_LDFLAGS $OPENSSL_LDFLAGS_RPATH $OPENSSL_LIBS -lws2_32 -lcrypt32])
 PY_STDLIB_MOD([_hashlib], [], [test "$ac_cv_working_openssl_hashlib" = yes],
   [$OPENSSL_INCLUDES], [$OPENSSL_LDFLAGS $OPENSSL_LDFLAGS_RPATH $LIBCRYPTO_LIBS])
 
