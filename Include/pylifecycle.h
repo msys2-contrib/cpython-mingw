@@ -21,6 +21,7 @@ PyAPI_FUNC(int) Py_IsInitialized(void);
 PyAPI_FUNC(PyThreadState *) Py_NewInterpreter(void);
 PyAPI_FUNC(void) Py_EndInterpreter(PyThreadState *);
 
+PyAPI_FUNC(wchar_t) Py_GetAltSepW(const wchar_t *);
 PyAPI_FUNC(wchar_t) Py_GetSepW(const wchar_t *);
 PyAPI_FUNC(char) Py_GetSepA(const char *);
 
