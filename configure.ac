@@ -7446,7 +7446,6 @@ PY_STDLIB_MOD_SIMPLE([_json])
 PY_STDLIB_MOD_SIMPLE([_lsprof])
 PY_STDLIB_MOD_SIMPLE([_opcode])
 PY_STDLIB_MOD_SIMPLE([_pickle])
-PY_STDLIB_MOD_SIMPLE([_posixsubprocess])
 PY_STDLIB_MOD_SIMPLE([_queue])
 PY_STDLIB_MOD_SIMPLE([_random])
 PY_STDLIB_MOD_SIMPLE([select])
@@ -7496,6 +7495,7 @@ PY_STDLIB_MOD([_scproxy],
 PY_STDLIB_MOD([spwd], [], [test "$ac_cv_func_getspent" = yes -o "$ac_cv_func_getspnam" = yes])
 PY_STDLIB_MOD([syslog], [], [test "$ac_cv_header_syslog_h" = yes])
 PY_STDLIB_MOD([termios], [], [test "$ac_cv_header_termios_h" = yes])
+PY_STDLIB_MOD([_posixsubprocess], [], [test "$MACHDEP" != "win32"])
 
 dnl _elementtree loads libexpat via CAPI hook in pyexpat
 PY_STDLIB_MOD([pyexpat], [], [], [$LIBEXPAT_CFLAGS], [$LIBEXPAT_LDFLAGS])
