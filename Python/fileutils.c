@@ -2052,7 +2052,11 @@ _Py_abspath(const wchar_t *path, wchar_t **abspath_p)
     }
 
 #ifdef MS_WINDOWS
-    return _PyOS_getfullpathname(path, abspath_p);
+    if (_PyOS_getfullpathname(path, abspath_p) < 0){
+        return -1;
+    }
+    *abspath_p = _Py_normpath(*abspath_p, -1);
+    return 0;
 #else
     wchar_t cwd[MAXPATHLEN + 1];
     cwd[Py_ARRAY_LENGTH(cwd) - 1] = 0;
@@ -2198,11 +2202,16 @@ _Py_normpath_and_size(wchar_t *path, Py_ssize_t size, Py_ssize_t *normsize)
     wchar_t *minP2 = path;  // the beginning of the destination range
     wchar_t lastC = L'\0';  // the last ljusted character, p2[-1] in most cases
 
+    const wchar_t sep = Py_GetSepW(NULL);
+#ifdef ALTSEP
+    const wchar_t altsep = Py_GetAltSepW(NULL);
+#endif
+
 #define IS_END(x) (pEnd ? (x) == pEnd : !*(x))
 #ifdef ALTSEP
-#define IS_SEP(x) (*(x) == SEP || *(x) == ALTSEP)
+#define IS_SEP(x) (*(x) == sep || *(x) == altsep)
 #else
-#define IS_SEP(x) (*(x) == SEP)
+#define IS_SEP(x) (*(x) == sep)
 #endif
 #define SEP_OR_END(x) (IS_SEP(x) || IS_END(x))
 
@@ -2213,7 +2222,7 @@ _Py_normpath_and_size(wchar_t *path, Py_ssize_t size, Py_ssize_t *normsize)
             path++;
         }
         p1 = p2 = minP2 = path;
-        lastC = SEP;
+        lastC = sep;
     }
 #ifdef MS_WINDOWS
     // Skip past drive segment and update minP2
@@ -2227,13 +2236,13 @@ _Py_normpath_and_size(wchar_t *path, Py_ssize_t size, Py_ssize_t *normsize)
     // and network paths, including the first segment.
     else if (IS_SEP(&p1[0]) && IS_SEP(&p1[1])) {
         int sepCount = 2;
-        *p2++ = SEP;
-        *p2++ = SEP;
+        *p2++ = sep;
+        *p2++ = sep;
         p1 += 2;
         for (; !IS_END(p1) && sepCount; ++p1) {
             if (IS_SEP(p1)) {
                 --sepCount;
-                *p2++ = lastC = SEP;
+                *p2++ = lastC = sep;
             } else {
                 *p2++ = lastC = *p1;
             }
@@ -2246,7 +2255,7 @@ _Py_normpath_and_size(wchar_t *path, Py_ssize_t size, Py_ssize_t *normsize)
         *p2++ = *p1++;
         *p2++ = *p1++;
         minP2 = p2 - 1;  // Absolute path has SEP at minP2
-        lastC = SEP;
+        lastC = sep;
     }
 #endif /* MS_WINDOWS */
 
@@ -2254,18 +2263,18 @@ _Py_normpath_and_size(wchar_t *path, Py_ssize_t size, Py_ssize_t *normsize)
     for (; !IS_END(p1); ++p1) {
         wchar_t c = *p1;
 #ifdef ALTSEP
-        if (c == ALTSEP) {
-            c = SEP;
+        if (c == altsep) {
+            c = sep;
         }
 #endif
-        if (lastC == SEP) {
+        if (lastC == sep) {
             if (c == L'.') {
                 int sep_at_1 = SEP_OR_END(&p1[1]);
                 int sep_at_2 = !sep_at_1 && SEP_OR_END(&p1[2]);
                 if (sep_at_2 && p1[1] == L'.') {
                     wchar_t *p3 = p2;
-                    while (p3 != minP2 && *--p3 == SEP) { }
-                    while (p3 != minP2 && *(p3 - 1) != SEP) { --p3; }
+                    while (p3 != minP2 && *--p3 == sep) { }
+                    while (p3 != minP2 && *(p3 - 1) != sep) { --p3; }
                     if (p2 == minP2
                         || (p3[0] == L'.' && p3[1] == L'.' && IS_SEP(&p3[2])))
                     {
@@ -2274,7 +2283,7 @@ _Py_normpath_and_size(wchar_t *path, Py_ssize_t size, Py_ssize_t *normsize)
                         *p2++ = L'.';
                         *p2++ = L'.';
                         lastC = L'.';
-                    } else if (p3[0] == SEP) {
+                    } else if (p3[0] == sep) {
                         // Absolute path, so absorb segment
                         p2 = p3 + 1;
                     } else {
@@ -2285,7 +2294,7 @@ _Py_normpath_and_size(wchar_t *path, Py_ssize_t size, Py_ssize_t *normsize)
                 } else {
                     *p2++ = lastC = c;
                 }
-            } else if (c == SEP) {
+            } else if (c == sep) {
             } else {
                 *p2++ = lastC = c;
             }
@@ -2295,7 +2304,7 @@ _Py_normpath_and_size(wchar_t *path, Py_ssize_t size, Py_ssize_t *normsize)
     }
     *p2 = L'\0';
     if (p2 != minP2) {
-        while (--p2 != minP2 && *p2 == SEP) {
+        while (--p2 != minP2 && *p2 == sep) {
             *p2 = L'\0';
         }
     } else {
