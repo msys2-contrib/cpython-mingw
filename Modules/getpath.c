@@ -68,6 +68,7 @@ getpath_abspath(PyObject *Py_UNUSED(self), PyObject *args)
     if (path) {
         wchar_t *abs;
         if (_Py_abspath((const wchar_t *)_Py_normpath(path, -1), &abs) == 0 && abs) {
+            abs = _Py_normpath(abs, -1);
             r = PyUnicode_FromWideChar(abs, -1);
             PyMem_RawFree((void *)abs);
         } else {
@@ -885,6 +886,11 @@ _PyConfig_InitPathConfig(PyConfig *config, int compute_path_config)
 #else
         !decode_to_dict(dict, "os_name", "posix") ||
 #endif
+#ifdef __MINGW32__
+        !int_to_dict(dict, "is_mingw", 1) ||
+#else
+        !int_to_dict(dict, "is_mingw", 0) ||
+#endif
 #ifdef WITH_NEXT_FRAMEWORK
         !int_to_dict(dict, "WITH_NEXT_FRAMEWORK", 1) ||
 #else
@@ -911,6 +917,9 @@ _PyConfig_InitPathConfig(PyConfig *config, int compute_path_config)
         !funcs_to_dict(dict, config->pathconfig_warnings) ||
 #ifndef MS_WINDOWS
         PyDict_SetItemString(dict, "winreg", Py_None) < 0 ||
+#endif
+#ifdef __MINGW32__
+        !env_to_dict(dict, "ENV_MSYSTEM", 0) ||
 #endif
         PyDict_SetItemString(dict, "__builtins__", PyEval_GetBuiltins()) < 0
     ) {
