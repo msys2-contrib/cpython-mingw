@@ -4017,6 +4017,12 @@ AS_CASE([$ac_sys_system],
   [OSSAUDIODEV_LIBS=""]
 )
 
+dnl On MINGW, you need to link against ws2_32 and iphlpapi for sockets to work
+AS_CASE([$ac_sys_system],
+  [MINGW], [SOCKET_LIBS="-lws2_32 -liphlpapi"],
+  [SOCKET_LIBS=""]
+)
+
 dnl detect sqlite3 from Emscripten emport
 PY_CHECK_EMSCRIPTEN_PORT([LIBSQLITE3], [-sUSE_SQLITE3])
 
@@ -7480,7 +7486,9 @@ PY_STDLIB_MOD([mmap],
 PY_STDLIB_MOD([_socket],
   [], m4_flatten([test "$ac_cv_header_sys_socket_h" = "yes"
                     -a "$ac_cv_header_sys_types_h" = "yes"
-                    -a "$ac_cv_header_netinet_in_h" = "yes"]))
+                    -a "$ac_cv_header_netinet_in_h" = "yes"
+                    -o "$MACHDEP" = "win32"]),
+  [], [$SOCKET_LIBS])
 
 dnl platform specific extensions
 PY_STDLIB_MOD([grp], [], [test "$ac_cv_func_getgrgid" = yes -o "$ac_cv_func_getgrgid_r" = yes])
