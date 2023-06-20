@@ -30,6 +30,7 @@
 
 # ** Values known at compile time **
 # os_name           -- [in] one of 'nt', 'posix', 'darwin'
+# is_mingw          -- [in] True if targeting MinGW
 # PREFIX            -- [in] sysconfig.get_config_var(...)
 # EXEC_PREFIX       -- [in] sysconfig.get_config_var(...)
 # PYTHONPATH        -- [in] sysconfig.get_config_var(...)
@@ -52,6 +53,7 @@
 # ENV_PYTHONHOME          -- [in] getenv(...)
 # ENV_PYTHONEXECUTABLE    -- [in] getenv(...)
 # ENV___PYVENV_LAUNCHER__ -- [in] getenv(...)
+# ENV_MSYSTEM             -- [in] getenv(...)
 
 # ** Values calculated at runtime **
 # config            -- [in/out] dict of the PyConfig structure
@@ -187,8 +189,27 @@ if os_name == 'posix' or os_name == 'darwin':
     ZIP_LANDMARK = f'{platlibdir}/python{VERSION_MAJOR}{VERSION_MINOR}{ABI_THREAD}.zip'
     DELIM = ':'
     SEP = '/'
+    ALTSEP = None
 
-elif os_name == 'nt':
+elif os_name == 'nt' and is_mingw:
+    BUILDDIR_TXT = 'pybuilddir.txt'
+    BUILD_LANDMARK = 'Modules/Setup.local'
+    DEFAULT_PROGRAM_NAME = f'python{VERSION_MAJOR}'
+    STDLIB_SUBDIR = f'{platlibdir}/python{VERSION_MAJOR}.{VERSION_MINOR}'
+    STDLIB_LANDMARKS = [f'{STDLIB_SUBDIR}/os.py', f'{STDLIB_SUBDIR}/os.pyc']
+    PLATSTDLIB_LANDMARK = f'{platlibdir}/python{VERSION_MAJOR}.{VERSION_MINOR}/lib-dynload'
+    BUILDSTDLIB_LANDMARKS = ['Lib/os.py']
+    VENV_LANDMARK = 'pyvenv.cfg'
+    ZIP_LANDMARK = f'{platlibdir}/python{VERSION_MAJOR}{VERSION_MINOR}.zip'
+    DELIM = ';'
+    if ENV_MSYSTEM:
+        SEP = '/'
+        ALTSEP = '\\'
+    else:
+        SEP = '\\'
+        ALTSEP = '/'
+
+elif os_name == 'nt': # MSVC
     BUILDDIR_TXT = 'pybuilddir.txt'
     BUILD_LANDMARK = f'{VPATH}\\Modules\\Setup.local'
     DEFAULT_PROGRAM_NAME = f'python'
@@ -201,6 +222,7 @@ elif os_name == 'nt':
     WINREG_KEY = f'SOFTWARE\\Python\\PythonCore\\{PYWINVER}\\PythonPath'
     DELIM = ';'
     SEP = '\\'
+    ALTSEP = '/'
 
 
 # ******************************************************************************
@@ -213,6 +235,8 @@ def search_up(prefix, *landmarks, test=isfile):
             return prefix
         prefix = dirname(prefix)
 
+def _normpath(p):
+    return normpath(p) if p is not None else None
 
 # ******************************************************************************
 # READ VARIABLES FROM config
@@ -264,10 +288,10 @@ if py_setpath:
     if not executable:
         executable = real_executable
 
-if not executable and SEP in program_name:
+if not executable and (SEP in program_name or 
+                       (ALTSEP and ALTSEP in program_name)):
     # Resolve partial path program_name against current directory
     executable = abspath(program_name)
-
 if not executable:
     # All platforms default to real_executable if known at this
     # stage. POSIX does not set this value.
@@ -502,15 +526,15 @@ if ((not home_was_set and real_executable_dir and not py_setpath)
     except (FileNotFoundError, PermissionError):
         if isfile(joinpath(real_executable_dir, BUILD_LANDMARK)):
             build_prefix = joinpath(real_executable_dir, VPATH)
-            if os_name == 'nt':
+            if os_name == 'nt' and not is_mingw:
                 # QUIRK: Windows builds need platstdlib_dir to be the executable
                 # dir. Normally the builddir marker handles this, but in this
                 # case we need to correct manually.
                 platstdlib_dir = real_executable_dir
 
     if build_prefix:
-        if os_name == 'nt':
-            # QUIRK: No searching for more landmarks on Windows
+        if os_name == 'nt' and not is_mingw:
+            # QUIRK: No searching for more landmarks on MSVC
             build_stdlib_prefix = build_prefix
         else:
             build_stdlib_prefix = search_up(build_prefix, *BUILDSTDLIB_LANDMARKS)
@@ -559,6 +583,9 @@ else:
     # First try to detect prefix by looking alongside our runtime library, if known
     if library and not prefix:
         library_dir = dirname(library)
+        if os_name == 'nt' and is_mingw:
+            # QUIRK: On Windows, mingw Python DLLs are in the bin directory
+            library_dir = joinpath(library_dir, '..')
         if ZIP_LANDMARK:
             if os_name == 'nt':
                 # QUIRK: Windows does not search up for ZIP file
@@ -605,7 +632,7 @@ else:
 
     # Detect exec_prefix by searching from executable for the platstdlib_dir
     if PLATSTDLIB_LANDMARK and not exec_prefix:
-        if os_name == 'nt':
+        if os_name == 'nt' and (not is_mingw):
             # QUIRK: Windows always assumed these were the same
             # gh-100320: Our PYDs are assumed to be relative to the Lib directory
             # (that is, prefix) rather than the executable (that is, executable_dir)
@@ -615,7 +642,7 @@ else:
         if not exec_prefix and EXEC_PREFIX:
             exec_prefix = EXEC_PREFIX
         if not exec_prefix or not isdir(joinpath(exec_prefix, PLATSTDLIB_LANDMARK)):
-            if os_name == 'nt':
+            if os_name == 'nt' and (not is_mingw):
                 # QUIRK: If DLLs is missing on Windows, don't warn, just assume
                 # that they're in exec_prefix
                 if not platstdlib_dir:
@@ -653,7 +680,7 @@ else:
 
 if py_setpath:
     # If Py_SetPath was called then it overrides any existing search path
-    config['module_search_paths'] = py_setpath.split(DELIM)
+    config['module_search_paths'] = [_normpath(p) for p in py_setpath.split(DELIM)]
     config['module_search_paths_set'] = 1
 
 elif not pythonpath_was_set:
@@ -668,7 +695,7 @@ elif not pythonpath_was_set:
             pythonpath.append(abspath(p))
 
     # Then add the default zip file
-    if os_name == 'nt':
+    if os_name == 'nt' and (not is_mingw):
         # QUIRK: Windows uses the library directory rather than the prefix
         if library:
             library_dir = dirname(library)
@@ -681,7 +708,7 @@ elif not pythonpath_was_set:
     else:
         pythonpath.append(joinpath(prefix, ZIP_LANDMARK))
 
-    if os_name == 'nt' and use_environment and winreg:
+    if (not is_mingw) and os_name == 'nt' and use_environment and winreg:
         # QUIRK: Windows also lists paths in the registry. Paths are stored
         # as the default value of each subkey of
         # {HKCU,HKLM}\Software\Python\PythonCore\{winver}\PythonPath
@@ -722,7 +749,7 @@ elif not pythonpath_was_set:
     if not platstdlib_dir and exec_prefix:
         platstdlib_dir = joinpath(exec_prefix, PLATSTDLIB_LANDMARK)
 
-    if os_name == 'nt':
+    if os_name == 'nt' and (not is_mingw):
         # QUIRK: Windows generates paths differently
         if platstdlib_dir:
             pythonpath.append(platstdlib_dir)
@@ -740,7 +767,7 @@ elif not pythonpath_was_set:
         if platstdlib_dir:
             pythonpath.append(platstdlib_dir)
 
-    config['module_search_paths'] = pythonpath
+    config['module_search_paths'] = [_normpath(p) for p in pythonpath]
     config['module_search_paths_set'] = 1
 
 
@@ -750,8 +777,8 @@ elif not pythonpath_was_set:
 
 # QUIRK: Non-Windows replaces prefix/exec_prefix with defaults when running
 # in build directory. This happens after pythonpath calculation.
-if os_name != 'nt' and build_prefix:
-    prefix = config.get('prefix') or PREFIX
+if (os_name != 'nt' or is_mingw) and build_prefix:
+    prefix = config.get('prefix') or abspath(PREFIX)
     exec_prefix = config.get('exec_prefix') or EXEC_PREFIX or prefix
 
 
@@ -775,23 +802,23 @@ if pth:
             warn("unsupported 'import' line in ._pth file")
         else:
             pythonpath.append(joinpath(pth_dir, line))
-    config['module_search_paths'] = pythonpath
+    config['module_search_paths'] = [_normpath(p) for p in pythonpath]
     config['module_search_paths_set'] = 1
 
 # ******************************************************************************
 # UPDATE config FROM CALCULATED VALUES
 # ******************************************************************************
 
-config['program_name'] = program_name
-config['home'] = home
-config['executable'] = executable
-config['base_executable'] = base_executable
-config['prefix'] = prefix
-config['exec_prefix'] = exec_prefix
-config['base_prefix'] = base_prefix or prefix
-config['base_exec_prefix'] = base_exec_prefix or exec_prefix
+config['program_name'] = _normpath(program_name)
+config['home'] = _normpath(home)
+config['executable'] = _normpath(executable)
+config['base_executable'] = _normpath(base_executable)
+config['prefix'] = _normpath(prefix)
+config['exec_prefix'] = _normpath(exec_prefix)
+config['base_prefix'] = _normpath(base_prefix or prefix)
+config['base_exec_prefix'] = _normpath(base_exec_prefix or exec_prefix)
 
-config['platlibdir'] = platlibdir
+config['platlibdir'] = _normpath(platlibdir)
 # test_embed expects empty strings, not None
-config['stdlib_dir'] = stdlib_dir or ''
-config['platstdlib_dir'] = platstdlib_dir or ''
+config['stdlib_dir'] = _normpath(stdlib_dir or '')
+config['platstdlib_dir'] = _normpath(platstdlib_dir or '')
