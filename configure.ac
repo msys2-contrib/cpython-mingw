@@ -4879,7 +4879,7 @@ AC_CHECK_FUNCS([ \
   faccessat fchmod fchmodat fchown fchownat fdopendir fdwalk fexecve \
   fork fork1 fpathconf fstatat ftime ftruncate futimens futimes futimesat \
   gai_strerror getegid getentropy geteuid getgid getgrgid getgrgid_r \
-  getgrnam_r getgrouplist getgroups gethostname getitimer getloadavg getlogin \
+  getgrnam_r getgrouplist getgroups getitimer getloadavg getlogin \
   getpeername getpgid getpid getppid getpriority _getpty \
   getpwent getpwnam_r getpwuid getpwuid_r getresgid getresuid getrusage getsid getspent \
   getspnam getuid getwd if_nameindex initgroups kill killpg lchown linkat \
@@ -5122,7 +5122,13 @@ PKG_CHECK_MODULES([LIBLZMA], [liblzma], [have_liblzma=yes], [
 ])
 
 dnl PY_CHECK_NETDB_FUNC(FUNCTION)
-AC_DEFUN([PY_CHECK_NETDB_FUNC], [PY_CHECK_FUNC([$1], [#include <netdb.h>])])
+AC_DEFUN([PY_CHECK_NETDB_FUNC], [PY_CHECK_FUNC([$1], [
+#ifdef _WIN32
+  #include <winsock.h>
+#else
+  #include <netdb.h>
+#endif
+])])
 
 PY_CHECK_NETDB_FUNC([hstrerror])
 dnl not available in WASI yet
@@ -5131,6 +5137,7 @@ PY_CHECK_NETDB_FUNC([getservbyport])
 PY_CHECK_NETDB_FUNC([gethostbyname])
 PY_CHECK_NETDB_FUNC([gethostbyaddr])
 PY_CHECK_NETDB_FUNC([getprotobyname])
+PY_CHECK_NETDB_FUNC([gethostname])
 
 dnl PY_CHECK_SOCKET_FUNC(FUNCTION)
 AC_DEFUN([PY_CHECK_SOCKET_FUNC], [PY_CHECK_FUNC([$1], [
