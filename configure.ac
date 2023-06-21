@@ -5500,7 +5500,7 @@ AC_CHECK_FUNCS([ \
   faccessat fchmod fchmodat fchown fchownat fdopendir fdwalk fexecve \
   fork fork1 fpathconf fstatat ftime ftruncate futimens futimes futimesat \
   gai_strerror getegid geteuid getgid getgrent getgrgid getgrgid_r \
-  getgrnam_r getgrouplist gethostname getitimer getloadavg getlogin getlogin_r \
+  getgrnam_r getgrouplist getitimer getloadavg getlogin getlogin_r \
   getpeername getpgid getpid getppid getpriority _getpty \
   getpwent getpwnam_r getpwuid getpwuid_r getresgid getresuid getrusage getsid getspent \
   getspnam getuid getwd grantpt if_nameindex initgroups kill killpg lchown linkat \
@@ -5517,7 +5517,7 @@ AC_CHECK_FUNCS([ \
   sched_setparam sched_setscheduler sem_clockwait sem_getvalue sem_open \
   sem_timedwait sem_unlink sendfile setegid seteuid setgid sethostname \
   setitimer setlocale setpgid setpgrp setpriority setregid setresgid \
-  setresuid setreuid setsid setuid setvbuf shutdown sigaction sigaltstack \
+  setresuid setreuid setsid setuid setvbuf sigaction sigaltstack \
   sigfillset siginterrupt sigpending sigrelse sigtimedwait sigwait \
   sigwaitinfo snprintf splice strftime strlcpy strsignal symlinkat sync \
   sysconf tcgetpgrp tcsetpgrp tempnam timegm times tmpfile \
@@ -5778,7 +5778,13 @@ PKG_CHECK_MODULES([LIBZSTD], [libzstd >= 1.4.5], [have_libzstd=yes], [
 ])
 
 dnl PY_CHECK_NETDB_FUNC(FUNCTION)
-AC_DEFUN([PY_CHECK_NETDB_FUNC], [PY_CHECK_FUNC([$1], [@%:@include <netdb.h>])])
+AC_DEFUN([PY_CHECK_NETDB_FUNC], [PY_CHECK_FUNC([$1], [
+#ifdef _WIN32
+  #include <winsock.h>
+#else
+  #include <netdb.h>
+#endif
+])])
 
 PY_CHECK_NETDB_FUNC([hstrerror])
 dnl not available in WASI yet
@@ -5787,6 +5793,8 @@ PY_CHECK_NETDB_FUNC([getservbyport])
 PY_CHECK_NETDB_FUNC([gethostbyname])
 PY_CHECK_NETDB_FUNC([gethostbyaddr])
 PY_CHECK_NETDB_FUNC([getprotobyname])
+PY_CHECK_NETDB_FUNC([gethostname])
+PY_CHECK_NETDB_FUNC([shutdown])
 
 dnl PY_CHECK_SOCKET_FUNC(FUNCTION)
 AC_DEFUN([PY_CHECK_SOCKET_FUNC], [PY_CHECK_FUNC([$1], [
