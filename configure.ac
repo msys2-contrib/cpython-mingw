@@ -7470,7 +7470,7 @@ PY_STDLIB_MOD_SIMPLE([_zoneinfo])
 
 dnl multiprocessing modules
 PY_STDLIB_MOD([_multiprocessing],
-  [], [test "$ac_cv_func_sem_unlink" = "yes"],
+  [], [test "$ac_cv_func_sem_unlink" = "yes" -o "$MACHDEP" = "win32"],
   [-I\$(srcdir)/Modules/_multiprocessing])
 PY_STDLIB_MOD([_posixshmem],
   [], [test "$have_posix_shmem" = "yes"],
