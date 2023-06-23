@@ -4848,8 +4848,11 @@ fi
 AC_MSG_RESULT($DYNLOADFILE)
 if test "$DYNLOADFILE" != "dynload_stub.o"
 then
+  have_dynamic_loading=yes
 	AC_DEFINE(HAVE_DYNAMIC_LOADING, 1,
         [Defined when any dynamic module loading is enabled.])
+else
+  have_dynamic_loading=no
 fi
 
 # MACHDEP_OBJS can be set to platform-specific object files needed by Python
@@ -7601,16 +7604,16 @@ PY_STDLIB_MOD([_testcapi], [test "$TEST_MODULES" = yes])
 PY_STDLIB_MOD([_testclinic], [test "$TEST_MODULES" = yes])
 PY_STDLIB_MOD([_testinternalcapi], [test "$TEST_MODULES" = yes], [], [-DPY3_DLLNAME="\"$DLLLIBRARY\""], [])
 PY_STDLIB_MOD([_testbuffer], [test "$TEST_MODULES" = yes])
-PY_STDLIB_MOD([_testimportmultiple], [test "$TEST_MODULES" = yes], [test "$ac_cv_func_dlopen" = yes])
-PY_STDLIB_MOD([_testmultiphase], [test "$TEST_MODULES" = yes], [test "$ac_cv_func_dlopen" = yes])
+PY_STDLIB_MOD([_testimportmultiple], [test "$TEST_MODULES" = yes], [test "$have_dynamic_loading" = yes])
+PY_STDLIB_MOD([_testmultiphase], [test "$TEST_MODULES" = yes], [test "$have_dynamic_loading" = yes])
 PY_STDLIB_MOD([_xxtestfuzz], [test "$TEST_MODULES" = yes])
-PY_STDLIB_MOD([_ctypes_test], [test "$TEST_MODULES" = yes], [test "$ac_cv_func_dlopen" = yes], [], [-lm])
+PY_STDLIB_MOD([_ctypes_test], [test "$TEST_MODULES" = yes], [test "$have_dynamic_loading" = yes], [], [-lm])
 
 dnl Limited API template modules.
 dnl The limited C API is not compatible with the Py_TRACE_REFS macro.
 dnl Emscripten does not support shared libraries yet.
-PY_STDLIB_MOD([xxlimited], [test "$with_trace_refs" = "no"], [test "$ac_cv_func_dlopen" = yes])
-PY_STDLIB_MOD([xxlimited_35], [test "$with_trace_refs" = "no"], [test "$ac_cv_func_dlopen" = yes])
+PY_STDLIB_MOD([xxlimited], [test "$with_trace_refs" = "no"], [test "$have_dynamic_loading" = yes])
+PY_STDLIB_MOD([xxlimited_35], [test "$with_trace_refs" = "no"], [test "$have_dynamic_loading" = yes])
 
 # substitute multiline block, must come after last PY_STDLIB_MOD()
 AC_SUBST([MODULE_BLOCK])
