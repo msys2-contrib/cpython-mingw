@@ -1381,6 +1381,7 @@ AC_ARG_WITH([suffix],
     [Emscripten/browser*], [EXEEXT=.js],
     [Emscripten/node*], [EXEEXT=.js],
     [WASI/*], [EXEEXT=.wasm],
+    [MINGW*], [EXEEXT=.exe],
     [EXEEXT=]
   )
 ])
@@ -1403,6 +1404,10 @@ else
 	BUILDEXEEXT=$EXEEXT
 fi
 rmdir CaseSensitiveTestDir
+
+AS_CASE([$ac_sys_system],
+  [MINGW], [BUILDEXEEXT=".exe"]
+)
 
 case $ac_sys_system in
 hp*|HP*)
