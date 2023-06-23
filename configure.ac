@@ -4892,7 +4892,7 @@ AC_CHECK_FUNCS([ \
   sched_setparam sched_setscheduler sem_clockwait sem_getvalue sem_open \
   sem_timedwait sem_unlink sendfile setegid seteuid setgid sethostname \
   setitimer setlocale setpgid setpgrp setpriority setregid setresgid \
-  setresuid setreuid setsid setuid setvbuf shutdown sigaction sigaltstack \
+  setresuid setreuid setsid setuid setvbuf sigaction sigaltstack \
   sigfillset siginterrupt sigpending sigrelse sigtimedwait sigwait \
   sigwaitinfo snprintf splice strftime strlcpy strsignal symlinkat sync \
   sysconf system tcgetpgrp tcsetpgrp tempnam timegm times tmpfile \
@@ -5138,6 +5138,7 @@ PY_CHECK_NETDB_FUNC([gethostbyname])
 PY_CHECK_NETDB_FUNC([gethostbyaddr])
 PY_CHECK_NETDB_FUNC([getprotobyname])
 PY_CHECK_NETDB_FUNC([gethostname])
+PY_CHECK_NETDB_FUNC([shutdown])
 
 dnl PY_CHECK_SOCKET_FUNC(FUNCTION)
 AC_DEFUN([PY_CHECK_SOCKET_FUNC], [PY_CHECK_FUNC([$1], [
