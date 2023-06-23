@@ -7489,7 +7489,9 @@ PY_STDLIB_MOD([fcntl],
   [], [test "$ac_cv_header_sys_ioctl_h" = "yes" -a "$ac_cv_header_fcntl_h" = "yes"],
   [], [$FCNTL_LIBS])
 PY_STDLIB_MOD([mmap],
-  [], [test "$ac_cv_header_sys_mman_h" = "yes" -a "$ac_cv_header_sys_stat_h" = "yes"])
+  [], m4_flatten([test "$ac_cv_header_sys_mman_h" = "yes"
+                    -a "$ac_cv_header_sys_stat_h" = "yes"
+                    -o "$MACHDEP" = "win32"]))
 PY_STDLIB_MOD([_socket],
   [], m4_flatten([test "$ac_cv_header_sys_socket_h" = "yes"
                     -a "$ac_cv_header_sys_types_h" = "yes"
