@@ -13,6 +13,7 @@ import sysconfig
 import types
 import shlex
 
+from sysconfig import _POSIX_BUILD
 
 CORE_VENV_DEPS = ('pip',)
 logger = logging.getLogger(__name__)
@@ -377,7 +378,7 @@ class EnvBuilder:
                 }
 
             do_copies = True
-            if self.symlinks:
+            if self.symlinks and not _POSIX_BUILD:
                 do_copies = False
                 # For symlinking, we need all the DLLs to be available alongside
                 # the executables.
@@ -413,6 +414,12 @@ class EnvBuilder:
                     except OSError:
                         logger.warning('Unable to copy %r to %r', src, dest)
 
+            if _POSIX_BUILD:
+                # copy from python/pythonw so the venvlauncher magic in symlink_or_copy triggers
+                copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python3.exe'))
+                copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python%d.%d.exe' % sys.version_info[:2]))
+                copier(os.path.join(dirname, 'pythonw.exe'), os.path.join(binpath, 'python3w.exe'))
+
             if sysconfig.is_python_build():
                 # copy init.tcl
                 for root, dirs, files in os.walk(context.python_dir):
@@ -437,6 +444,7 @@ class EnvBuilder:
         env['VIRTUAL_ENV'] = context.env_dir
         env.pop('PYTHONHOME', None)
         env.pop('PYTHONPATH', None)
+        env.pop("MSYSTEM", None)
         kwargs['cwd'] = context.env_dir
         kwargs['executable'] = context.env_exec_cmd
         subprocess.check_output(args, **kwargs)
