@@ -194,6 +194,18 @@ class Tests(unittest.TestCase):
             assert os.path.exists(os.path.join(tmp, "bin", "python3.exe"))
             subprocess.check_call([shutil.which("bash.exe"), os.path.join(tmp, "bin", "activate")])
 
+            # This will not work in in-tree build
+            if not sysconfig.is_python_build():
+                op = subprocess.check_output(
+                    [
+                        os.path.join(tmp, "bin", "python.exe"),
+                        "-c",
+                        "print('Hello World')"
+                    ],
+                    cwd=tmp,
+                )
+                assert op.decode().strip() == "Hello World"
+
     def test_has_mktime(self):
         from time import mktime, gmtime
         mktime(gmtime())
