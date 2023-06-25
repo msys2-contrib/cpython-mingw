@@ -89,6 +89,12 @@ getpath_basename(PyObject *Py_UNUSED(self), PyObject *args)
     }
     Py_ssize_t end = PyUnicode_GET_LENGTH(path);
     Py_ssize_t pos = PyUnicode_FindChar(path, SEP, 0, end, -1);
+#ifdef ALTSEP
+    if (pos < 0) {
+        // try using altsep
+        pos = PyUnicode_FindChar(path, ALTSEP, 0, end, -1);
+    }
+#endif
     if (pos < 0) {
         return Py_NewRef(path);
     }
@@ -105,6 +111,12 @@ getpath_dirname(PyObject *Py_UNUSED(self), PyObject *args)
     }
     Py_ssize_t end = PyUnicode_GET_LENGTH(path);
     Py_ssize_t pos = PyUnicode_FindChar(path, SEP, 0, end, -1);
+#ifdef ALTSEP
+    if (pos < 0) {
+        // try using altsep
+        pos = PyUnicode_FindChar(path, ALTSEP, 0, end, -1);
+    }
+#endif
     if (pos < 0) {
         return PyUnicode_FromStringAndSize(NULL, 0);
     }
