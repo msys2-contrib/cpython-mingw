@@ -155,12 +155,12 @@ static wchar_t * get_env(wchar_t * key)
 #else
 #if defined(_WINDOWS)
 
-#define PYTHON_EXECUTABLE L"pythonw.exe"
+#define PYTHON_EXECUTABLE PYTHON_EXECUTABLE_WITH_VERSION
 #define EXECUTABLEPATH_VALUE L"WindowedExecutablePath"
 
 #else
 
-#define PYTHON_EXECUTABLE L"python.exe"
+#define PYTHON_EXECUTABLE PYTHON_EXECUTABLE_WITH_VERSION
 #define EXECUTABLEPATH_VALUE L"ExecutablePath"
 
 #endif
@@ -925,7 +925,7 @@ static COMMAND path_command;
 static COMMAND * find_on_path(wchar_t * name)
 {
     wchar_t * pathext;
-    size_t    varsize;
+    size_t    requiredSize;
     wchar_t * context = NULL;
     wchar_t * extension;
     COMMAND * result = NULL;
@@ -942,18 +942,23 @@ static COMMAND * find_on_path(wchar_t * name)
     }
     else {
         /* No extension - search using registered extensions. */
-        rc = _wdupenv_s(&pathext, &varsize, L"PATHEXT");
-        if (rc == 0) {
-            extension = wcstok_s(pathext, L";", &context);
-            while (extension) {
-                len = SearchPathW(NULL, name, extension, MSGSIZE, path_command.value, NULL);
-                if (len) {
-                    result = &path_command;
-                    break;
+        _wgetenv_s(&requiredSize, NULL, 0, L"PATHEXT");
+        if (requiredSize > 0) {
+            pathext = (wchar_t *)malloc(requiredSize * sizeof(wchar_t));
+            /* No extension - search using registered extensions. */
+            rc = _wgetenv_s(&requiredSize, pathext, requiredSize, L"PATHEXT");
+            if (rc == 0) {
+                extension = wcstok_s(pathext, L";", &context);
+                while (extension) {
+                    len = SearchPathW(NULL, name, extension, MSGSIZE, path_command.value, NULL);
+                    if (len) {
+                        result = &path_command;
+                        break;
+                    }
+                    extension = wcstok_s(NULL, L";", &context);
                 }
-                extension = wcstok_s(NULL, L";", &context);
+                free(pathext);
             }
-            free(pathext);
         }
     }
     return result;
@@ -1913,7 +1918,7 @@ process(int argc, wchar_t ** argv)
         if (_wfopen_s(&f, venv_cfg_path, L"r")) {
             error(RC_BAD_VENV_CFG, L"Cannot read '%ls'", venv_cfg_path);
         }
-        cb = fread_s(buffer, sizeof(buffer), sizeof(buffer[0]),
+        cb = fread(buffer, sizeof(buffer[0]),
                      sizeof(buffer) / sizeof(buffer[0]), f);
         fclose(f);
 
