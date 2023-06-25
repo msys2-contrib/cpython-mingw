@@ -155,6 +155,22 @@ Py_NormalizeSepsW(wchar_t *name)
     }
 }
 
+void
+Py_NormalizeSepsPathcchW(wchar_t *name)
+{
+#ifdef MS_WINDOWS
+    assert(name != NULL);
+    wchar_t sep = '\\';
+    wchar_t altsep = '/';
+    wchar_t* seps;
+    seps = wcschr(name, altsep);
+    while(seps) {
+        *seps = sep;
+        seps = wcschr(seps, altsep);
+    }
+#endif
+}
+
 /* External interface */
 
 /* Stored values set by C API functions */
