@@ -28,6 +28,8 @@ PyAPI_FUNC(char) Py_GetSepA(const char *);
 PyAPI_FUNC(void) Py_NormalizeSepsW(wchar_t *);
 PyAPI_FUNC(void) Py_NormalizeSepsA(char *);
 
+PyAPI_FUNC(void) Py_NormalizeSepsPathcchW(wchar_t *);
+
 
 /* Py_PyAtExit is for the atexit module, Py_AtExit is for low-level
  * exit functions.
