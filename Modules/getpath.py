@@ -574,6 +574,9 @@ else:
     # First try to detect prefix by looking alongside our runtime library, if known
     if library and not prefix:
         library_dir = dirname(library)
+        if os_name == 'nt' and is_mingw:
+            # QUIRK: On Windows, mingw Python DLLs are in the bin directory
+            library_dir = joinpath(library_dir, '..')
         if ZIP_LANDMARK:
             if os_name == 'nt':
                 # QUIRK: Windows does not search up for ZIP file
