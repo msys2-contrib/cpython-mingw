@@ -754,12 +754,8 @@ fi
 # without setting up the same env and also that the build of Python
 # itself will fail as the paths are not correct for the host tools.
 #
-# Also, getpath.c uses GetModuleFileNameW (replacing \ with /) and
-# compares that with the define VPATH (passed in via command-line)
-# to determine whether it's the build- or the installed-Python.
-#
 # To work around these issues a set of _b2h variables are created:
-# VPATH_b2h, prefix_b2h, srcdir_b2h, abs_srcdir_b2h
+# prefix_b2h, srcdir_b2h, abs_srcdir_b2h
 # and abs_builddir_b2h
 # .. where b2h stands for build to host. sysconfig.py replaces path
 # prefixes matching the non-b2h versions with the b2h equivalents.
@@ -785,10 +781,6 @@ AC_DEFUN([ABS_PATH_HOST],
   esac
 AC_SUBST([$1])
 ])
-
-AC_MSG_CHECKING(absolute host location of VPATH)
-ABS_PATH_HOST([VPATH_b2h],[srcdir])
-AC_MSG_RESULT([$VPATH_b2h])
 
 AC_MSG_CHECKING(absolute host location of prefix)
 ABS_PATH_HOST([prefix_b2h],[prefix])
