@@ -2007,19 +2007,31 @@ int
 _Py_isabs(const wchar_t *path)
 {
 #ifdef MS_WINDOWS
+    // create a copy of path and replace all forward slashes with backslashes
+    // pathccskiproot does not handle forward slashes
+    wchar_t *path_copy = _wcsdup(path);
+    if (path_copy == NULL) {
+        return 0;
+    }
+    Py_NormalizeSepsPathcchW(path_copy);
+
     const wchar_t *tail;
-    HRESULT hr = PathCchSkipRoot(path, &tail);
-    if (FAILED(hr) || path == tail) {
+    HRESULT hr = PathCchSkipRoot(path_copy, &tail);
+    if (FAILED(hr) || path_copy == tail) {
+        free(path_copy);
         return 0;
     }
-    if (tail == &path[1] && (path[0] == SEP || path[0] == ALTSEP)) {
+    if (tail == &path_copy[1] && (path_copy[0] == SEP || path_copy[0] == ALTSEP)) {
         // Exclude paths with leading SEP
+        free(path_copy);
         return 0;
     }
-    if (tail == &path[2] && path[1] == L':') {
+    if (tail == &path_copy[2] && path_copy[1] == L':') {
         // Exclude drive-relative paths (e.g. C:filename.ext)
+        free(path_copy);
         return 0;
     }
+    free(path_copy);
     return 1;
 #else
     return (path[0] == SEP);
@@ -2100,6 +2112,8 @@ join_relfile(wchar_t *buffer, size_t bufsize,
              const wchar_t *dirname, const wchar_t *relfile)
 {
 #ifdef MS_WINDOWS
+    Py_NormalizeSepsPathcchW(dirname);
+    Py_NormalizeSepsPathcchW(relfile);
     if (FAILED(PathCchCombineEx(buffer, bufsize, dirname, relfile,
         PATHCCH_ALLOW_LONG_PATHS))) {
         return -1;
