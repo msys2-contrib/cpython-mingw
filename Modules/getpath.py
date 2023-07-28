@@ -233,6 +233,8 @@ def search_up(prefix, *landmarks, test=isfile):
             return prefix
         prefix = dirname(prefix)
 
+def _normpath(p):
+    return normpath(p) if p is not None else None
 
 # ******************************************************************************
 # READ VARIABLES FROM config
@@ -670,7 +672,7 @@ else:
 
 if py_setpath:
     # If Py_SetPath was called then it overrides any existing search path
-    config['module_search_paths'] = py_setpath.split(DELIM)
+    config['module_search_paths'] = [_normpath(p) for p in py_setpath.split(DELIM)]
     config['module_search_paths_set'] = 1
 
 elif not pythonpath_was_set:
@@ -757,7 +759,7 @@ elif not pythonpath_was_set:
         if platstdlib_dir:
             pythonpath.append(platstdlib_dir)
 
-    config['module_search_paths'] = pythonpath
+    config['module_search_paths'] = [_normpath(p) for p in pythonpath]
     config['module_search_paths_set'] = 1
 
 
@@ -792,23 +794,23 @@ if pth:
             warn("unsupported 'import' line in ._pth file")
         else:
             pythonpath.append(joinpath(pth_dir, line))
-    config['module_search_paths'] = pythonpath
+    config['module_search_paths'] = [_normpath(p) for p in pythonpath]
     config['module_search_paths_set'] = 1
 
 # ******************************************************************************
 # UPDATE config FROM CALCULATED VALUES
 # ******************************************************************************
 
-config['program_name'] = program_name
-config['home'] = home
-config['executable'] = executable
-config['base_executable'] = base_executable
-config['prefix'] = prefix
-config['exec_prefix'] = exec_prefix
-config['base_prefix'] = base_prefix or prefix
-config['base_exec_prefix'] = base_exec_prefix or exec_prefix
+config['program_name'] = _normpath(program_name)
+config['home'] = _normpath(home)
+config['executable'] = _normpath(executable)
+config['base_executable'] = _normpath(base_executable)
+config['prefix'] = _normpath(prefix)
+config['exec_prefix'] = _normpath(exec_prefix)
+config['base_prefix'] = _normpath(base_prefix or prefix)
+config['base_exec_prefix'] = _normpath(base_exec_prefix or exec_prefix)
 
-config['platlibdir'] = platlibdir
+config['platlibdir'] = _normpath(platlibdir)
 # test_embed expects empty strings, not None
-config['stdlib_dir'] = stdlib_dir or ''
-config['platstdlib_dir'] = platstdlib_dir or ''
+config['stdlib_dir'] = _normpath(stdlib_dir or '')
+config['platstdlib_dir'] = _normpath(platstdlib_dir or '')
