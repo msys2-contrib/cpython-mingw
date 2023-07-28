@@ -662,7 +662,7 @@ _PyPathConfig_ComputeSysPath0(const PyWideStringList *argv, PyObject **path0_p)
     }
 #endif /* All others */
 
-    PyObject *path0_obj = PyUnicode_FromWideChar(path0, n);
+    PyObject *path0_obj = PyUnicode_FromWideChar(_Py_normpath(path0, -1), n);
     if (path0_obj == NULL) {
         return -1;
     }
