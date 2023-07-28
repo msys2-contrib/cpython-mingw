@@ -238,6 +238,29 @@ class Tests(unittest.TestCase):
         self.assertEqual(platform.system(), "Windows")
         self.assertTrue(isinstance(sys.api_version, int) and sys.api_version > 0)
 
+    def test_sys_getpath(self):
+        # everything sourced from getpath.py
+        import sys
+
+        def assertNormpath(path):
+            self.assertEqual(path, os.path.normpath(path))
+
+        assertNormpath(sys.executable)
+        assertNormpath(sys._base_executable)
+        assertNormpath(sys.prefix)
+        assertNormpath(sys.base_prefix)
+        assertNormpath(sys.exec_prefix)
+        assertNormpath(sys.base_exec_prefix)
+        assertNormpath(sys.platlibdir)
+        assertNormpath(sys._stdlib_dir)
+        for p in sys.path:
+            assertNormpath(p)
+
+    def test_site(self):
+        import site
+
+        self.assertEqual(len(site.getsitepackages()), 1)
+
     def test_c_ext_build(self):
         import tempfile
         import sys
