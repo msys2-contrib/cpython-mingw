@@ -55,6 +55,25 @@
 /* HELPER FUNCTIONS for getpath.py */
 
 static PyObject *
+getpath_normpath(PyObject *Py_UNUSED(self), PyObject *args)
+{
+    PyObject *r = NULL;
+    PyObject *pathobj;
+    wchar_t *path;
+    if (!PyArg_ParseTuple(args, "U", &pathobj)) {
+        return NULL;
+    }
+    Py_ssize_t len;
+    wchar_t *buffer = PyUnicode_AsWideCharString(pathobj, &len);
+    if (!buffer) {
+        return NULL;
+    }
+    r = PyUnicode_FromWideChar(_Py_normpath(buffer, len), -1);
+    PyMem_Free(buffer);
+    return r;
+}
+
+static PyObject *
 getpath_abspath(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *r = NULL;
@@ -68,7 +87,6 @@ getpath_abspath(PyObject *Py_UNUSED(self), PyObject *args)
     if (path) {
         wchar_t *abs;
         if (_Py_abspath((const wchar_t *)_Py_normpath(path, -1), &abs) == 0 && abs) {
-            abs = _Py_normpath(abs, -1);
             r = PyUnicode_FromWideChar(abs, -1);
             PyMem_RawFree((void *)abs);
         } else {
@@ -527,6 +545,7 @@ done:
 
 
 static PyMethodDef getpath_methods[] = {
+    {"normpath", getpath_normpath, METH_VARARGS, NULL},
     {"abspath", getpath_abspath, METH_VARARGS, NULL},
     {"basename", getpath_basename, METH_VARARGS, NULL},
     {"dirname", getpath_dirname, METH_VARARGS, NULL},
