@@ -37,6 +37,12 @@ else:
 _UCRT = sysconfig.get_platform() not in ('mingw_x86_64', 'mingw_i686')
 
 
+if sysconfig.is_python_build():
+    for p in os.environ.get("PATH", "").split(os.pathsep):
+        if os.path.isdir(p):
+            os.add_dll_directory(p)
+
+
 class Tests(unittest.TestCase):
 
     def test_zoneinfo(self):
