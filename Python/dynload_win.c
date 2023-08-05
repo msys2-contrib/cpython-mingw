@@ -4,6 +4,7 @@
 #include "Python.h"
 #include "pycore_fileutils.h"     // _Py_add_relfile()
 #include "pycore_pystate.h"       // _PyInterpreterState_GET()
+#include "pycore_initconfig.h"
 
 #include "pycore_importdl.h"      // dl_funcptr
 #include "patchlevel.h"           // PY_MAJOR_VERSION
@@ -211,6 +212,18 @@ dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
     _Py_CheckPython3();
 #endif /* Py_ENABLE_SHARED */
 
+    int use_legacy = 0;
+    DWORD load_library_flags = 0;
+
+    _Py_get_env_flag(1, &use_legacy, "PYTHONLEGACYWINDOWSDLLLOADING");
+
+    if (use_legacy) {
+        load_library_flags = LOAD_WITH_ALTERED_SEARCH_PATH;
+    } else {
+        load_library_flags = LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
+                              LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR;
+    }
+
     wchar_t *wpathname = PyUnicode_AsWideCharString(pathname, NULL);
     if (wpathname == NULL)
         return NULL;
@@ -231,9 +244,7 @@ dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
            AddDllDirectory function. We add SEARCH_DLL_LOAD_DIR to
            ensure DLLs adjacent to the PYD are preferred. */
         Py_BEGIN_ALLOW_THREADS
-        hDLL = LoadLibraryExW(wpathname, NULL,
-                              LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-                              LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
+        hDLL = LoadLibraryExW(wpathname, NULL, load_library_flags);
         Py_END_ALLOW_THREADS
         PyMem_Free(wpathname);
 
