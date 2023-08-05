@@ -35,6 +35,9 @@ if sys._use_alt_sep:
 else:
     SEP = "\\"
 
+if sysconfig.is_python_build():
+    os.environ["PYTHONLEGACYWINDOWSDLLLOADING"] = "1"
+
 _UCRT = 'ucrt' in sysconfig.get_platform()
 
 
