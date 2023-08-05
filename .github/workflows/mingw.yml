@@ -130,16 +130,16 @@ jobs:
           cp "${pkgdir}${MINGW_PREFIX}"/bin/idle3 "${pkgdir}${MINGW_PREFIX}"/bin/idle
           cp "${pkgdir}${MINGW_PREFIX}"/bin/pydoc3 "${pkgdir}${MINGW_PREFIX}"/bin/pydoc
 
+          # copy to /
+          cp -rf "${pkgdir}"/* /
+
       - name: Run Smoke Test (installed)
         shell: msys2 {0}
         run: |
           export SETUPTOOLS_USE_DISTUTILS=stdlib
-          export PYTHONTZPATH="${MINGW_PREFIX}/share/zoneinfo"
           SMOKETESTS="$(pwd)/mingw_smoketests.py"
-          cd _build
-          cd python_pkgdir/${MINGW_PREFIX}/bin
-          ./python.exe "$SMOKETESTS"
-          MSYSTEM= ./python.exe "$SMOKETESTS"
+          ${MINGW_PREFIX}/bin/python.exe "$SMOKETESTS"
+          MSYSTEM= ${MINGW_PREFIX}/bin/python.exe "$SMOKETESTS"
 
       - name: Compress
         if: always()
