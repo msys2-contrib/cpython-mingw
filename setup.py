@@ -88,6 +88,10 @@ if sys.platform == "win32" and os.environ.get("MSYSTEM", ""):
         return os_system(command_in_sh)
     os.system = msys_system
 
+    # set PYTHONLEGACYWINDOWSDLLLOADING to 1 to load DLLs from PATH
+    # This is needed while building core extensions of Python
+    os.environ["PYTHONLEGACYWINDOWSDLLLOADING"] = "1"
+
 CROSS_COMPILING = ("_PYTHON_HOST_PLATFORM" in os.environ)
 HOST_PLATFORM = get_platform()
 MS_WINDOWS = (HOST_PLATFORM == 'win32' or HOST_PLATFORM == 'mingw')
