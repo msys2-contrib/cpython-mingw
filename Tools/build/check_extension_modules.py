@@ -64,6 +64,10 @@ WINDOWS_MODULES = {
     "winsound",
 }
 
+if sys.platform == "win32":
+    # Enable DLL loading from PATH.
+    os.environ["PYTHONLEGACYWINDOWSDLLLOADING"] = "1"
+
 
 logger = logging.getLogger(__name__)
 
