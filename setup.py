@@ -924,7 +924,7 @@ class PyBuildExt(build_ext):
         if HOST_PLATFORM == 'hp-ux11':
             self.lib_dirs += ['/usr/lib/hpux64', '/usr/lib/hpux32']
 
-        if MACOS:
+        if MACOS or MS_WINDOWS:
             # This should work on any unixy platform ;-)
             # If the user has bothered specifying additional -I and -L flags
             # in OPT and LDFLAGS we might as well use them here.
