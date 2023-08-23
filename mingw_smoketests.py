@@ -265,6 +265,12 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(site.getsitepackages()), 1)
 
     def test_c_ext_build(self):
+        self._test_c_ext_build(False)
+
+    def test_c_ext_build_limited_api(self):
+        self._test_c_ext_build(True)
+
+    def _test_c_ext_build(self, py_limited_api):
         import tempfile
         import sys
         import subprocess
@@ -279,32 +285,47 @@ class Tests(unittest.TestCase):
                         """\
                                     from setuptools import setup, Extension
 
+                                    if %(py_limited_api)s:
+                                        ext = Extension(
+                                            'cwrapper',
+                                            py_limited_api=True,
+                                            define_macros=[('Py_LIMITED_API', '0x03060000')],
+                                            sources=['cwrapper.c'])
+                                    else:
+                                        ext = Extension(
+                                            'cwrapper',
+                                            sources=['cwrapper.c'])
+
                                     setup(
                                         name='cwrapper',
                                         version='1.0',
-                                        ext_modules=[
-                                            Extension(
-                                                'cwrapper',
-                                                sources=['cwrapper.c']),
-                                        ],
+                                        ext_modules=[ext],
                                     )
-                                """
+                                """ % {"py_limited_api": py_limited_api}
                     )
                 )
+
             with Path(tmppro, "cwrapper.c").open("w") as f:
                 f.write(
                     textwrap.dedent(
                         """\
                                     #include <Python.h>
+                                    #include <windows.h>
                                     static PyObject *
                                     helloworld(PyObject *self, PyObject *args)
                                     {
                                         printf("Hello World\\n");
                                         Py_RETURN_NONE;
                                     }
+                                    static PyObject *
+                                    islimited(PyObject *self, PyObject *args)
+                                    {
+                                        return PyBool_FromLong(GetModuleHandleA("libpython3.dll") != NULL);
+                                    }
                                     static PyMethodDef
                                     myMethods[] = {
                                         { "helloworld", helloworld, METH_NOARGS, "Prints Hello World" },
+                                        { "islimited", islimited, METH_NOARGS, "Returns True if the limited API is used" },
                                         { NULL, NULL, 0, NULL }
                                     };
                                     static struct PyModuleDef cwrapper = {
@@ -323,6 +344,16 @@ class Tests(unittest.TestCase):
                                 """
                     )
                 )
+
+            if py_limited_api:
+                with Path(tmppro, "setup.cfg").open("w") as f:
+                    f.write(textwrap.dedent(
+                        """\
+                        [bdist_wheel]
+                        py_limited_api=cp36
+                        """
+                    ))
+
             subprocess.check_call(
                 [sys.executable, "-c", "import struct"],
             )
@@ -346,6 +377,10 @@ class Tests(unittest.TestCase):
             )
             subprocess.check_call(
                 [sys.executable, "-c", "import cwrapper"],
+            )
+            # Make sure the resulting extension uses the limited API, or not
+            subprocess.check_call(
+                [sys.executable, "-c", f"import cwrapper; assert cwrapper.islimited() == {py_limited_api}"],
             )
 
 
