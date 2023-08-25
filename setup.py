@@ -889,10 +889,8 @@ class PyBuildExt(build_ext):
             # (PYTHONFRAMEWORK is set) to avoid # linking problems when
             # building a framework with different architectures than
             # the one that is currently installed (issue #7473)
-            add_dir_to_list(self.compiler.library_dirs,
-                            sysconfig.get_config_var("LIBDIR"))
-            add_dir_to_list(self.compiler.include_dirs,
-                            sysconfig.get_config_var("INCLUDEDIR"))
+            self.compiler.library_dirs.append(sysconfig.get_config_var("LIBDIR"))
+            self.compiler.include_dirs.append(sysconfig.get_config_var("INCLUDEDIR"))
 
         system_lib_dirs = ['/lib64', '/usr/lib64', '/lib', '/usr/lib']
         system_include_dirs = ['/usr/include']
