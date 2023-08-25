@@ -111,6 +111,21 @@ class TestBasicOps:
         self.assertEqual(choice([50]), 50)
         self.assertIn(choice([25, 75]), [25, 75])
 
+    def test_choice_with_numpy(self):
+        # Accommodation for NumPy arrays which have disabled __bool__().
+        # See: https://github.com/python/cpython/issues/100805
+        choice = self.gen.choice
+
+        class NA(list):
+            "Simulate numpy.array() behavior"
+            def __bool__(self):
+                raise RuntimeError
+
+        with self.assertRaises(IndexError):
+            choice(NA([]))
+        self.assertEqual(choice(NA([50])), 50)
+        self.assertIn(choice(NA([25, 75])), [25, 75])
+
     def test_sample(self):
         # For the entire allowable range of 0 <= k <= N, validate that
         # the sample is of the correct length and contains only unique items
@@ -408,6 +423,10 @@ class TestBasicOps:
         self.assertRaises(TypeError, self.gen.randbytes, 1, 2)
         self.assertRaises(ValueError, self.gen.randbytes, -1)
         self.assertRaises(TypeError, self.gen.randbytes, 1.0)
+
+    def test_mu_sigma_default_args(self):
+        self.assertIsInstance(self.gen.normalvariate(), float)
+        self.assertIsInstance(self.gen.gauss(), float)
 
 
 try:
@@ -822,10 +841,6 @@ class MersenneTwister_TestBasicOps(TestBasicOps, unittest.TestCase):
                 maxsize+1, maxsize=maxsize
             )
         self.gen._randbelow_without_getrandbits(5640, maxsize=maxsize)
-        # issue 33203: test that _randbelow returns zero on
-        # n == 0 also in its getrandbits-independent branch.
-        x = self.gen._randbelow_without_getrandbits(0, maxsize=maxsize)
-        self.assertEqual(x, 0)
 
         # This might be going too far to test a single line, but because of our
         # noble aim of achieving 100% test coverage we need to write a case in
@@ -1303,7 +1318,7 @@ class TestModule(unittest.TestCase):
         # tests validity but not completeness of the __all__ list
         self.assertTrue(set(random.__all__) <= set(dir(random)))
 
-    @unittest.skipUnless(hasattr(os, "fork"), "fork() required")
+    @test.support.requires_fork()
     def test_after_fork(self):
         # Test the global Random instance gets reseeded in child
         r, w = os.pipe()

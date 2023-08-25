@@ -361,7 +361,7 @@ the "n" formatter.
 .. nonce: gjm1LO
 .. section: Core and Builtins
 
-Fix a possible segfault involving a newly-created coroutine.  Patch by
+Fix a possible segfault involving a newly created coroutine.  Patch by
 Zackery Spytz.
 
 ..
@@ -1934,7 +1934,7 @@ failure.
 .. nonce: _ct_0H
 .. section: Library
 
-The :data:`time.CLOCK_UPTIME_RAW` constant is now available for macOS 10.12.
+The :const:`time.CLOCK_UPTIME_RAW` constant is now available for macOS 10.12.
 
 ..
 
@@ -3355,7 +3355,7 @@ if the ``PATH`` environment variable is not set.
 
 On Windows, fix multiprocessing.Connection for very large read: fix
 _winapi.PeekNamedPipe() and _winapi.ReadFile() for read larger than INT_MAX
-(usually 2^31-1).
+(usually ``2**31-1``).
 
 ..
 
@@ -4617,7 +4617,7 @@ Based on patch by c-fos.
 .. section: Library
 
 Remove HMAC default to md5 marked for removal in 3.8 (removal originally
-planned in 3.6, bump to 3.8 in gh-7062).
+planned in 3.6, bump to 3.8 in PR 7062).
 
 ..
 
@@ -5951,7 +5951,7 @@ Wirtel
 
 Add TLSVersion constants and SSLContext.maximum_version / minimum_version
 attributes. The new API wraps OpenSSL 1.1
-https://www.openssl.org/docs/man1.1.0/ssl/SSL_CTX_set_min_proto_version.html
+https://web.archive.org/web/20180309043602/https://www.openssl.org/docs/man1.1.0/ssl/SSL_CTX_set_min_proto_version.html
 feature.
 
 ..
@@ -8765,7 +8765,7 @@ for relative path to files in current directory.
 .. nonce: fmehdG
 .. section: C API
 
-The :c:func:`PyByteArray_Init` and :c:func:`PyByteArray_Fini` functions have
+The :c:func:`!PyByteArray_Init` and :c:func:`!PyByteArray_Fini` functions have
 been removed. They did nothing since Python 2.7.4 and Python 3.2.0, were
 excluded from the limited API (stable ABI), and were not documented.
 
@@ -8836,7 +8836,7 @@ Py_LIMITED_API. Patch by Arthur Neufeld.
 .. nonce: gFd85N
 .. section: C API
 
-The :c:func:`_PyObject_GC_TRACK` and :c:func:`_PyObject_GC_UNTRACK` macros
+The :c:func:`!_PyObject_GC_TRACK` and :c:func:`!_PyObject_GC_UNTRACK` macros
 have been removed from the public C API.
 
 ..

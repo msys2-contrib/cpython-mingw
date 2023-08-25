@@ -133,22 +133,20 @@ static void destroy_gil(struct _gil_runtime_state *gil)
     _Py_ANNOTATE_RWLOCK_DESTROY(&gil->locked);
 }
 
+#ifdef HAVE_FORK
 static void recreate_gil(struct _gil_runtime_state *gil)
 {
     _Py_ANNOTATE_RWLOCK_DESTROY(&gil->locked);
     /* XXX should we destroy the old OS resources here? */
     create_gil(gil);
 }
+#endif
 
 static void
 drop_gil(struct _ceval_runtime_state *ceval, struct _ceval_state *ceval2,
          PyThreadState *tstate)
 {
-#ifdef EXPERIMENTAL_ISOLATED_SUBINTERPRETERS
-    struct _gil_runtime_state *gil = &ceval2->gil;
-#else
     struct _gil_runtime_state *gil = &ceval->gil;
-#endif
     if (!_Py_atomic_load_relaxed(&gil->locked)) {
         Py_FatalError("drop_gil: GIL is not locked");
     }
@@ -232,11 +230,7 @@ take_gil(PyThreadState *tstate)
     PyInterpreterState *interp = tstate->interp;
     struct _ceval_runtime_state *ceval = &interp->runtime->ceval;
     struct _ceval_state *ceval2 = &interp->ceval;
-#ifdef EXPERIMENTAL_ISOLATED_SUBINTERPRETERS
-    struct _gil_runtime_state *gil = &ceval2->gil;
-#else
     struct _gil_runtime_state *gil = &ceval->gil;
-#endif
 
     /* Check that _PyEval_InitThreads() was called to create the lock */
     assert(gil_created(gil));
@@ -247,6 +241,7 @@ take_gil(PyThreadState *tstate)
         goto _ready;
     }
 
+    int drop_requested = 0;
     while (_Py_atomic_load_relaxed(&gil->locked)) {
         unsigned long saved_switchnum = gil->switch_number;
 
@@ -262,11 +257,21 @@ take_gil(PyThreadState *tstate)
         {
             if (tstate_must_exit(tstate)) {
                 MUTEX_UNLOCK(gil->mutex);
+                // gh-96387: If the loop requested a drop request in a previous
+                // iteration, reset the request. Otherwise, drop_gil() can
+                // block forever waiting for the thread which exited. Drop
+                // requests made by other threads are also reset: these threads
+                // may have to request again a drop request (iterate one more
+                // time).
+                if (drop_requested) {
+                    RESET_GIL_DROP_REQUEST(interp);
+                }
                 PyThread_exit_thread();
             }
             assert(is_tstate_valid(tstate));
 
             SET_GIL_DROP_REQUEST(interp);
+            drop_requested = 1;
         }
     }
 
@@ -328,22 +333,12 @@ _ready:
 
 void _PyEval_SetSwitchInterval(unsigned long microseconds)
 {
-#ifdef EXPERIMENTAL_ISOLATED_SUBINTERPRETERS
-    PyInterpreterState *interp = PyInterpreterState_Get();
-    struct _gil_runtime_state *gil = &interp->ceval.gil;
-#else
     struct _gil_runtime_state *gil = &_PyRuntime.ceval.gil;
-#endif
     gil->interval = microseconds;
 }
 
 unsigned long _PyEval_GetSwitchInterval()
 {
-#ifdef EXPERIMENTAL_ISOLATED_SUBINTERPRETERS
-    PyInterpreterState *interp = PyInterpreterState_Get();
-    struct _gil_runtime_state *gil = &interp->ceval.gil;
-#else
     struct _gil_runtime_state *gil = &_PyRuntime.ceval.gil;
-#endif
     return gil->interval;
 }

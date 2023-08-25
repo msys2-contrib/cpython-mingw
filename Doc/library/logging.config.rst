@@ -87,6 +87,10 @@ in :mod:`logging` itself) and defining handlers which are declared either in
    provides a mechanism to present the choices and load the chosen
    configuration).
 
+   It will raise :exc:`FileNotFoundError` if the file
+   doesn't exist and :exc:`RuntimeError` if the file is invalid or
+   empty.
+
    :param fname: A filename, or a file-like object, or an instance derived
                  from :class:`~configparser.RawConfigParser`. If a
                  ``RawConfigParser``-derived instance is passed, it is used as
@@ -111,7 +115,7 @@ in :mod:`logging` itself) and defining handlers which are declared either in
                                     they or their ancestors are explicitly named
                                     in the logging configuration.
 
-    :param encoding: The encoding used to open file when *fname* is filename.
+   :param encoding: The encoding used to open file when *fname* is filename.
 
    .. versionchanged:: 3.4
       An instance of a subclass of :class:`~configparser.RawConfigParser` is
@@ -125,6 +129,10 @@ in :mod:`logging` itself) and defining handlers which are declared either in
 
     .. versionadded:: 3.10
        The *encoding* parameter is added.
+
+    .. versionchanged:: 3.11.4
+       An exception will be thrown if the provided file
+       doesn't exist or is invalid or empty.
 
 .. function:: listen(port=DEFAULT_LOGGING_CONFIG_PORT, verify=None)
 
@@ -152,6 +160,8 @@ in :mod:`logging` itself) and defining handlers which are declared either in
    send it to the socket as a sequence of bytes preceded by a four-byte length
    string packed in binary using ``struct.pack('>L', n)``.
 
+   .. _logging-eval-security:
+
    .. note::
 
       Because portions of the configuration are passed through
@@ -166,7 +176,7 @@ in :mod:`logging` itself) and defining handlers which are declared either in
       :func:`listen` socket and sending a configuration which runs whatever
       code the attacker wants to have executed in the victim's process. This is
       especially easy to do if the default port is used, but not hard even if a
-      different port is used). To avoid the risk of this happening, use the
+      different port is used. To avoid the risk of this happening, use the
       ``verify`` argument to :func:`listen` to prevent unrecognised
       configurations from being applied.
 
@@ -187,6 +197,20 @@ in :mod:`logging` itself) and defining handlers which are declared either in
    Stops the listening server which was created with a call to :func:`listen`.
    This is typically called before calling :meth:`join` on the return value from
    :func:`listen`.
+
+
+Security considerations
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The logging configuration functionality tries to offer convenience, and in part this
+is done by offering the ability to convert text in configuration files into Python
+objects used in logging configuration - for example, as described in
+:ref:`logging-config-dict-userdef`. However, these same mechanisms (importing
+callables from user-defined modules and calling them with parameters from the
+configuration) could be used to invoke any code you like, and for this reason you
+should treat configuration files from untrusted sources with *extreme caution* and
+satisfy yourself that nothing bad can happen if you load them, before actually loading
+them.
 
 
 .. _logging-config-dictschema:
@@ -272,6 +296,9 @@ otherwise, the context is used to determine what to instantiate.
   * ``filters`` (optional).  A list of ids of the filters for this
     handler.
 
+    .. versionchanged:: 3.11
+       ``filters`` can take filter instances in addition to ids.
+
   All *other* keys are passed through as keyword arguments to the
   handler's constructor.  For example, given the snippet:
 
@@ -309,6 +336,9 @@ otherwise, the context is used to determine what to instantiate.
 
   * ``filters`` (optional).  A list of ids of the filters for this
     logger.
+
+    .. versionchanged:: 3.11
+       ``filters`` can take filter instances in addition to ids.
 
   * ``handlers`` (optional).  A list of ids of the handlers for this
     logger.
@@ -503,10 +533,66 @@ returned by the call::
 
     my.package.customFormatterFactory(bar='baz', spam=99.9, answer=42)
 
+.. warning:: The values for keys such as ``bar``, ``spam`` and ``answer`` in
+   the above example should not be configuration dictionaries or references such
+   as ``cfg://foo`` or ``ext://bar``, because they will not be processed by the
+   configuration machinery, but passed to the callable as-is.
+
 The key ``'()'`` has been used as the special key because it is not a
 valid keyword parameter name, and so will not clash with the names of
 the keyword arguments used in the call.  The ``'()'`` also serves as a
 mnemonic that the corresponding value is a callable.
+
+    .. versionchanged:: 3.11
+       The ``filters`` member of ``handlers`` and ``loggers`` can take
+       filter instances in addition to ids.
+
+You can also specify a special key ``'.'`` whose value is a dictionary is a
+mapping of attribute names to values. If found, the specified attributes will
+be set on the user-defined object before it is returned. Thus, with the
+following configuration::
+
+    {
+      '()' : 'my.package.customFormatterFactory',
+      'bar' : 'baz',
+      'spam' : 99.9,
+      'answer' : 42,
+      '.' {
+        'foo': 'bar',
+        'baz': 'bozz'
+      }
+    }
+
+the returned formatter will have attribute ``foo`` set to ``'bar'`` and
+attribute ``baz`` set to ``'bozz'``.
+
+.. warning:: The values for attributes such as ``foo`` and ``baz`` in
+   the above example should not be configuration dictionaries or references such
+   as ``cfg://foo`` or ``ext://bar``, because they will not be processed by the
+   configuration machinery, but set as attribute values as-is.
+
+
+.. _handler-config-dict-order:
+
+Handler configuration order
+"""""""""""""""""""""""""""
+
+Handlers are configured in alphabetical order of their keys, and a configured
+handler replaces the configuration dictionary in (a working copy of) the
+``handlers`` dictionary in the schema. If you use a construct such as
+``cfg://handlers.foo``, then initially ``handlers['foo']`` points to the
+configuration dictionary for the handler named ``foo``, and later (once that
+handler has been configured) it points to the configured handler instance.
+Thus, ``cfg://handlers.foo`` could resolve to either a dictionary or a handler
+instance. In general, it is wise to name handlers in a way such that dependent
+handlers are configured _after_ any handlers they depend on; that allows
+something like ``cfg://handlers.foo`` to be used in configuring a handler that
+depends on handler ``foo``. If that dependent handler were named ``bar``,
+problems would result, because the configuration of ``bar`` would be attempted
+before that of ``foo``, and ``foo`` would not yet have been configured.
+However, if the dependent handler were named ``foobar``, it would be configured
+after ``foo``, with the result that ``cfg://handlers.foo`` would resolve to
+configured handler ``foo``, and not its configuration dictionary.
 
 
 .. _logging-config-dict-externalobj:
@@ -690,7 +776,7 @@ root logger section is given below.
 
 The ``level`` entry can be one of ``DEBUG, INFO, WARNING, ERROR, CRITICAL`` or
 ``NOTSET``. For the root logger only, ``NOTSET`` means that all messages will be
-logged. Level values are :func:`eval`\ uated in the context of the ``logging``
+logged. Level values are :ref:`evaluated <func-eval>` in the context of the ``logging``
 package's namespace.
 
 The ``handlers`` entry is a comma-separated list of handler names, which must
@@ -737,13 +823,13 @@ handler. If blank, a default formatter (``logging._defaultFormatter``) is used.
 If a name is specified, it must appear in the ``[formatters]`` section and have
 a corresponding section in the configuration file.
 
-The ``args`` entry, when :func:`eval`\ uated in the context of the ``logging``
+The ``args`` entry, when :ref:`evaluated <func-eval>` in the context of the ``logging``
 package's namespace, is the list of arguments to the constructor for the handler
 class. Refer to the constructors for the relevant handlers, or to the examples
 below, to see how typical entries are constructed. If not provided, it defaults
 to ``()``.
 
-The optional ``kwargs`` entry, when :func:`eval`\ uated in the context of the
+The optional ``kwargs`` entry, when :ref:`evaluated <func-eval>` in the context of the
 ``logging`` package's namespace, is the keyword argument dict to the constructor
 for the handler class. If not provided, it defaults to ``{}``.
 
@@ -807,7 +893,7 @@ Sections which specify formatter configuration are typified by the following.
    [formatter_form01]
    format=F1 %(asctime)s %(levelname)s %(message)s
    datefmt=
-   style='%'
+   style=%
    validate=True
    class=logging.Formatter
 

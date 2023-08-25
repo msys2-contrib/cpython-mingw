@@ -9,7 +9,7 @@ PyDoc_STRVAR(sys_addaudithook__doc__,
 "Adds a new audit hook callback.");
 
 #define SYS_ADDAUDITHOOK_METHODDEF    \
-    {"addaudithook", (PyCFunction)(void(*)(void))sys_addaudithook, METH_FASTCALL|METH_KEYWORDS, sys_addaudithook__doc__},
+    {"addaudithook", _PyCFunction_CAST(sys_addaudithook), METH_FASTCALL|METH_KEYWORDS, sys_addaudithook__doc__},
 
 static PyObject *
 sys_addaudithook_impl(PyObject *module, PyObject *hook);
@@ -50,7 +50,7 @@ PyDoc_STRVAR(sys_excepthook__doc__,
 "Handle an exception by displaying it with a traceback on sys.stderr.");
 
 #define SYS_EXCEPTHOOK_METHODDEF    \
-    {"excepthook", (PyCFunction)(void(*)(void))sys_excepthook, METH_FASTCALL, sys_excepthook__doc__},
+    {"excepthook", _PyCFunction_CAST(sys_excepthook), METH_FASTCALL, sys_excepthook__doc__},
 
 static PyObject *
 sys_excepthook_impl(PyObject *module, PyObject *exctype, PyObject *value,
@@ -74,6 +74,28 @@ sys_excepthook(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 
 exit:
     return return_value;
+}
+
+PyDoc_STRVAR(sys_exception__doc__,
+"exception($module, /)\n"
+"--\n"
+"\n"
+"Return the current exception.\n"
+"\n"
+"Return the most recent exception caught by an except clause\n"
+"in the current stack frame or in an older stack frame, or None\n"
+"if no such exception exists.");
+
+#define SYS_EXCEPTION_METHODDEF    \
+    {"exception", (PyCFunction)sys_exception, METH_NOARGS, sys_exception__doc__},
+
+static PyObject *
+sys_exception_impl(PyObject *module);
+
+static PyObject *
+sys_exception(PyObject *module, PyObject *Py_UNUSED(ignored))
+{
+    return sys_exception_impl(module);
 }
 
 PyDoc_STRVAR(sys_exc_info__doc__,
@@ -126,7 +148,7 @@ PyDoc_STRVAR(sys_exit__doc__,
 "exit status will be one (i.e., failure).");
 
 #define SYS_EXIT_METHODDEF    \
-    {"exit", (PyCFunction)(void(*)(void))sys_exit, METH_FASTCALL, sys_exit__doc__},
+    {"exit", _PyCFunction_CAST(sys_exit), METH_FASTCALL, sys_exit__doc__},
 
 static PyObject *
 sys_exit_impl(PyObject *module, PyObject *status);
@@ -394,7 +416,7 @@ PyDoc_STRVAR(sys_set_coroutine_origin_tracking_depth__doc__,
 "Set a depth of 0 to disable.");
 
 #define SYS_SET_COROUTINE_ORIGIN_TRACKING_DEPTH_METHODDEF    \
-    {"set_coroutine_origin_tracking_depth", (PyCFunction)(void(*)(void))sys_set_coroutine_origin_tracking_depth, METH_FASTCALL|METH_KEYWORDS, sys_set_coroutine_origin_tracking_depth__doc__},
+    {"set_coroutine_origin_tracking_depth", _PyCFunction_CAST(sys_set_coroutine_origin_tracking_depth), METH_FASTCALL|METH_KEYWORDS, sys_set_coroutine_origin_tracking_depth__doc__},
 
 static PyObject *
 sys_set_coroutine_origin_tracking_depth_impl(PyObject *module, int depth);
@@ -647,6 +669,59 @@ exit:
 
 #endif /* defined(USE_MALLOPT) */
 
+PyDoc_STRVAR(sys_get_int_max_str_digits__doc__,
+"get_int_max_str_digits($module, /)\n"
+"--\n"
+"\n"
+"Return the maximum string digits limit for non-binary int<->str conversions.");
+
+#define SYS_GET_INT_MAX_STR_DIGITS_METHODDEF    \
+    {"get_int_max_str_digits", (PyCFunction)sys_get_int_max_str_digits, METH_NOARGS, sys_get_int_max_str_digits__doc__},
+
+static PyObject *
+sys_get_int_max_str_digits_impl(PyObject *module);
+
+static PyObject *
+sys_get_int_max_str_digits(PyObject *module, PyObject *Py_UNUSED(ignored))
+{
+    return sys_get_int_max_str_digits_impl(module);
+}
+
+PyDoc_STRVAR(sys_set_int_max_str_digits__doc__,
+"set_int_max_str_digits($module, /, maxdigits)\n"
+"--\n"
+"\n"
+"Set the maximum string digits limit for non-binary int<->str conversions.");
+
+#define SYS_SET_INT_MAX_STR_DIGITS_METHODDEF    \
+    {"set_int_max_str_digits", _PyCFunction_CAST(sys_set_int_max_str_digits), METH_FASTCALL|METH_KEYWORDS, sys_set_int_max_str_digits__doc__},
+
+static PyObject *
+sys_set_int_max_str_digits_impl(PyObject *module, int maxdigits);
+
+static PyObject *
+sys_set_int_max_str_digits(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+{
+    PyObject *return_value = NULL;
+    static const char * const _keywords[] = {"maxdigits", NULL};
+    static _PyArg_Parser _parser = {NULL, _keywords, "set_int_max_str_digits", 0};
+    PyObject *argsbuf[1];
+    int maxdigits;
+
+    args = _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 1, 1, 0, argsbuf);
+    if (!args) {
+        goto exit;
+    }
+    maxdigits = _PyLong_AsInt(args[0]);
+    if (maxdigits == -1 && PyErr_Occurred()) {
+        goto exit;
+    }
+    return_value = sys_set_int_max_str_digits_impl(module, maxdigits);
+
+exit:
+    return return_value;
+}
+
 PyDoc_STRVAR(sys_getrefcount__doc__,
 "getrefcount($module, object, /)\n"
 "--\n"
@@ -780,7 +855,7 @@ PyDoc_STRVAR(sys__getframe__doc__,
 "only.");
 
 #define SYS__GETFRAME_METHODDEF    \
-    {"_getframe", (PyCFunction)(void(*)(void))sys__getframe, METH_FASTCALL, sys__getframe__doc__},
+    {"_getframe", _PyCFunction_CAST(sys__getframe), METH_FASTCALL, sys__getframe__doc__},
 
 static PyObject *
 sys__getframe_impl(PyObject *module, int depth);
@@ -859,7 +934,7 @@ PyDoc_STRVAR(sys_call_tracing__doc__,
 "some other code.");
 
 #define SYS_CALL_TRACING_METHODDEF    \
-    {"call_tracing", (PyCFunction)(void(*)(void))sys_call_tracing, METH_FASTCALL, sys_call_tracing__doc__},
+    {"call_tracing", _PyCFunction_CAST(sys_call_tracing), METH_FASTCALL, sys_call_tracing__doc__},
 
 static PyObject *
 sys_call_tracing_impl(PyObject *module, PyObject *func, PyObject *funcargs);
@@ -965,24 +1040,6 @@ sys_getandroidapilevel(PyObject *module, PyObject *Py_UNUSED(ignored))
 
 #endif /* defined(ANDROID_API_LEVEL) */
 
-PyDoc_STRVAR(sys__deactivate_opcache__doc__,
-"_deactivate_opcache($module, /)\n"
-"--\n"
-"\n"
-"Deactivate the opcode cache permanently");
-
-#define SYS__DEACTIVATE_OPCACHE_METHODDEF    \
-    {"_deactivate_opcache", (PyCFunction)sys__deactivate_opcache, METH_NOARGS, sys__deactivate_opcache__doc__},
-
-static PyObject *
-sys__deactivate_opcache_impl(PyObject *module);
-
-static PyObject *
-sys__deactivate_opcache(PyObject *module, PyObject *Py_UNUSED(ignored))
-{
-    return sys__deactivate_opcache_impl(module);
-}
-
 #ifndef SYS_GETWINDOWSVERSION_METHODDEF
     #define SYS_GETWINDOWSVERSION_METHODDEF
 #endif /* !defined(SYS_GETWINDOWSVERSION_METHODDEF) */
@@ -1010,4 +1067,4 @@ sys__deactivate_opcache(PyObject *module, PyObject *Py_UNUSED(ignored))
 #ifndef SYS_GETANDROIDAPILEVEL_METHODDEF
     #define SYS_GETANDROIDAPILEVEL_METHODDEF
 #endif /* !defined(SYS_GETANDROIDAPILEVEL_METHODDEF) */
-/*[clinic end generated code: output=e77bf636a177c5c3 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=3cae0e0212d88bcd input=a9049054013a1b77]*/

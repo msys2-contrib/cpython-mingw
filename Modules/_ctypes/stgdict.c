@@ -1,8 +1,18 @@
+#ifndef Py_BUILD_CORE_BUILTIN
+#  define Py_BUILD_CORE_MODULE 1
+#endif
+#define NEEDS_PY_IDENTIFIER
+
 #include "Python.h"
+// windows.h must be included before pycore internal headers
+#ifdef MS_WIN32
+#  include <windows.h>
+#endif
+
+#include "pycore_call.h"          // _PyObject_CallNoArgs()
 #include <ffi.h>
 #ifdef MS_WIN32
-#include <windows.h>
-#include <malloc.h>
+#  include <malloc.h>
 #endif
 #include "ctypes.h"
 
@@ -248,7 +258,7 @@ MakeFields(PyObject *type, CFieldObject *descr,
             }
             continue;
         }
-        new_descr = (CFieldObject *)_PyObject_CallNoArg((PyObject *)&PyCField_Type);
+        new_descr = (CFieldObject *)PyCField_Type.tp_alloc((PyTypeObject *)&PyCField_Type, 0);
         if (new_descr == NULL) {
             Py_DECREF(fdescr);
             Py_DECREF(fieldlist);
@@ -420,8 +430,11 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
     }
 
     stgdict = PyType_stgdict(type);
-    if (!stgdict)
+    if (!stgdict) {
+        PyErr_SetString(PyExc_TypeError,
+                        "ctypes state is not initialized");
         return -1;
+    }
     /* If this structure/union is already marked final we cannot assign
        _fields_ anymore. */
 
@@ -495,7 +508,6 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
     if (stgdict->format == NULL)
         return -1;
 
-#define realdict ((PyObject *)&stgdict->dict)
     for (i = 0; i < len; ++i) {
         PyObject *name = NULL, *desc = NULL;
         PyObject *pair = PySequence_GetItem(fields, i);
@@ -626,7 +638,6 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
         Py_DECREF(pair);
         Py_DECREF(prop);
     }
-#undef realdict
 
     if (isStruct && !isPacked) {
         char *ptr = stgdict->format;

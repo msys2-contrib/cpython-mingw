@@ -2,8 +2,8 @@
  * C Extension module to test Python internal C APIs (Include/internal).
  */
 
-#if !defined(Py_BUILD_CORE_BUILTIN) && !defined(Py_BUILD_CORE_MODULE)
-#  error "Py_BUILD_CORE_BUILTIN or Py_BUILD_CORE_MODULE must be defined"
+#ifndef Py_BUILD_CORE_BUILTIN
+#  define Py_BUILD_CORE_MODULE 1
 #endif
 
 /* Always enable assertions */
@@ -14,11 +14,17 @@
 #include "Python.h"
 #include "pycore_atomic_funcs.h" // _Py_atomic_int_get()
 #include "pycore_bitutils.h"     // _Py_bswap32()
+#include "pycore_bytesobject.h"  // _PyBytes_Find()
+#include "pycore_fileutils.h"    // _Py_normpath
+#include "pycore_frame.h"        // _PyInterpreterFrame
 #include "pycore_gc.h"           // PyGC_Head
 #include "pycore_hashtable.h"    // _Py_hashtable_new()
 #include "pycore_initconfig.h"   // _Py_GetConfigsAsDict()
+#include "pycore_pathconfig.h"   // _PyPathConfig_ClearGlobal()
 #include "pycore_interp.h"       // _PyInterpreterState_GetConfigCopy()
-#include "pycore_pyerrors.h"      // _Py_UTF8_Edit_Cost()
+#include "pycore_pyerrors.h"     // _Py_UTF8_Edit_Cost()
+#include "pycore_pystate.h"      // _PyThreadState_GET()
+#include "osdefs.h"              // MAXPATHLEN
 
 
 static PyObject *
@@ -31,10 +37,11 @@ get_configs(PyObject *self, PyObject *Py_UNUSED(args))
 static PyObject*
 get_recursion_depth(PyObject *self, PyObject *Py_UNUSED(args))
 {
-    PyThreadState *tstate = PyThreadState_Get();
+    PyThreadState *tstate = _PyThreadState_GET();
 
     /* subtract one to ignore the frame of the get_recursion_depth() call */
-    return PyLong_FromLong(tstate->recursion_depth - 1);
+
+    return PyLong_FromLong(tstate->recursion_limit - tstate->recursion_remaining - 1);
 }
 
 
@@ -95,6 +102,7 @@ test_popcount(PyObject *self, PyObject *Py_UNUSED(args))
     CHECK(0, 0);
     CHECK(1, 1);
     CHECK(0x08080808, 4);
+    CHECK(0x10000001, 2);
     CHECK(0x10101010, 4);
     CHECK(0x10204080, 4);
     CHECK(0xDEADCAFE, 22);
@@ -269,6 +277,14 @@ error:
 }
 
 
+static PyObject *
+test_reset_path_config(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(arg))
+{
+    _PyPathConfig_ClearGlobal();
+    Py_RETURN_NONE;
+}
+
+
 static PyObject*
 test_atomic_funcs(PyObject *self, PyObject *Py_UNUSED(args))
 {
@@ -292,7 +308,7 @@ check_edit_cost(const char *a, const char *b, Py_ssize_t expected)
         goto exit;
     }
     b_obj = PyUnicode_FromString(b);
-    if (a_obj == NULL) {
+    if (b_obj == NULL) {
         goto exit;
     }
     Py_ssize_t result = _Py_UTF8_Edit_Cost(a_obj, b_obj, -1);
@@ -365,6 +381,263 @@ test_edit_cost(PyObject *self, PyObject *Py_UNUSED(args))
 }
 
 
+static int
+check_bytes_find(const char *haystack0, const char *needle0,
+                 int offset, Py_ssize_t expected)
+{
+    Py_ssize_t len_haystack = strlen(haystack0);
+    Py_ssize_t len_needle = strlen(needle0);
+    Py_ssize_t result_1 = _PyBytes_Find(haystack0, len_haystack,
+                                        needle0, len_needle, offset);
+    if (result_1 != expected) {
+        PyErr_Format(PyExc_AssertionError,
+                    "Incorrect result_1: '%s' in '%s' (offset=%zd)",
+                    needle0, haystack0, offset);
+        return -1;
+    }
+    // Allocate new buffer with no NULL terminator.
+    char *haystack = PyMem_Malloc(len_haystack);
+    if (haystack == NULL) {
+        PyErr_NoMemory();
+        return -1;
+    }
+    char *needle = PyMem_Malloc(len_needle);
+    if (needle == NULL) {
+        PyMem_Free(haystack);
+        PyErr_NoMemory();
+        return -1;
+    }
+    memcpy(haystack, haystack0, len_haystack);
+    memcpy(needle, needle0, len_needle);
+    Py_ssize_t result_2 = _PyBytes_Find(haystack, len_haystack,
+                                        needle, len_needle, offset);
+    PyMem_Free(haystack);
+    PyMem_Free(needle);
+    if (result_2 != expected) {
+        PyErr_Format(PyExc_AssertionError,
+                    "Incorrect result_2: '%s' in '%s' (offset=%zd)",
+                    needle0, haystack0, offset);
+        return -1;
+    }
+    return 0;
+}
+
+static int
+check_bytes_find_large(Py_ssize_t len_haystack, Py_ssize_t len_needle,
+                       const char *needle)
+{
+    char *zeros = PyMem_RawCalloc(len_haystack, 1);
+    if (zeros == NULL) {
+        PyErr_NoMemory();
+        return -1;
+    }
+    Py_ssize_t res = _PyBytes_Find(zeros, len_haystack, needle, len_needle, 0);
+    PyMem_RawFree(zeros);
+    if (res != -1) {
+        PyErr_Format(PyExc_AssertionError,
+                    "check_bytes_find_large(%zd, %zd) found %zd",
+                    len_haystack, len_needle, res);
+        return -1;
+    }
+    return 0;
+}
+
+static PyObject *
+test_bytes_find(PyObject *self, PyObject *Py_UNUSED(args))
+{
+    #define CHECK(H, N, O, E) do {               \
+        if (check_bytes_find(H, N, O, E) < 0) {  \
+            return NULL;                         \
+        }                                        \
+    } while (0)
+
+    CHECK("", "", 0, 0);
+    CHECK("Python", "", 0, 0);
+    CHECK("Python", "", 3, 3);
+    CHECK("Python", "", 6, 6);
+    CHECK("Python", "yth", 0, 1);
+    CHECK("ython", "yth", 1, 1);
+    CHECK("thon", "yth", 2, -1);
+    CHECK("Python", "thon", 0, 2);
+    CHECK("ython", "thon", 1, 2);
+    CHECK("thon", "thon", 2, 2);
+    CHECK("hon", "thon", 3, -1);
+    CHECK("Pytho", "zz", 0, -1);
+    CHECK("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "ab", 0, -1);
+    CHECK("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "ba", 0, -1);
+    CHECK("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "bb", 0, -1);
+    CHECK("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", "ab", 0, 30);
+    CHECK("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaba", "ba", 0, 30);
+    CHECK("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb", "bb", 0, 30);
+    #undef CHECK
+
+    // Hunt for segfaults
+    // n, m chosen here so that (n - m) % (m + 1) == 0
+    // This would make default_find in fastsearch.h access haystack[n].
+    if (check_bytes_find_large(2048, 2, "ab") < 0) {
+        return NULL;
+    }
+    if (check_bytes_find_large(4096, 16, "0123456789abcdef") < 0) {
+        return NULL;
+    }
+    if (check_bytes_find_large(8192, 2, "ab") < 0) {
+        return NULL;
+    }
+    if (check_bytes_find_large(16384, 4, "abcd") < 0) {
+        return NULL;
+    }
+    if (check_bytes_find_large(32768, 2, "ab") < 0) {
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+
+static PyObject *
+normalize_path(PyObject *self, PyObject *filename)
+{
+    Py_ssize_t size = -1;
+    wchar_t *encoded = PyUnicode_AsWideCharString(filename, &size);
+    if (encoded == NULL) {
+        return NULL;
+    }
+
+    PyObject *result = PyUnicode_FromWideChar(_Py_normpath(encoded, size), -1);
+    PyMem_Free(encoded);
+
+    return result;
+}
+
+static PyObject *
+get_getpath_codeobject(PyObject *self, PyObject *Py_UNUSED(args)) {
+    return _Py_Get_Getpath_CodeObject();
+}
+
+
+static PyObject *
+encode_locale_ex(PyObject *self, PyObject *args)
+{
+    PyObject *unicode;
+    int current_locale = 0;
+    wchar_t *wstr;
+    PyObject *res = NULL;
+    const char *errors = NULL;
+
+    if (!PyArg_ParseTuple(args, "U|is", &unicode, &current_locale, &errors)) {
+        return NULL;
+    }
+    wstr = PyUnicode_AsWideCharString(unicode, NULL);
+    if (wstr == NULL) {
+        return NULL;
+    }
+    _Py_error_handler error_handler = _Py_GetErrorHandler(errors);
+
+    char *str = NULL;
+    size_t error_pos;
+    const char *reason = NULL;
+    int ret = _Py_EncodeLocaleEx(wstr,
+                                 &str, &error_pos, &reason,
+                                 current_locale, error_handler);
+    PyMem_Free(wstr);
+
+    switch(ret) {
+    case 0:
+        res = PyBytes_FromString(str);
+        PyMem_RawFree(str);
+        break;
+    case -1:
+        PyErr_NoMemory();
+        break;
+    case -2:
+        PyErr_Format(PyExc_RuntimeError, "encode error: pos=%zu, reason=%s",
+                     error_pos, reason);
+        break;
+    case -3:
+        PyErr_SetString(PyExc_ValueError, "unsupported error handler");
+        break;
+    default:
+        PyErr_SetString(PyExc_ValueError, "unknown error code");
+        break;
+    }
+    return res;
+}
+
+
+static PyObject *
+decode_locale_ex(PyObject *self, PyObject *args)
+{
+    char *str;
+    int current_locale = 0;
+    PyObject *res = NULL;
+    const char *errors = NULL;
+
+    if (!PyArg_ParseTuple(args, "y|is", &str, &current_locale, &errors)) {
+        return NULL;
+    }
+    _Py_error_handler error_handler = _Py_GetErrorHandler(errors);
+
+    wchar_t *wstr = NULL;
+    size_t wlen = 0;
+    const char *reason = NULL;
+    int ret = _Py_DecodeLocaleEx(str,
+                                 &wstr, &wlen, &reason,
+                                 current_locale, error_handler);
+
+    switch(ret) {
+    case 0:
+        res = PyUnicode_FromWideChar(wstr, wlen);
+        PyMem_RawFree(wstr);
+        break;
+    case -1:
+        PyErr_NoMemory();
+        break;
+    case -2:
+        PyErr_Format(PyExc_RuntimeError, "decode error: pos=%zu, reason=%s",
+                     wlen, reason);
+        break;
+    case -3:
+        PyErr_SetString(PyExc_ValueError, "unsupported error handler");
+        break;
+    default:
+        PyErr_SetString(PyExc_ValueError, "unknown error code");
+        break;
+    }
+    return res;
+}
+
+static PyObject *record_list = NULL;
+
+static PyObject *
+set_eval_frame_default(PyObject *self, PyObject *Py_UNUSED(args))
+{
+    _PyInterpreterState_SetEvalFrameFunc(PyInterpreterState_Get(), _PyEval_EvalFrameDefault);
+    Py_CLEAR(record_list);
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+record_eval(PyThreadState *tstate, struct _PyInterpreterFrame *f, int exc)
+{
+    PyList_Append(record_list, f->f_func->func_name);
+    return _PyEval_EvalFrameDefault(tstate, f, exc);
+}
+
+
+static PyObject *
+set_eval_frame_record(PyObject *self, PyObject *list)
+{
+    if (!PyList_Check(list)) {
+        PyErr_SetString(PyExc_TypeError, "argument must be a list");
+        return NULL;
+    }
+    Py_CLEAR(record_list);
+    Py_INCREF(list);
+    record_list = list;
+    _PyInterpreterState_SetEvalFrameFunc(PyInterpreterState_Get(), record_eval);
+    Py_RETURN_NONE;
+}
+
+
 static PyMethodDef TestMethods[] = {
     {"get_configs", get_configs, METH_NOARGS},
     {"get_recursion_depth", get_recursion_depth, METH_NOARGS},
@@ -374,8 +647,16 @@ static PyMethodDef TestMethods[] = {
     {"test_hashtable", test_hashtable, METH_NOARGS},
     {"get_config", test_get_config, METH_NOARGS},
     {"set_config", test_set_config, METH_O},
+    {"reset_path_config", test_reset_path_config, METH_NOARGS},
     {"test_atomic_funcs", test_atomic_funcs, METH_NOARGS},
     {"test_edit_cost", test_edit_cost, METH_NOARGS},
+    {"test_bytes_find", test_bytes_find, METH_NOARGS},
+    {"normalize_path", normalize_path, METH_O, NULL},
+    {"get_getpath_codeobject", get_getpath_codeobject, METH_NOARGS, NULL},
+    {"EncodeLocaleEx", encode_locale_ex, METH_VARARGS},
+    {"DecodeLocaleEx", decode_locale_ex, METH_VARARGS},
+    {"set_eval_frame_default", set_eval_frame_default, METH_NOARGS, NULL},
+    {"set_eval_frame_record", set_eval_frame_record, METH_O, NULL},
     {NULL, NULL} /* sentinel */
 };
 
@@ -401,7 +682,7 @@ PyInit__testinternalcapi(void)
         return NULL;
     }
 
-    if (PyModule_AddObject(module, "SIZEOF_PYGC_HEAD",
+    if (_PyModule_Add(module, "SIZEOF_PYGC_HEAD",
                            PyLong_FromSsize_t(sizeof(PyGC_Head))) < 0) {
         goto error;
     }

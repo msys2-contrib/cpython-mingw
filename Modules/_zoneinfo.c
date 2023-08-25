@@ -1,3 +1,7 @@
+#ifndef Py_BUILD_CORE_BUILTIN
+#  define Py_BUILD_CORE_MODULE 1
+#endif
+
 #include "Python.h"
 #include "pycore_long.h"          // _PyLong_GetOne()
 #include "structmember.h"
@@ -577,14 +581,19 @@ zoneinfo_fromutc(PyObject *obj_self, PyObject *dt)
         }
         else {
             PyObject *replace = PyObject_GetAttrString(tmp, "replace");
-            PyObject *args = PyTuple_New(0);
-            PyObject *kwargs = PyDict_New();
-
             Py_DECREF(tmp);
-            if (args == NULL || kwargs == NULL || replace == NULL) {
-                Py_XDECREF(args);
-                Py_XDECREF(kwargs);
-                Py_XDECREF(replace);
+            if (replace == NULL) {
+                return NULL;
+            }
+            PyObject *args = PyTuple_New(0);
+            if (args == NULL) {
+                Py_DECREF(replace);
+                return NULL;
+            }
+            PyObject *kwargs = PyDict_New();
+            if (kwargs == NULL) {
+                Py_DECREF(replace);
+                Py_DECREF(args);
                 return NULL;
             }
 
@@ -1342,7 +1351,7 @@ tzrule_transitions(_tzrule *rule, int year, int64_t *start, int64_t *end)
  * could technically be calculated from the timestamp, but given that the
  * callers of this function already have the year information accessible from
  * the datetime struct, it is taken as an additional parameter to reduce
- * unncessary calculation.
+ * unnecessary calculation.
  * */
 static _ttinfo *
 find_tzrule_ttinfo(_tzrule *rule, int64_t ts, unsigned char fold, int year)
@@ -2608,7 +2617,7 @@ static PyTypeObject PyZoneInfo_ZoneInfoType = {
 // Specify the _zoneinfo module
 static PyMethodDef module_methods[] = {{NULL, NULL}};
 static void
-module_free(void)
+module_free(void *m)
 {
     Py_XDECREF(_tzpath_find_tzfile);
     _tzpath_find_tzfile = NULL;
@@ -2648,8 +2657,9 @@ zoneinfomodule_exec(PyObject *m)
         goto error;
     }
 
-    Py_INCREF(&PyZoneInfo_ZoneInfoType);
-    PyModule_AddObject(m, "ZoneInfo", (PyObject *)&PyZoneInfo_ZoneInfoType);
+    if (PyModule_AddObjectRef(m, "ZoneInfo", (PyObject *)&PyZoneInfo_ZoneInfoType) < 0) {
+        goto error;
+    }
 
     /* Populate imports */
     PyObject *_tzpath_module = PyImport_ImportModule("zoneinfo._tzpath");

@@ -14,10 +14,12 @@ import shutil
 import threading
 import unittest
 from unittest import mock
-from test.support import (verbose, run_unittest)
+from test.support import verbose
 from test.support.import_helper import forget
 from test.support.os_helper import (TESTFN, unlink, rmtree)
 from test.support import script_helper, threading_helper
+
+threading_helper.requires_working_threading(module=True)
 
 def task(N, done, done_tasks, errors):
     try:
@@ -242,7 +244,8 @@ class ThreadedImportTests(unittest.TestCase):
         self.addCleanup(forget, TESTFN)
         self.addCleanup(rmtree, '__pycache__')
         importlib.invalidate_caches()
-        __import__(TESTFN)
+        with threading_helper.wait_threads_exit():
+            __import__(TESTFN)
         del sys.modules[TESTFN]
 
     def test_concurrent_futures_circular_import(self):
@@ -258,19 +261,16 @@ class ThreadedImportTests(unittest.TestCase):
         script_helper.assert_python_ok(fn)
 
 
-@threading_helper.reap_threads
-def test_main():
-    old_switchinterval = None
+def setUpModule():
+    thread_info = threading_helper.threading_setup()
+    unittest.addModuleCleanup(threading_helper.threading_cleanup, *thread_info)
     try:
         old_switchinterval = sys.getswitchinterval()
+        unittest.addModuleCleanup(sys.setswitchinterval, old_switchinterval)
         sys.setswitchinterval(1e-5)
     except AttributeError:
         pass
-    try:
-        run_unittest(ThreadedImportTests)
-    finally:
-        if old_switchinterval is not None:
-            sys.setswitchinterval(old_switchinterval)
+
 
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

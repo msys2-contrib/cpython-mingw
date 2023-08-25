@@ -70,10 +70,10 @@ static PyMethodDef spamlist_methods[] = {
         PyDoc_STR("setstate(state)")},
     /* These entries differ only in the flags; they are used by the tests
        in test.test_descr. */
-    {"classmeth", (PyCFunction)(void(*)(void))spamlist_specialmeth,
+    {"classmeth", _PyCFunction_CAST(spamlist_specialmeth),
         METH_VARARGS | METH_KEYWORDS | METH_CLASS,
         PyDoc_STR("classmeth(*args, **kw)")},
-    {"staticmeth", (PyCFunction)(void(*)(void))spamlist_specialmeth,
+    {"staticmeth", _PyCFunction_CAST(spamlist_specialmeth),
         METH_VARARGS | METH_KEYWORDS | METH_STATIC,
         PyDoc_STR("staticmeth(*args, **kw)")},
     {NULL,      NULL},
@@ -237,10 +237,11 @@ spam_bench(PyObject *self, PyObject *args)
 {
     PyObject *obj, *name, *res;
     int n = 1000;
-    time_t t0, t1;
+    time_t t0 = 0, t1 = 0;
 
     if (!PyArg_ParseTuple(args, "OU|i", &obj, &name, &n))
         return NULL;
+#ifdef HAVE_CLOCK
     t0 = clock();
     while (--n >= 0) {
         res = PyObject_GetAttr(obj, name);
@@ -249,6 +250,7 @@ spam_bench(PyObject *self, PyObject *args)
         Py_DECREF(res);
     }
     t1 = clock();
+#endif
     return PyFloat_FromDouble((double)(t1-t0) / CLOCKS_PER_SEC);
 }
 
@@ -277,14 +279,12 @@ xxsubtype_exec(PyObject* m)
     if (PyType_Ready(&spamdict_type) < 0)
         return -1;
 
-    Py_INCREF(&spamlist_type);
-    if (PyModule_AddObject(m, "spamlist",
-                           (PyObject *) &spamlist_type) < 0)
+    if (PyModule_AddObjectRef(m, "spamlist",
+                              (PyObject *) &spamlist_type) < 0)
         return -1;
 
-    Py_INCREF(&spamdict_type);
-    if (PyModule_AddObject(m, "spamdict",
-                           (PyObject *) &spamdict_type) < 0)
+    if (PyModule_AddObjectRef(m, "spamdict",
+                              (PyObject *) &spamdict_type) < 0)
         return -1;
     return 0;
 }

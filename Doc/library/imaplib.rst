@@ -26,6 +26,8 @@ implement a large subset of the IMAP4rev1 client protocol as defined in
 :rfc:`2060`. It is backward compatible with IMAP4 (:rfc:`1730`) servers, but
 note that the ``STATUS`` command is not supported in IMAP4.
 
+.. include:: ../includes/wasm-notavail.rst
+
 Three classes are provided by the :mod:`imaplib` module, :class:`IMAP4` is the
 base class:
 
@@ -110,7 +112,7 @@ There's also a subclass for secure connections:
    .. versionchanged:: 3.4
       The class now supports hostname check with
       :attr:`ssl.SSLContext.check_hostname` and *Server Name Indication* (see
-      :data:`ssl.HAS_SNI`).
+      :const:`ssl.HAS_SNI`).
 
    .. deprecated:: 3.6
 
@@ -511,7 +513,7 @@ An :class:`IMAP4` instance has the following methods:
    .. versionchanged:: 3.4
       The method now supports hostname check with
       :attr:`ssl.SSLContext.check_hostname` and *Server Name Indication* (see
-      :data:`ssl.HAS_SNI`).
+      :const:`ssl.HAS_SNI`).
 
 
 .. method:: IMAP4.status(mailbox, names)

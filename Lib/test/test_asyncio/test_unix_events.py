@@ -26,6 +26,10 @@ from asyncio import unix_events
 from test.test_asyncio import utils as test_utils
 
 
+def tearDownModule():
+    asyncio.set_event_loop_policy(None)
+
+
 MOCK_ANY = mock.ANY
 
 
@@ -34,12 +38,9 @@ def EXITCODE(exitcode):
 
 
 def SIGNAL(signum):
-    assert 1 <= signum <= 68
+    if not 1 <= signum <= 68:
+        raise AssertionError(f'invalid signum {signum}')
     return 32768 - signum
-
-
-def tearDownModule():
-    asyncio.set_event_loop_policy(None)
 
 
 def close_pipe_transport(transport):
@@ -1529,7 +1530,7 @@ class ChildWatcherTestsMixin:
             self.watcher._sig_chld()
 
         if isinstance(self.watcher, asyncio.FastChildWatcher):
-            # here the FastChildWatche enters a deadlock
+            # here the FastChildWatcher enters a deadlock
             # (there is no way to prevent it)
             self.assertFalse(callback.called)
         else:
@@ -1739,7 +1740,8 @@ class PolicyTests(unittest.TestCase):
 
     def test_child_watcher_replace_mainloop_existing(self):
         policy = self.create_policy()
-        loop = policy.get_event_loop()
+        loop = policy.new_event_loop()
+        policy.set_event_loop(loop)
 
         # Explicitly setup SafeChildWatcher,
         # default ThreadedChildWatcher has no _loop property

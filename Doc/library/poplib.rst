@@ -28,6 +28,8 @@ quality of POP3 servers varies widely, and too many are quite poor. If your
 mailserver supports IMAP, you would be better off using the
 :class:`imaplib.IMAP4` class, as IMAP servers tend to be better implemented.
 
+.. include:: ../includes/wasm-notavail.rst
+
 The :mod:`poplib` module provides two classes:
 
 
@@ -79,7 +81,7 @@ The :mod:`poplib` module provides two classes:
    .. versionchanged:: 3.4
       The class now supports hostname check with
       :attr:`ssl.SSLContext.check_hostname` and *Server Name Indication* (see
-      :data:`ssl.HAS_SNI`).
+      :const:`ssl.HAS_SNI`).
 
    .. deprecated:: 3.6
 
@@ -121,7 +123,7 @@ POP3 Objects
 All POP3 commands are represented by methods of the same name, in lowercase;
 most return the response text sent by the server.
 
-An :class:`POP3` instance has the following methods:
+A :class:`POP3` instance has the following methods:
 
 
 .. method:: POP3.set_debuglevel(level)
@@ -154,7 +156,7 @@ An :class:`POP3` instance has the following methods:
 .. method:: POP3.pass_(password)
 
    Send password, response includes message count and mailbox size. Note: the
-   mailbox on the server is locked until :meth:`~poplib.quit` is called.
+   mailbox on the server is locked until :meth:`~POP3.quit` is called.
 
 
 .. method:: POP3.apop(user, secret)
@@ -246,7 +248,7 @@ An :class:`POP3` instance has the following methods:
 
    This method supports hostname checking via
    :attr:`ssl.SSLContext.check_hostname` and *Server Name Indication* (see
-   :data:`ssl.HAS_SNI`).
+   :const:`ssl.HAS_SNI`).
 
    .. versionadded:: 3.4
 

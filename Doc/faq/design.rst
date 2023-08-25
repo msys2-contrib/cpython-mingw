@@ -155,7 +155,7 @@ Why can't I use an assignment in an expression?
 
 Starting in Python 3.8, you can!
 
-Assignment expressions using the walrus operator `:=` assign a variable in an
+Assignment expressions using the walrus operator ``:=`` assign a variable in an
 expression::
 
    while chunk := fp.read(200):
@@ -266,12 +266,9 @@ For cases where you need to choose from a very large number of possibilities,
 you can create a dictionary mapping case values to functions to call.  For
 example::
 
-   def function_1(...):
-       ...
-
    functions = {'a': function_1,
                 'b': function_2,
-                'c': self.method_1, ...}
+                'c': self.method_1}
 
    func = functions[value]
    func()
@@ -279,14 +276,14 @@ example::
 For calling methods on objects, you can simplify yet further by using the
 :func:`getattr` built-in to retrieve methods with a particular name::
 
-   def visit_a(self, ...):
-       ...
-   ...
+   class MyVisitor:
+       def visit_a(self):
+           ...
 
-   def dispatch(self, value):
-       method_name = 'visit_' + str(value)
-       method = getattr(self, method_name)
-       method()
+       def dispatch(self, value):
+           method_name = 'visit_' + str(value)
+           method = getattr(self, method_name)
+           method()
 
 It's suggested that you use a prefix for the method names, such as ``visit_`` in
 this example.  Without such a prefix, if values are coming from an untrusted
@@ -316,7 +313,7 @@ you're too lazy to define a function.
 
 Functions are already first class objects in Python, and can be declared in a
 local scope.  Therefore the only advantage of using a lambda instead of a
-locally-defined function is that you don't need to invent a name for the
+locally defined function is that you don't need to invent a name for the
 function -- but that's just a local variable to which the function object (which
 is exactly the same type of object that a lambda expression yields) is assigned!
 
@@ -324,11 +321,10 @@ is exactly the same type of object that a lambda expression yields) is assigned!
 Can Python be compiled to machine code, C or some other language?
 -----------------------------------------------------------------
 
-`Cython <http://cython.org/>`_ compiles a modified version of Python with
-optional annotations into C extensions.  `Nuitka <http://www.nuitka.net/>`_ is
+`Cython <https://cython.org/>`_ compiles a modified version of Python with
+optional annotations into C extensions.  `Nuitka <https://www.nuitka.net/>`_ is
 an up-and-coming compiler of Python into C++ code, aiming to support the full
-Python language. For compiling to Java you can consider
-`VOC <https://voc.readthedocs.io>`_.
+Python language.
 
 
 How does Python manage memory?
@@ -342,8 +338,8 @@ cycles and deletes the objects involved. The :mod:`gc` module provides functions
 to perform a garbage collection, obtain debugging statistics, and tune the
 collector's parameters.
 
-Other implementations (such as `Jython <http://www.jython.org>`_ or
-`PyPy <http://www.pypy.org>`_), however, can rely on a different mechanism
+Other implementations (such as `Jython <https://www.jython.org>`_ or
+`PyPy <https://www.pypy.org>`_), however, can rely on a different mechanism
 such as a full-blown garbage collector.  This difference can cause some
 subtle porting problems if your Python code depends on the behavior of the
 reference counting implementation.
@@ -585,9 +581,9 @@ exhaustive test suites that exercise every line of code in a module.
 An appropriate testing discipline can help build large complex applications in
 Python as well as having interface specifications would.  In fact, it can be
 better because an interface specification cannot test certain properties of a
-program.  For example, the :meth:`append` method is expected to add new elements
+program.  For example, the :meth:`!list.append` method is expected to add new elements
 to the end of some internal list; an interface specification cannot test that
-your :meth:`append` implementation will actually do this correctly, but it's
+your :meth:`!list.append` implementation will actually do this correctly, but it's
 trivial to check this property in a test suite.
 
 Writing test suites is very helpful, and you might want to design your code to
@@ -706,6 +702,15 @@ write this::
 This also has the side-effect of increasing execution speed because name
 bindings are resolved at run-time in Python, and the second version only needs
 to perform the resolution once.
+
+
+Why don't generators support the with statement?
+------------------------------------------------
+
+For technical reasons, a generator used directly as a context manager
+would not work correctly.  When, as is most common, a generator is used as
+an iterator run to completion, no closing is needed.  When it is, wrap
+it as "contextlib.closing(generator)" in the 'with' statement.
 
 
 Why are colons required for the if/while/def/class statements?

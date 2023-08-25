@@ -79,9 +79,12 @@ end:
 static int
 errno_exec(PyObject *module)
 {
-    PyObject *module_dict = PyModule_GetDict(module);
+    PyObject *module_dict = PyModule_GetDict(module);  // Borrowed ref.
+    if (module_dict == NULL) {
+        return -1;
+    }
     PyObject *error_dict = PyDict_New();
-    if (!module_dict || !error_dict) {
+    if (error_dict == NULL) {
         return -1;
     }
     if (PyDict_SetItemString(module_dict, "errorcode", error_dict) < 0) {
@@ -279,6 +282,10 @@ errno_exec(PyObject *module)
 #endif
 #ifdef ENOANO
     add_errcode("ENOANO", ENOANO, "No anode");
+#endif
+#if defined(__wasi__) && !defined(ESHUTDOWN)
+    // WASI SDK 16 does not have ESHUTDOWN, shutdown results in EPIPE.
+    #define ESHUTDOWN EPIPE
 #endif
 #ifdef ESHUTDOWN
     add_errcode("ESHUTDOWN", ESHUTDOWN, "Cannot send after transport endpoint shutdown");
@@ -919,6 +926,13 @@ errno_exec(PyObject *module)
 #endif
 #ifdef ESHLIBVERS
     add_errcode("ESHLIBVERS", ESHLIBVERS, "Shared library version mismatch");
+#endif
+#ifdef EQFULL
+    add_errcode("EQFULL", EQFULL, "Interface output queue is full");
+#endif
+#ifdef ENOTCAPABLE
+    // WASI extension
+    add_errcode("ENOTCAPABLE", ENOTCAPABLE, "Capabilities insufficient");
 #endif
 
     Py_DECREF(error_dict);

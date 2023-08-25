@@ -47,8 +47,9 @@ OPENSSL_OLD_VERSIONS = [
 ]
 
 OPENSSL_RECENT_VERSIONS = [
-    "1.1.1k",
-    "3.0.0-alpha17"
+    "1.1.1v",
+    "3.0.10",
+    "3.1.2",
 ]
 
 LIBRESSL_OLD_VERSIONS = [
@@ -153,8 +154,10 @@ class AbstractBuilder(object):
     install_target = 'install'
     jobs = os.cpu_count()
 
-    module_files = ("Modules/_ssl.c",
-                    "Modules/_hashopenssl.c")
+    module_files = (
+        os.path.join(PYTHONROOT, "Modules/_ssl.c"),
+        os.path.join(PYTHONROOT, "Modules/_hashopenssl.c"),
+    )
     module_libs = ("_ssl", "_hashlib")
 
     def __init__(self, version, args):
@@ -357,7 +360,7 @@ class AbstractBuilder(object):
         env["LD_RUN_PATH"] = self.lib_dir
 
         log.info("Rebuilding Python modules")
-        cmd = [sys.executable, "setup.py", "build"]
+        cmd = [sys.executable, os.path.join(PYTHONROOT, "setup.py"), "build"]
         self._subprocess_call(cmd, env=env)
         self.check_imports()
 
@@ -372,7 +375,11 @@ class AbstractBuilder(object):
 
     def run_python_tests(self, tests, network=True):
         if not tests:
-            cmd = [sys.executable, 'Lib/test/ssltests.py', '-j0']
+            cmd = [
+                sys.executable,
+                os.path.join(PYTHONROOT, 'Lib/test/ssltests.py'),
+                '-j0'
+            ]
         elif sys.version_info < (3, 3):
             cmd = [sys.executable, '-m', 'test.regrtest']
         else:
@@ -397,21 +404,25 @@ class BuildOpenSSL(AbstractBuilder):
     depend_target = 'depend'
 
     def _post_install(self):
-        if self.version.startswith("3.0"):
-            self._post_install_300()
+        if self.version.startswith("3."):
+            self._post_install_3xx()
 
     def _build_src(self, config_args=()):
-        if self.version.startswith("3.0"):
+        if self.version.startswith("3."):
             config_args += ("enable-fips",)
         super()._build_src(config_args)
 
-    def _post_install_300(self):
+    def _post_install_3xx(self):
         # create ssl/ subdir with example configs
         # Install FIPS module
         self._subprocess_call(
             ["make", "-j1", "install_ssldirs", "install_fips"],
             cwd=self.build_dir
         )
+        if not os.path.isdir(self.lib_dir):
+            # 3.0.0-beta2 uses lib64 on 64 bit platforms
+            lib64 = self.lib_dir + "64"
+            os.symlink(lib64, self.lib_dir)
 
     @property
     def short_version(self):

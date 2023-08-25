@@ -511,10 +511,10 @@ def extend_path(path, name):
         from pkgutil import extend_path
         __path__ = extend_path(__path__, __name__)
 
-    This will add to the package's __path__ all subdirectories of
-    directories on sys.path named after the package.  This is useful
-    if one wants to distribute different parts of a single logical
-    package as multiple directories.
+    For each directory on sys.path that has a subdirectory that
+    matches the package name, add the subdirectory to the package's
+    __path__.  This is useful if one wants to distribute different
+    parts of a single logical package as multiple directories.
 
     It also looks for *.pkg files beginning where * matches the name
     argument.  This feature is similar to *.pth files (see site.py),
@@ -672,7 +672,7 @@ def resolve_name(name):
     ValueError - if `name` isn't in a recognised format
     ImportError - if an import failed when it shouldn't have
     AttributeError - if a failure occurred when traversing the object hierarchy
-                     within the imported package to get to the desired object)
+                     within the imported package to get to the desired object.
     """
     global _NAME_PATTERN
     if _NAME_PATTERN is None:

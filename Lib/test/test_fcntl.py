@@ -6,7 +6,7 @@ import struct
 import sys
 import unittest
 from multiprocessing import Process
-from test.support import (verbose, run_unittest, cpython_only)
+from test.support import verbose, cpython_only
 from test.support.import_helper import import_module
 from test.support.os_helper import TESTFN, unlink
 
@@ -200,7 +200,7 @@ class TestFcntl(unittest.TestCase):
             pipesize_default = fcntl.fcntl(test_pipe_w, fcntl.F_GETPIPE_SZ)
             pipesize = pipesize_default // 2  # A new value to detect change.
             if pipesize < 512:  # the POSIX minimum
-                raise unittest.SkitTest(
+                raise unittest.SkipTest(
                     'default pipesize too small to perform test.')
             fcntl.fcntl(test_pipe_w, fcntl.F_SETPIPE_SZ, pipesize)
             self.assertEqual(fcntl.fcntl(test_pipe_w, fcntl.F_GETPIPE_SZ),
@@ -210,8 +210,5 @@ class TestFcntl(unittest.TestCase):
             os.close(test_pipe_w)
 
 
-def test_main():
-    run_unittest(TestFcntl)
-
 if __name__ == '__main__':
-    test_main()
+    unittest.main()

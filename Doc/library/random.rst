@@ -21,8 +21,8 @@ lognormal, negative exponential, gamma, and beta distributions. For generating
 distributions of angles, the von Mises distribution is available.
 
 Almost all module functions depend on the basic function :func:`.random`, which
-generates a random float uniformly in the semi-open range [0.0, 1.0).  Python
-uses the Mersenne Twister as the core generator.  It produces 53-bit precision
+generates a random float uniformly in the half-open range ``0.0 <= X < 1.0``.
+Python uses the Mersenne Twister as the core generator.  It produces 53-bit precision
 floats and has a period of 2\*\*19937-1.  The underlying implementation in C is
 both fast and threadsafe.  The Mersenne Twister is one of the most extensively
 tested random number generators in existence.  However, being completely
@@ -141,7 +141,7 @@ Functions for integers
       ``randrange(10)``.  In the future, this will raise a :exc:`TypeError`.
 
    .. deprecated:: 3.10
-      The exception raised for non-integral values such as ``randrange(10.5)``
+      The exception raised for non-integer values such as ``randrange(10.5)``
       or ``randrange('10')`` will be changed from :exc:`ValueError` to
       :exc:`TypeError`.
 
@@ -257,7 +257,7 @@ Functions for sequences
    .. versionchanged:: 3.11
 
       The *population* must be a sequence.  Automatic conversion of sets
-      to lists is longer supported.
+      to lists is no longer supported.
 
 
 .. _real-valued-distributions:
@@ -273,7 +273,7 @@ be found in any statistics text.
 
 .. function:: random()
 
-   Return the next random floating point number in the range [0.0, 1.0).
+   Return the next random floating point number in the range ``0.0 <= X < 1.0``
 
 
 .. function:: uniform(a, b)
@@ -310,8 +310,10 @@ be found in any statistics text.
 
 .. function:: gammavariate(alpha, beta)
 
-   Gamma distribution.  (*Not* the gamma function!)  Conditions on the
-   parameters are ``alpha > 0`` and ``beta > 0``.
+   Gamma distribution.  (*Not* the gamma function!)  The shape and
+   scale parameters, *alpha* and *beta*, must have positive values.
+   (Calling conventions vary and some sources define 'beta'
+   as the inverse of the scale).
 
    The probability distribution function is::
 
@@ -320,9 +322,10 @@ be found in any statistics text.
                    math.gamma(alpha) * beta ** alpha
 
 
-.. function:: gauss(mu, sigma)
+.. function:: gauss(mu=0.0, sigma=1.0)
 
-   Normal distribution, also called the Gaussian distribution.  *mu* is the mean,
+   Normal distribution, also called the Gaussian distribution.
+   *mu* is the mean,
    and *sigma* is the standard deviation.  This is slightly faster than
    the :func:`normalvariate` function defined below.
 
@@ -333,6 +336,9 @@ be found in any statistics text.
    number generator. 2) Put locks around all calls. 3) Use the
    slower, but thread-safe :func:`normalvariate` function instead.
 
+   .. versionchanged:: 3.11
+      *mu* and *sigma* now have default arguments.
+
 
 .. function:: lognormvariate(mu, sigma)
 
@@ -342,9 +348,12 @@ be found in any statistics text.
    zero.
 
 
-.. function:: normalvariate(mu, sigma)
+.. function:: normalvariate(mu=0.0, sigma=1.0)
 
    Normal distribution.  *mu* is the mean, and *sigma* is the standard deviation.
+
+   .. versionchanged:: 3.11
+      *mu* and *sigma* now have default arguments.
 
 
 .. function:: vonmisesvariate(mu, kappa)
@@ -470,7 +479,7 @@ Example of `statistical bootstrapping
 <https://en.wikipedia.org/wiki/Bootstrapping_(statistics)>`_ using resampling
 with replacement to estimate a confidence interval for the mean of a sample::
 
-   # http://statistics.about.com/od/Applications/a/Example-Of-Bootstrapping.htm
+   # https://www.thoughtco.com/example-of-bootstrapping-3126155
    from statistics import fmean as mean
    from random import choices
 
@@ -508,7 +517,7 @@ between the effects of a drug versus a placebo::
 
 Simulation of arrival times and service deliveries for a multiserver queue::
 
-    from heapq import heappush, heappop
+    from heapq import heapify, heapreplace
     from random import expovariate, gauss
     from statistics import mean, quantiles
 
@@ -520,14 +529,15 @@ Simulation of arrival times and service deliveries for a multiserver queue::
     waits = []
     arrival_time = 0.0
     servers = [0.0] * num_servers  # time when each server becomes available
-    for i in range(100_000):
+    heapify(servers)
+    for i in range(1_000_000):
         arrival_time += expovariate(1.0 / average_arrival_interval)
-        next_server_available = heappop(servers)
+        next_server_available = servers[0]
         wait = max(0.0, next_server_available - arrival_time)
         waits.append(wait)
-        service_duration = gauss(average_service_time, stdev_service_time)
+        service_duration = max(0.0, gauss(average_service_time, stdev_service_time))
         service_completed = arrival_time + wait + service_duration
-        heappush(servers, service_completed)
+        heapreplace(servers, service_completed)
 
     print(f'Mean wait: {mean(waits):.1f}   Max wait: {max(waits):.1f}')
     print('Quartiles:', [round(q, 1) for q in quantiles(waits)])
@@ -541,21 +551,53 @@ Simulation of arrival times and service deliveries for a multiserver queue::
    including simulation, sampling, shuffling, and cross-validation.
 
    `Economics Simulation
-   <http://nbviewer.jupyter.org/url/norvig.com/ipython/Economics.ipynb>`_
+   <https://nbviewer.jupyter.org/url/norvig.com/ipython/Economics.ipynb>`_
    a simulation of a marketplace by
-   `Peter Norvig <http://norvig.com/bio.html>`_ that shows effective
+   `Peter Norvig <https://norvig.com/bio.html>`_ that shows effective
    use of many of the tools and distributions provided by this module
    (gauss, uniform, sample, betavariate, choice, triangular, and randrange).
 
    `A Concrete Introduction to Probability (using Python)
-   <http://nbviewer.jupyter.org/url/norvig.com/ipython/Probability.ipynb>`_
-   a tutorial by `Peter Norvig <http://norvig.com/bio.html>`_ covering
+   <https://nbviewer.jupyter.org/url/norvig.com/ipython/Probability.ipynb>`_
+   a tutorial by `Peter Norvig <https://norvig.com/bio.html>`_ covering
    the basics of probability theory, how to write simulations, and
    how to perform data analysis using Python.
 
 
 Recipes
 -------
+
+These recipes show how to efficiently make random selections
+from the combinatoric iterators in the :mod:`itertools` module:
+
+.. testcode::
+   import random
+
+   def random_product(*args, repeat=1):
+       "Random selection from itertools.product(*args, **kwds)"
+       pools = [tuple(pool) for pool in args] * repeat
+       return tuple(map(random.choice, pools))
+
+   def random_permutation(iterable, r=None):
+       "Random selection from itertools.permutations(iterable, r)"
+       pool = tuple(iterable)
+       r = len(pool) if r is None else r
+       return tuple(random.sample(pool, r))
+
+   def random_combination(iterable, r):
+       "Random selection from itertools.combinations(iterable, r)"
+       pool = tuple(iterable)
+       n = len(pool)
+       indices = sorted(random.sample(range(n), r))
+       return tuple(pool[i] for i in indices)
+
+   def random_combination_with_replacement(iterable, r):
+       "Choose r elements with replacement.  Order the result to match the iterable."
+       # Result will be in set(itertools.combinations_with_replacement(iterable, r)).
+       pool = tuple(iterable)
+       n = len(pool)
+       indices = sorted(random.choices(range(n), k=r))
+       return tuple(pool[i] for i in indices)
 
 The default :func:`.random` returns multiples of 2⁻⁵³ in the range
 *0.0 ≤ x < 1.0*.  All such numbers are evenly spaced and are exactly

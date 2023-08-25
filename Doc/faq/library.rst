@@ -20,7 +20,7 @@ library and will be able to skip this step.)
 
 For third-party packages, search the `Python Package Index
 <https://pypi.org>`_ or try `Google <https://www.google.com>`_ or
-another Web search engine.  Searching for "Python" plus a keyword or two for
+another web search engine.  Searching for "Python" plus a keyword or two for
 your topic of interest will usually find something helpful.
 
 
@@ -111,7 +111,7 @@ Is there an equivalent to C's onexit() in Python?
 -------------------------------------------------
 
 The :mod:`atexit` module provides a register function that is similar to C's
-:c:func:`onexit`.
+:c:func:`!onexit`.
 
 
 Why don't my signal handlers work?
@@ -180,8 +180,8 @@ How do I create documentation from doc strings?
 
 The :mod:`pydoc` module can create HTML from the doc strings in your Python
 source code.  An alternative for creating API documentation purely from
-docstrings is `epydoc <http://epydoc.sourceforge.net/>`_.  `Sphinx
-<http://sphinx-doc.org>`_ can also include docstring content.
+docstrings is `epydoc <https://epydoc.sourceforge.net/>`_.  `Sphinx
+<https://www.sphinx-doc.org>`_ can also include docstring content.
 
 
 How do I get a single keypress at a time?
@@ -239,9 +239,6 @@ How do I program using threads?
 Be sure to use the :mod:`threading` module and not the :mod:`_thread` module.
 The :mod:`threading` module builds convenient abstractions on top of the
 low-level primitives provided by the :mod:`_thread` module.
-
-Aahz has a set of slides from his threading tutorial that are helpful; see
-http://www.pythoncraft.com/OSCON2001/.
 
 
 None of my threads seem to run: why?
@@ -400,7 +397,7 @@ These aren't::
    D[x] = D[x] + 1
 
 Operations that replace other objects may invoke those other objects'
-:meth:`__del__` method when their reference count reaches zero, and that can
+:meth:`~object.__del__` method when their reference count reaches zero, and that can
 affect things.  This is especially true for the mass updates to dictionaries and
 lists.  When in doubt, use a mutex!
 
@@ -486,8 +483,14 @@ including :func:`~shutil.copyfile`, :func:`~shutil.copytree`, and
 How do I copy a file?
 ---------------------
 
-The :mod:`shutil` module contains a :func:`~shutil.copyfile` function.  Note
-that on MacOS 9 it doesn't copy the resource fork and Finder info.
+The :mod:`shutil` module contains a :func:`~shutil.copyfile` function.
+Note that on Windows NTFS volumes, it does not copy
+`alternate data streams
+<https://en.wikipedia.org/wiki/NTFS#Alternate_data_stream_(ADS)>`_
+nor `resource forks <https://en.wikipedia.org/wiki/Resource_fork>`__
+on macOS HFS+ volumes, though both are now rarely used.
+It also doesn't copy file permissions and metadata, though using
+:func:`shutil.copy2` instead will preserve most (though not all) of it.
 
 
 How do I read (or write) binary data?
@@ -563,7 +566,7 @@ use ``p.read(n)``.
    Note on a bug in popen2: unless your program calls ``wait()`` or
    ``waitpid()``, finished child processes are never removed, and eventually
    calls to popen2 will fail because of a limit on the number of child
-   processes.  Calling :func:`os.waitpid` with the :data:`os.WNOHANG` option can
+   processes.  Calling :func:`os.waitpid` with the :const:`os.WNOHANG` option can
    prevent this; a good place to insert such a call would be before calling
    ``popen2`` again.
 
@@ -606,7 +609,7 @@ use ``p.read(n)``.
    substituted for standard input and output.  You will have to use pseudo ttys
    ("ptys") instead of pipes. Or you can use a Python interface to Don Libes'
    "expect" library.  A Python extension that interfaces to expect is called
-   "expy" and available from http://expectpy.sourceforge.net.  A pure Python
+   "expy" and available from https://expectpy.sourceforge.net.  A pure Python
    solution that works like expect is `pexpect
    <https://pypi.org/project/pexpect/>`_.
 
@@ -614,9 +617,9 @@ use ``p.read(n)``.
 How do I access the serial (RS232) port?
 ----------------------------------------
 
-For Win32, POSIX (Linux, BSD, etc.), Jython:
+For Win32, OSX, Linux, BSD, Jython, IronPython:
 
-   http://pyserial.sourceforge.net
+   https://pypi.org/project/pyserial/
 
 For Unix, see a Usenet post by Mitch Chapman:
 
@@ -667,7 +670,7 @@ A summary of available frameworks is maintained by Paul Boddie at
 https://wiki.python.org/moin/WebProgramming\ .
 
 Cameron Laird maintains a useful set of pages about Python web technologies at
-http://phaseit.net/claird/comp.lang.python/web_python.
+https://web.archive.org/web/20210224183619/http://phaseit.net/claird/comp.lang.python/web_python.
 
 
 How can I mimic CGI form submission (METHOD=POST)?
@@ -762,14 +765,17 @@ The :mod:`select` module is commonly used to help with asynchronous I/O on
 sockets.
 
 To prevent the TCP connect from blocking, you can set the socket to non-blocking
-mode.  Then when you do the :meth:`socket.connect`, you will either connect immediately
+mode.  Then when you do the :meth:`~socket.socket.connect`,
+you will either connect immediately
 (unlikely) or get an exception that contains the error number as ``.errno``.
 ``errno.EINPROGRESS`` indicates that the connection is in progress, but hasn't
 finished yet.  Different OSes will return different values, so you're going to
 have to check what's returned on your system.
 
-You can use the :meth:`socket.connect_ex` method to avoid creating an exception.  It will
-just return the errno value.  To poll, you can call :meth:`socket.connect_ex` again later
+You can use the :meth:`~socket.socket.connect_ex` method
+to avoid creating an exception.
+It will just return the errno value.
+To poll, you can call :meth:`~socket.socket.connect_ex` again later
 -- ``0`` or ``errno.EISCONN`` indicate that you're connected -- or you can pass this
 socket to :meth:`select.select` to check if it's writable.
 
@@ -777,7 +783,7 @@ socket to :meth:`select.select` to check if it's writable.
    The :mod:`asyncio` module provides a general purpose single-threaded and
    concurrent asynchronous library, which can be used for writing non-blocking
    network code.
-   The third-party `Twisted <https://twistedmatrix.com/trac/>`_ library is
+   The third-party `Twisted <https://twisted.org/>`_ library is
    a popular and feature-rich alternative.
 
 

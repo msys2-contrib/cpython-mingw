@@ -27,14 +27,14 @@ the definition of all other Python objects.
    object.  In a normal "release" build, it contains only the object's
    reference count and a pointer to the corresponding type object.
    Nothing is actually declared to be a :c:type:`PyObject`, but every pointer
-   to a Python object can be cast to a :c:type:`PyObject*`.  Access to the
+   to a Python object can be cast to a :c:expr:`PyObject*`.  Access to the
    members must be done by using the macros :c:macro:`Py_REFCNT` and
    :c:macro:`Py_TYPE`.
 
 
 .. c:type:: PyVarObject
 
-   This is an extension of :c:type:`PyObject` that adds the :attr:`ob_size`
+   This is an extension of :c:type:`PyObject` that adds the :c:member:`~PyVarObject.ob_size`
    field.  This is only used for objects that have some notion of *length*.
    This type does not often appear in the Python/C API.
    Access to the members must be done by using the macros
@@ -62,14 +62,14 @@ the definition of all other Python objects.
    See documentation of :c:type:`PyVarObject` above.
 
 
-.. c:function:: int Py_Is(const PyObject *x, const PyObject *y)
+.. c:function:: int Py_Is(PyObject *x, PyObject *y)
 
    Test if the *x* object is the *y* object, the same as ``x is y`` in Python.
 
    .. versionadded:: 3.10
 
 
-.. c:function:: int Py_IsNone(const PyObject *x)
+.. c:function:: int Py_IsNone(PyObject *x)
 
    Test if an object is the ``None`` singleton,
    the same as ``x is None`` in Python.
@@ -77,7 +77,7 @@ the definition of all other Python objects.
    .. versionadded:: 3.10
 
 
-.. c:function:: int Py_IsTrue(const PyObject *x)
+.. c:function:: int Py_IsTrue(PyObject *x)
 
    Test if an object is the ``True`` singleton,
    the same as ``x is True`` in Python.
@@ -85,7 +85,7 @@ the definition of all other Python objects.
    .. versionadded:: 3.10
 
 
-.. c:function:: int Py_IsFalse(const PyObject *x)
+.. c:function:: int Py_IsFalse(PyObject *x)
 
    Test if an object is the ``False`` singleton,
    the same as ``x is False`` in Python.
@@ -93,13 +93,17 @@ the definition of all other Python objects.
    .. versionadded:: 3.10
 
 
-.. c:function:: PyTypeObject* Py_TYPE(const PyObject *o)
+.. c:function:: PyTypeObject* Py_TYPE(PyObject *o)
 
    Get the type of the Python object *o*.
 
    Return a :term:`borrowed reference`.
 
-   The :c:func:`Py_SET_TYPE` function must be used to set an object type.
+   Use the :c:func:`Py_SET_TYPE` function to set an object type.
+
+   .. versionchanged:: 3.11
+      :c:func:`Py_TYPE()` is changed to an inline static function.
+      The parameter type is no longer :c:expr:`const PyObject*`.
 
 
 .. c:function:: int Py_IS_TYPE(PyObject *o, PyTypeObject *type)
@@ -117,13 +121,17 @@ the definition of all other Python objects.
    .. versionadded:: 3.9
 
 
-.. c:function:: Py_ssize_t Py_REFCNT(const PyObject *o)
+.. c:function:: Py_ssize_t Py_REFCNT(PyObject *o)
 
    Get the reference count of the Python object *o*.
 
+   Use the :c:func:`Py_SET_REFCNT()` function to set an object reference count.
+
+   .. versionchanged:: 3.11
+      The parameter type is no longer :c:expr:`const PyObject*`.
+
    .. versionchanged:: 3.10
       :c:func:`Py_REFCNT()` is changed to the inline static function.
-      Use :c:func:`Py_SET_REFCNT()` to set an object reference count.
 
 
 .. c:function:: void Py_SET_REFCNT(PyObject *o, Py_ssize_t refcnt)
@@ -133,11 +141,15 @@ the definition of all other Python objects.
    .. versionadded:: 3.9
 
 
-.. c:function:: Py_ssize_t Py_SIZE(const PyVarObject *o)
+.. c:function:: Py_ssize_t Py_SIZE(PyVarObject *o)
 
    Get the size of the Python object *o*.
 
-   The :c:func:`Py_SET_SIZE` function must be used to set an object size.
+   Use the :c:func:`Py_SET_SIZE` function to set an object size.
+
+   .. versionchanged:: 3.11
+      :c:func:`Py_SIZE()` is changed to an inline static function.
+      The parameter type is no longer :c:expr:`const PyVarObject*`.
 
 
 .. c:function:: void Py_SET_SIZE(PyVarObject *o, Py_ssize_t size)
@@ -159,7 +171,7 @@ the definition of all other Python objects.
 .. c:macro:: PyVarObject_HEAD_INIT(type, size)
 
    This is a macro which expands to initialization values for a new
-   :c:type:`PyVarObject` type, including the :attr:`ob_size` field.
+   :c:type:`PyVarObject` type, including the :c:member:`~PyVarObject.ob_size` field.
    This macro expands to::
 
       _PyObject_EXTRA_INIT
@@ -172,7 +184,7 @@ Implementing functions and methods
 .. c:type:: PyCFunction
 
    Type of the functions used to implement most Python callables in C.
-   Functions of this type take two :c:type:`PyObject*` parameters and return
+   Functions of this type take two :c:expr:`PyObject*` parameters and return
    one such value.  If the return value is ``NULL``, an exception shall have
    been set.  If not ``NULL``, the return value is interpreted as the return
    value of the function as exposed in Python.  The function must return a new
@@ -186,7 +198,7 @@ Implementing functions and methods
 .. c:type:: PyCFunctionWithKeywords
 
    Type of the functions used to implement Python callables in C
-   with signature :const:`METH_VARARGS | METH_KEYWORDS`.
+   with signature :ref:`METH_VARARGS | METH_KEYWORDS <METH_VARARGS-METH_KEYWORDS>`.
    The function signature is::
 
       PyObject *PyCFunctionWithKeywords(PyObject *self,
@@ -197,7 +209,7 @@ Implementing functions and methods
 .. c:type:: _PyCFunctionFast
 
    Type of the functions used to implement Python callables in C
-   with signature :const:`METH_FASTCALL`.
+   with signature :c:macro:`METH_FASTCALL`.
    The function signature is::
 
       PyObject *_PyCFunctionFast(PyObject *self,
@@ -207,7 +219,7 @@ Implementing functions and methods
 .. c:type:: _PyCFunctionFastWithKeywords
 
    Type of the functions used to implement Python callables in C
-   with signature :const:`METH_FASTCALL | METH_KEYWORDS`.
+   with signature :ref:`METH_FASTCALL | METH_KEYWORDS <METH_FASTCALL-METH_KEYWORDS>`.
    The function signature is::
 
       PyObject *_PyCFunctionFastWithKeywords(PyObject *self,
@@ -218,7 +230,7 @@ Implementing functions and methods
 .. c:type:: PyCMethod
 
    Type of the functions used to implement Python callables in C
-   with signature :const:`METH_METHOD | METH_FASTCALL | METH_KEYWORDS`.
+   with signature :ref:`METH_METHOD | METH_FASTCALL | METH_KEYWORDS <METH_METHOD-METH_FASTCALL-METH_KEYWORDS>`.
    The function signature is::
 
       PyObject *PyCMethod(PyObject *self,
@@ -235,46 +247,58 @@ Implementing functions and methods
    Structure used to describe a method of an extension type.  This structure has
    four fields:
 
-   +------------------+---------------+-------------------------------+
-   | Field            | C Type        | Meaning                       |
-   +==================+===============+===============================+
-   | :attr:`ml_name`  | const char \* | name of the method            |
-   +------------------+---------------+-------------------------------+
-   | :attr:`ml_meth`  | PyCFunction   | pointer to the C              |
-   |                  |               | implementation                |
-   +------------------+---------------+-------------------------------+
-   | :attr:`ml_flags` | int           | flag bits indicating how the  |
-   |                  |               | call should be constructed    |
-   +------------------+---------------+-------------------------------+
-   | :attr:`ml_doc`   | const char \* | points to the contents of the |
-   |                  |               | docstring                     |
-   +------------------+---------------+-------------------------------+
+   .. c:member:: const char *ml_name
 
-The :attr:`ml_meth` is a C function pointer.  The functions may be of different
-types, but they always return :c:type:`PyObject*`.  If the function is not of
+      Name of the method.
+
+   .. c:member:: PyCFunction ml_meth
+
+      Pointer to the C implementation.
+
+   .. c:member:: int ml_flags
+
+      Flags bits indicating how the call should be constructed.
+
+   .. c:member:: const char *ml_doc
+
+      Points to the contents of the docstring.
+
+The :c:member:`~PyMethodDef.ml_meth` is a C function pointer.
+The functions may be of different
+types, but they always return :c:expr:`PyObject*`.  If the function is not of
 the :c:type:`PyCFunction`, the compiler will require a cast in the method table.
 Even though :c:type:`PyCFunction` defines the first parameter as
-:c:type:`PyObject*`, it is common that the method implementation uses the
+:c:expr:`PyObject*`, it is common that the method implementation uses the
 specific C type of the *self* object.
 
-The :attr:`ml_flags` field is a bitfield which can include the following flags.
+The :c:member:`~PyMethodDef.ml_flags` field is a bitfield which can include
+the following flags.
 The individual flags indicate either a calling convention or a binding
 convention.
 
 There are these calling conventions:
 
-.. data:: METH_VARARGS
+.. c:macro:: METH_VARARGS
 
    This is the typical calling convention, where the methods have the type
-   :c:type:`PyCFunction`. The function expects two :c:type:`PyObject*` values.
+   :c:type:`PyCFunction`. The function expects two :c:expr:`PyObject*` values.
    The first one is the *self* object for methods; for module functions, it is
    the module object.  The second parameter (often called *args*) is a tuple
    object representing all arguments. This parameter is typically processed
    using :c:func:`PyArg_ParseTuple` or :c:func:`PyArg_UnpackTuple`.
 
 
-.. data:: METH_VARARGS | METH_KEYWORDS
+.. c:macro:: METH_KEYWORDS
 
+   Can only be used in certain combinations with other flags:
+   :ref:`METH_VARARGS | METH_KEYWORDS <METH_VARARGS-METH_KEYWORDS>`,
+   :ref:`METH_FASTCALL | METH_KEYWORDS <METH_FASTCALL-METH_KEYWORDS>` and
+   :ref:`METH_METHOD | METH_FASTCALL | METH_KEYWORDS <METH_METHOD-METH_FASTCALL-METH_KEYWORDS>`.
+
+
+.. _METH_VARARGS-METH_KEYWORDS:
+
+:c:expr:`METH_VARARGS | METH_KEYWORDS`
    Methods with these flags must be of type :c:type:`PyCFunctionWithKeywords`.
    The function expects three parameters: *self*, *args*, *kwargs* where
    *kwargs* is a dictionary of all the keyword arguments or possibly ``NULL``
@@ -282,12 +306,12 @@ There are these calling conventions:
    using :c:func:`PyArg_ParseTupleAndKeywords`.
 
 
-.. data:: METH_FASTCALL
+.. c:macro:: METH_FASTCALL
 
    Fast calling convention supporting only positional arguments.
    The methods have the type :c:type:`_PyCFunctionFast`.
    The first parameter is *self*, the second parameter is a C array
-   of :c:type:`PyObject*` values indicating the arguments and the third
+   of :c:expr:`PyObject*` values indicating the arguments and the third
    parameter is the number of arguments (the length of the array).
 
    .. versionadded:: 3.7
@@ -297,27 +321,34 @@ There are these calling conventions:
       ``METH_FASTCALL`` is now part of the stable ABI.
 
 
-.. data:: METH_FASTCALL | METH_KEYWORDS
+.. _METH_FASTCALL-METH_KEYWORDS:
 
-   Extension of :const:`METH_FASTCALL` supporting also keyword arguments,
+:c:expr:`METH_FASTCALL | METH_KEYWORDS`
+   Extension of :c:macro:`METH_FASTCALL` supporting also keyword arguments,
    with methods of type :c:type:`_PyCFunctionFastWithKeywords`.
    Keyword arguments are passed the same way as in the
    :ref:`vectorcall protocol <vectorcall>`:
-   there is an additional fourth :c:type:`PyObject*` parameter
+   there is an additional fourth :c:expr:`PyObject*` parameter
    which is a tuple representing the names of the keyword arguments
    (which are guaranteed to be strings)
    or possibly ``NULL`` if there are no keywords.  The values of the keyword
    arguments are stored in the *args* array, after the positional arguments.
 
-   This is not part of the :ref:`limited API <stable>`.
-
    .. versionadded:: 3.7
 
 
-.. data:: METH_METHOD | METH_FASTCALL | METH_KEYWORDS
+.. c:macro:: METH_METHOD
 
-   Extension of :const:`METH_FASTCALL | METH_KEYWORDS` supporting the *defining
-   class*, that is, the class that contains the method in question.
+   Can only be used in the combination with other flags:
+   :ref:`METH_METHOD | METH_FASTCALL | METH_KEYWORDS <METH_METHOD-METH_FASTCALL-METH_KEYWORDS>`.
+
+
+.. _METH_METHOD-METH_FASTCALL-METH_KEYWORDS:
+
+:c:expr:`METH_METHOD | METH_FASTCALL | METH_KEYWORDS`
+   Extension of :ref:`METH_FASTCALL | METH_KEYWORDS <METH_FASTCALL-METH_KEYWORDS>`
+   supporting the *defining class*, that is,
+   the class that contains the method in question.
    The defining class might be a superclass of ``Py_TYPE(self)``.
 
    The method needs to be of type :c:type:`PyCMethod`, the same as for
@@ -327,21 +358,24 @@ There are these calling conventions:
    .. versionadded:: 3.9
 
 
-.. data:: METH_NOARGS
+.. c:macro:: METH_NOARGS
 
    Methods without parameters don't need to check whether arguments are given if
-   they are listed with the :const:`METH_NOARGS` flag.  They need to be of type
+   they are listed with the :c:macro:`METH_NOARGS` flag.  They need to be of type
    :c:type:`PyCFunction`.  The first parameter is typically named *self* and will
    hold a reference to the module or object instance.  In all cases the second
    parameter will be ``NULL``.
 
+   The function must have 2 parameters. Since the second parameter is unused,
+   :c:macro:`Py_UNUSED` can be used to prevent a compiler warning.
 
-.. data:: METH_O
 
-   Methods with a single object argument can be listed with the :const:`METH_O`
+.. c:macro:: METH_O
+
+   Methods with a single object argument can be listed with the :c:macro:`METH_O`
    flag, instead of invoking :c:func:`PyArg_ParseTuple` with a ``"O"`` argument.
    They have the type :c:type:`PyCFunction`, with the *self* parameter, and a
-   :c:type:`PyObject*` parameter representing the single argument.
+   :c:expr:`PyObject*` parameter representing the single argument.
 
 
 These two constants are not used to indicate the calling convention but the
@@ -350,9 +384,9 @@ defined for modules.  At most one of these flags may be set for any given
 method.
 
 
-.. data:: METH_CLASS
+.. c:macro:: METH_CLASS
 
-   .. index:: builtin: classmethod
+   .. index:: pair: built-in function; classmethod
 
    The method will be passed the type object as the first parameter rather
    than an instance of the type.  This is used to create *class methods*,
@@ -360,9 +394,9 @@ method.
    function.
 
 
-.. data:: METH_STATIC
+.. c:macro:: METH_STATIC
 
-   .. index:: builtin: staticmethod
+   .. index:: pair: built-in function; staticmethod
 
    The method will be passed ``NULL`` as the first parameter rather than an
    instance of the type.  This is used to create *static methods*, similar to
@@ -372,13 +406,13 @@ One other constant controls whether a method is loaded in place of another
 definition with the same method name.
 
 
-.. data:: METH_COEXIST
+.. c:macro:: METH_COEXIST
 
    The method will be loaded in place of existing definitions.  Without
    *METH_COEXIST*, the default is to skip repeated definitions.  Since slot
    wrappers are loaded before the method table, the existence of a
    *sq_contains* slot, for example, would generate a wrapped method named
-   :meth:`__contains__` and preclude the loading of a corresponding
+   :meth:`~object.__contains__` and preclude the loading of a corresponding
    PyCFunction with the same name.  With the flag defined, the PyCFunction
    will be loaded in place of the wrapper object and will co-exist with the
    slot.  This is helpful because calls to PyCFunctions are optimized more
@@ -469,6 +503,21 @@ Accessing attributes of extension types
           {NULL}  /* Sentinel */
       };
 
+
+.. c:function:: PyObject* PyMember_GetOne(const char *obj_addr, struct PyMemberDef *m)
+
+   Get an attribute belonging to the object at address *obj_addr*.  The
+   attribute is described by ``PyMemberDef`` *m*.  Returns ``NULL``
+   on error.
+
+
+.. c:function:: int PyMember_SetOne(char *obj_addr, struct PyMemberDef *m, PyObject *o)
+
+   Set an attribute belonging to the object at address *obj_addr* to object *o*.
+   The attribute to set is described by ``PyMemberDef`` *m*.  Returns ``0``
+   if successful and a negative value on failure.
+
+
 .. c:type:: PyGetSetDef
 
    Structure to define property-like access for a type. See also description of
@@ -479,7 +528,7 @@ Accessing attributes of extension types
    +=============+==================+===================================+
    | name        | const char \*    | attribute name                    |
    +-------------+------------------+-----------------------------------+
-   | get         | getter           | C Function to get the attribute   |
+   | get         | getter           | C function to get the attribute   |
    +-------------+------------------+-----------------------------------+
    | set         | setter           | optional C function to set or     |
    |             |                  | delete the attribute, if omitted  |
@@ -492,7 +541,7 @@ Accessing attributes of extension types
    |             |                  | getter and setter                 |
    +-------------+------------------+-----------------------------------+
 
-   The ``get`` function takes one :c:type:`PyObject*` parameter (the
+   The ``get`` function takes one :c:expr:`PyObject*` parameter (the
    instance) and a function pointer (the associated ``closure``)::
 
       typedef PyObject *(*getter)(PyObject *, void *);
@@ -500,7 +549,7 @@ Accessing attributes of extension types
    It should return a new reference on success or ``NULL`` with a set exception
    on failure.
 
-   ``set`` functions take two :c:type:`PyObject*` parameters (the instance and
+   ``set`` functions take two :c:expr:`PyObject*` parameters (the instance and
    the value to be set) and a function pointer (the associated ``closure``)::
 
       typedef int (*setter)(PyObject *, PyObject *, void *);

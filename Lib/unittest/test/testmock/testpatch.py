@@ -996,6 +996,36 @@ class PatchTest(unittest.TestCase):
             method.assert_called_once_with()
 
 
+    def test_autospec_staticmethod_signature(self):
+        # Patched methods which are decorated with @staticmethod should have the same signature
+        class Foo:
+            @staticmethod
+            def static_method(a, b=10, *, c): pass
+
+        Foo.static_method(1, 2, c=3)
+
+        with patch.object(Foo, 'static_method', autospec=True) as method:
+            method(1, 2, c=3)
+            self.assertRaises(TypeError, method)
+            self.assertRaises(TypeError, method, 1)
+            self.assertRaises(TypeError, method, 1, 2, 3, c=4)
+
+
+    def test_autospec_classmethod_signature(self):
+        # Patched methods which are decorated with @classmethod should have the same signature
+        class Foo:
+            @classmethod
+            def class_method(cls, a, b=10, *, c): pass
+
+        Foo.class_method(1, 2, c=3)
+
+        with patch.object(Foo, 'class_method', autospec=True) as method:
+            method(1, 2, c=3)
+            self.assertRaises(TypeError, method)
+            self.assertRaises(TypeError, method, 1)
+            self.assertRaises(TypeError, method, 1, 2, 3, c=4)
+
+
     def test_autospec_with_new(self):
         patcher = patch('%s.function' % __name__, new=3, autospec=True)
         self.assertRaises(TypeError, patcher.start)
@@ -1875,9 +1905,10 @@ class PatchTest(unittest.TestCase):
             self.assertEqual(foo(), 1)
         self.assertEqual(foo(), 0)
 
+        orig_doc = foo.__doc__
         with patch.object(foo, '__doc__', "FUN"):
             self.assertEqual(foo.__doc__, "FUN")
-        self.assertEqual(foo.__doc__, "TEST")
+        self.assertEqual(foo.__doc__, orig_doc)
 
         with patch.object(foo, '__module__', "testpatch2"):
             self.assertEqual(foo.__module__, "testpatch2")
@@ -1932,8 +1963,13 @@ class PatchTest(unittest.TestCase):
 
 
     def test_invalid_target(self):
-        with self.assertRaises(TypeError):
-            patch('')
+        class Foo:
+            pass
+
+        for target in ['', 12, Foo()]:
+            with self.subTest(target=target):
+                with self.assertRaises(TypeError):
+                    patch(target)
 
 
     def test_cant_set_kwargs_when_passing_a_mock(self):

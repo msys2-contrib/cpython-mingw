@@ -25,7 +25,7 @@ another rational number, or from a string.
 
    The first version requires that *numerator* and *denominator* are instances
    of :class:`numbers.Rational` and returns a new :class:`Fraction` instance
-   with value ``numerator/denominator``. If *denominator* is :const:`0`, it
+   with value ``numerator/denominator``. If *denominator* is ``0``, it
    raises a :exc:`ZeroDivisionError`. The second version requires that
    *other_fraction* is an instance of :class:`numbers.Rational` and returns a
    :class:`Fraction` instance with the same value.  The next two versions accept
@@ -77,7 +77,7 @@ another rational number, or from a string.
 
    The :class:`Fraction` class inherits from the abstract base class
    :class:`numbers.Rational`, and implements all of the methods and
-   operations from that class.  :class:`Fraction` instances are hashable,
+   operations from that class.  :class:`Fraction` instances are :term:`hashable`,
    and should be treated as immutable.  In addition,
    :class:`Fraction` has the following properties and methods:
 
@@ -93,6 +93,10 @@ another rational number, or from a string.
    .. versionchanged:: 3.11
       Underscores are now permitted when creating a :class:`Fraction` instance
       from a string, following :PEP:`515` rules.
+
+   .. versionchanged:: 3.11
+      :class:`Fraction` implements ``__int__`` now to satisfy
+      ``typing.SupportsInt`` instance checks.
 
    .. attribute:: numerator
 
@@ -110,10 +114,10 @@ another rational number, or from a string.
 
       .. versionadded:: 3.8
 
-   .. method:: from_float(flt)
+   .. classmethod:: from_float(flt)
 
-      This class method constructs a :class:`Fraction` representing the exact
-      value of *flt*, which must be a :class:`float`. Beware that
+      Alternative constructor which only accepts instances of
+      :class:`float` or :class:`numbers.Integral`. Beware that
       ``Fraction.from_float(0.3)`` is not the same value as ``Fraction(3, 10)``.
 
       .. note::
@@ -122,10 +126,10 @@ another rational number, or from a string.
          :class:`Fraction` instance directly from a :class:`float`.
 
 
-   .. method:: from_decimal(dec)
+   .. classmethod:: from_decimal(dec)
 
-      This class method constructs a :class:`Fraction` representing the exact
-      value of *dec*, which must be a :class:`decimal.Decimal` instance.
+      Alternative constructor which only accepts instances of
+      :class:`decimal.Decimal` or :class:`numbers.Integral`.
 
       .. note::
 

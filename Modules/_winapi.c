@@ -32,7 +32,7 @@
  */
 
 /* Licensed to PSF under a Contributor Agreement. */
-/* See http://www.python.org/2.4/license for licensing details. */
+/* See https://www.python.org/2.4/license for licensing details. */
 
 #include "Python.h"
 #include "pycore_moduleobject.h"  // _PyModule_GetState()
@@ -805,6 +805,17 @@ getenvironment(PyObject* environment)
     }
 
     envsize = PyList_GET_SIZE(keys);
+
+    if (envsize == 0) {
+        // A environment block must be terminated by two null characters --
+        // one for the last string and one for the block.
+        buffer = PyMem_Calloc(2, sizeof(wchar_t));
+        if (!buffer) {
+            PyErr_NoMemory();
+        }
+        goto cleanup;
+    }
+
     if (PyList_GET_SIZE(values) != envsize) {
         PyErr_SetString(PyExc_RuntimeError,
             "environment changed size during iteration");
@@ -878,7 +889,8 @@ getenvironment(PyObject* environment)
     *p++ = L'\0';
     assert(p == end);
 
- error:
+cleanup:
+error:
     Py_XDECREF(keys);
     Py_XDECREF(values);
     return buffer;
@@ -1403,6 +1415,30 @@ _winapi_MapViewOfFile_impl(PyObject *module, HANDLE file_map,
 }
 
 /*[clinic input]
+_winapi.UnmapViewOfFile
+
+    address: LPCVOID
+    /
+[clinic start generated code]*/
+
+static PyObject *
+_winapi_UnmapViewOfFile_impl(PyObject *module, LPCVOID address)
+/*[clinic end generated code: output=4f7e18ac75d19744 input=8c4b6119ad9288a3]*/
+{
+    BOOL success;
+
+    Py_BEGIN_ALLOW_THREADS
+    success = UnmapViewOfFile(address);
+    Py_END_ALLOW_THREADS
+
+    if (!success) {
+        return PyErr_SetFromWindowsErr(0);
+    }
+
+    Py_RETURN_NONE;
+}
+
+/*[clinic input]
 _winapi.OpenFileMapping -> HANDLE
 
     desired_access: DWORD
@@ -1510,6 +1546,76 @@ _winapi_PeekNamedPipe_impl(PyObject *module, HANDLE handle, int size)
         }
         return Py_BuildValue("II", navail, nleft);
     }
+}
+
+/*[clinic input]
+_winapi.LCMapStringEx
+
+    locale: unicode
+    flags: DWORD
+    src: unicode
+
+[clinic start generated code]*/
+
+static PyObject *
+_winapi_LCMapStringEx_impl(PyObject *module, PyObject *locale, DWORD flags,
+                           PyObject *src)
+/*[clinic end generated code: output=8ea4c9d85a4a1f23 input=2fa6ebc92591731b]*/
+{
+    if (flags & (LCMAP_SORTHANDLE | LCMAP_HASH | LCMAP_BYTEREV |
+                 LCMAP_SORTKEY)) {
+        return PyErr_Format(PyExc_ValueError, "unsupported flags");
+    }
+
+    wchar_t *locale_ = PyUnicode_AsWideCharString(locale, NULL);
+    if (!locale_) {
+        return NULL;
+    }
+    Py_ssize_t src_size;
+    wchar_t *src_ = PyUnicode_AsWideCharString(src, &src_size);
+    if (!src_) {
+        PyMem_Free(locale_);
+        return NULL;
+    }
+    if (src_size > INT_MAX) {
+        PyMem_Free(locale_);
+        PyMem_Free(src_);
+        PyErr_SetString(PyExc_OverflowError, "input string is too long");
+        return NULL;
+    }
+
+    int dest_size = LCMapStringEx(locale_, flags, src_, (int)src_size, NULL, 0,
+                                  NULL, NULL, 0);
+    if (dest_size <= 0) {
+        DWORD error = GetLastError();
+        PyMem_Free(locale_);
+        PyMem_Free(src_);
+        return PyErr_SetFromWindowsErr(error);
+    }
+
+    wchar_t* dest = PyMem_NEW(wchar_t, dest_size);
+    if (dest == NULL) {
+        PyMem_Free(locale_);
+        PyMem_Free(src_);
+        return PyErr_NoMemory();
+    }
+
+    int nmapped = LCMapStringEx(locale_, flags, src_, (int)src_size, dest, dest_size,
+                                NULL, NULL, 0);
+    if (nmapped <= 0) {
+        DWORD error = GetLastError();
+        PyMem_Free(locale_);
+        PyMem_Free(src_);
+        PyMem_DEL(dest);
+        return PyErr_SetFromWindowsErr(error);
+    }
+
+    PyMem_Free(locale_);
+    PyMem_Free(src_);
+    PyObject *ret = PyUnicode_FromWideChar(dest, nmapped);
+    PyMem_DEL(dest);
+
+    return ret;
 }
 
 /*[clinic input]
@@ -1722,7 +1828,7 @@ _winapi_WaitForMultipleObjects_impl(PyObject *module, PyObject *handle_seq,
     nhandles = PySequence_Length(handle_seq);
     if (nhandles == -1)
         return NULL;
-    if (nhandles < 0 || nhandles >= MAXIMUM_WAIT_OBJECTS - 1) {
+    if (nhandles < 0 || nhandles > MAXIMUM_WAIT_OBJECTS - 1) {
         PyErr_Format(PyExc_ValueError,
                      "need at most %zd handles, got a sequence of length %zd",
                      MAXIMUM_WAIT_OBJECTS - 1, nhandles);
@@ -1894,6 +2000,113 @@ _winapi_GetFileType_impl(PyObject *module, HANDLE handle)
     return result;
 }
 
+/*[clinic input]
+_winapi._mimetypes_read_windows_registry
+
+    on_type_read: object
+
+Optimized function for reading all known MIME types from the registry.
+
+*on_type_read* is a callable taking *type* and *ext* arguments, as for
+MimeTypes.add_type.
+[clinic start generated code]*/
+
+static PyObject *
+_winapi__mimetypes_read_windows_registry_impl(PyObject *module,
+                                              PyObject *on_type_read)
+/*[clinic end generated code: output=20829f00bebce55b input=cd357896d6501f68]*/
+{
+#define CCH_EXT 128
+#define CB_TYPE 510
+    struct {
+        wchar_t ext[CCH_EXT];
+        wchar_t type[CB_TYPE / sizeof(wchar_t) + 1];
+    } entries[64];
+    int entry = 0;
+    HKEY hkcr = NULL;
+    LRESULT err;
+
+    Py_BEGIN_ALLOW_THREADS
+    err = RegOpenKeyExW(HKEY_CLASSES_ROOT, NULL, 0, KEY_READ, &hkcr);
+    for (DWORD i = 0; err == ERROR_SUCCESS || err == ERROR_MORE_DATA; ++i) {
+        LPWSTR ext = entries[entry].ext;
+        LPWSTR type = entries[entry].type;
+        DWORD cchExt = CCH_EXT;
+        DWORD cbType = CB_TYPE;
+        HKEY subkey;
+        DWORD regType;
+
+        err = RegEnumKeyExW(hkcr, i, ext, &cchExt, NULL, NULL, NULL, NULL);
+        if (err != ERROR_SUCCESS || (cchExt && ext[0] != L'.')) {
+            continue;
+        }
+
+        err = RegOpenKeyExW(hkcr, ext, 0, KEY_READ, &subkey);
+        if (err == ERROR_FILE_NOT_FOUND) {
+            err = ERROR_SUCCESS;
+            continue;
+        } else if (err != ERROR_SUCCESS) {
+            continue;
+        }
+
+        err = RegQueryValueExW(subkey, L"Content Type", NULL,
+                              &regType, (LPBYTE)type, &cbType);
+        RegCloseKey(subkey);
+        if (err == ERROR_FILE_NOT_FOUND) {
+            err = ERROR_SUCCESS;
+            continue;
+        } else if (err != ERROR_SUCCESS) {
+            continue;
+        } else if (regType != REG_SZ || !cbType) {
+            continue;
+        }
+        type[cbType / sizeof(wchar_t)] = L'\0';
+
+        entry += 1;
+
+        /* Flush our cached entries if we are full */
+        if (entry == sizeof(entries) / sizeof(entries[0])) {
+            Py_BLOCK_THREADS
+            for (int j = 0; j < entry; ++j) {
+                PyObject *r = PyObject_CallFunction(
+                    on_type_read, "uu", entries[j].type, entries[j].ext
+                );
+                if (!r) {
+                    /* We blocked threads, so safe to return from here */
+                    RegCloseKey(hkcr);
+                    return NULL;
+                }
+                Py_DECREF(r);
+            }
+            Py_UNBLOCK_THREADS
+            entry = 0;
+        }
+    }
+    if (hkcr) {
+        RegCloseKey(hkcr);
+    }
+    Py_END_ALLOW_THREADS
+
+    if (err != ERROR_SUCCESS && err != ERROR_NO_MORE_ITEMS) {
+        PyErr_SetFromWindowsErr((int)err);
+        return NULL;
+    }
+
+    for (int j = 0; j < entry; ++j) {
+        PyObject *r = PyObject_CallFunction(
+            on_type_read, "uu", entries[j].type, entries[j].ext
+        );
+        if (!r) {
+            return NULL;
+        }
+        Py_DECREF(r);
+    }
+
+    Py_RETURN_NONE;
+#undef CCH_EXT
+#undef CB_TYPE
+}
+
 
 static PyMethodDef winapi_functions[] = {
     _WINAPI_CLOSEHANDLE_METHODDEF
@@ -1916,9 +2129,11 @@ static PyMethodDef winapi_functions[] = {
     _WINAPI_OPENFILEMAPPING_METHODDEF
     _WINAPI_OPENPROCESS_METHODDEF
     _WINAPI_PEEKNAMEDPIPE_METHODDEF
+    _WINAPI_LCMAPSTRINGEX_METHODDEF
     _WINAPI_READFILE_METHODDEF
     _WINAPI_SETNAMEDPIPEHANDLESTATE_METHODDEF
     _WINAPI_TERMINATEPROCESS_METHODDEF
+    _WINAPI_UNMAPVIEWOFFILE_METHODDEF
     _WINAPI_VIRTUALQUERYSIZE_METHODDEF
     _WINAPI_WAITNAMEDPIPE_METHODDEF
     _WINAPI_WAITFORMULTIPLEOBJECTS_METHODDEF
@@ -1926,6 +2141,7 @@ static PyMethodDef winapi_functions[] = {
     _WINAPI_WRITEFILE_METHODDEF
     _WINAPI_GETACP_METHODDEF
     _WINAPI_GETFILETYPE_METHODDEF
+    _WINAPI__MIMETYPES_READ_WINDOWS_REGISTRY_METHODDEF
     {NULL, NULL}
 };
 
@@ -2051,6 +2267,22 @@ static int winapi_exec(PyObject *m)
     WINAPI_CONSTANT(F_DWORD, FILE_TYPE_CHAR);
     WINAPI_CONSTANT(F_DWORD, FILE_TYPE_PIPE);
     WINAPI_CONSTANT(F_DWORD, FILE_TYPE_REMOTE);
+
+    WINAPI_CONSTANT("u", LOCALE_NAME_INVARIANT);
+    WINAPI_CONSTANT(F_DWORD, LOCALE_NAME_MAX_LENGTH);
+    WINAPI_CONSTANT("u", LOCALE_NAME_SYSTEM_DEFAULT);
+    WINAPI_CONSTANT("u", LOCALE_NAME_USER_DEFAULT);
+
+    WINAPI_CONSTANT(F_DWORD, LCMAP_FULLWIDTH);
+    WINAPI_CONSTANT(F_DWORD, LCMAP_HALFWIDTH);
+    WINAPI_CONSTANT(F_DWORD, LCMAP_HIRAGANA);
+    WINAPI_CONSTANT(F_DWORD, LCMAP_KATAKANA);
+    WINAPI_CONSTANT(F_DWORD, LCMAP_LINGUISTIC_CASING);
+    WINAPI_CONSTANT(F_DWORD, LCMAP_LOWERCASE);
+    WINAPI_CONSTANT(F_DWORD, LCMAP_SIMPLIFIED_CHINESE);
+    WINAPI_CONSTANT(F_DWORD, LCMAP_TITLECASE);
+    WINAPI_CONSTANT(F_DWORD, LCMAP_TRADITIONAL_CHINESE);
+    WINAPI_CONSTANT(F_DWORD, LCMAP_UPPERCASE);
 
     WINAPI_CONSTANT("i", NULL);
 

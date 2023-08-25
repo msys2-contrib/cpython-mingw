@@ -65,7 +65,7 @@ If you download a module source distribution, you can tell pretty quickly if it
 was packaged and distributed in the standard way, i.e. using the Distutils.
 First, the distribution's name and version number will be featured prominently
 in the name of the downloaded archive, e.g. :file:`foo-1.0.tar.gz` or
-:file:`widget-0.9.7.zip`.  Next, the archive will unpack into a similarly-named
+:file:`widget-0.9.7.zip`.  Next, the archive will unpack into a similarly named
 directory: :file:`foo-1.0` or :file:`widget-0.9.7`.  Additionally, the
 distribution will contain a setup script :file:`setup.py`, and a file named
 :file:`README.txt` or possibly just :file:`README`, which should explain that
@@ -206,7 +206,7 @@ directory.
 If you don't choose an installation directory---i.e., if you just run ``setup.py
 install``\ ---then the :command:`install` command installs to the standard
 location for third-party Python modules.  This location varies by platform and
-by how you built/installed Python itself.  On Unix (and Mac OS X, which is also
+by how you built/installed Python itself.  On Unix (and macOS, which is also
 Unix-based), it also depends on whether the module distribution being installed
 is pure Python or contains extensions ("non-pure"):
 
@@ -236,7 +236,7 @@ Notes:
 
 :file:`{prefix}` and :file:`{exec-prefix}` stand for the directories that Python
 is installed to, and where it finds its libraries at run-time.  They are always
-the same under Windows, and very often the same under Unix and Mac OS X.  You
+the same under Windows, and very often the same under Unix and macOS.  You
 can find out what your Python installation uses for :file:`{prefix}` and
 :file:`{exec-prefix}` by running Python in interactive mode and typing a few
 simple commands. Under Unix, just type ``python`` at the shell prompt.  Under
@@ -309,10 +309,10 @@ install into it.  It is enabled with a simple option::
 
    python setup.py install --user
 
-Files will be installed into subdirectories of :data:`site.USER_BASE` (written
+Files will be installed into subdirectories of :const:`site.USER_BASE` (written
 as :file:`{userbase}` hereafter).  This scheme installs pure Python modules and
-extension modules in the same location (also known as :data:`site.USER_SITE`).
-Here are the values for UNIX, including Mac OS X:
+extension modules in the same location (also known as :const:`site.USER_SITE`).
+Here are the values for UNIX, including macOS:
 
 =============== ===========================================================
 Type of file    Installation directory
@@ -370,7 +370,7 @@ will expand this to your home directory::
 
 To make Python find the distributions installed with this scheme, you may have
 to :ref:`modify Python's search path <inst-search-path>` or edit
-:mod:`sitecustomize` (see :mod:`site`) to call :func:`site.addsitedir` or edit
+:mod:`!sitecustomize` (see :mod:`site`) to call :func:`site.addsitedir` or edit
 :data:`sys.path`.
 
 The :option:`!--home` option defines the installation base directory.  Files are
@@ -692,7 +692,7 @@ is supplied to suppress this behaviour.  So you could simply edit
    import sys
    sys.path.append('/www/python/')
 
-However, if you reinstall the same major version of Python (perhaps when
+However, if you reinstall the same minor version of Python (perhaps when
 upgrading from 2.2 to 2.2.2, for example) :file:`site.py` will be overwritten by
 the stock version.  You'd have to remember that it was modified and save a copy
 before doing the installation.
@@ -735,7 +735,7 @@ Location and names of config files
 ----------------------------------
 
 The names and locations of the configuration files vary slightly across
-platforms.  On Unix and Mac OS X, the three configuration files (in the order
+platforms.  On Unix and macOS, the three configuration files (in the order
 they are processed) are:
 
 +--------------+----------------------------------------------------------+-------+
@@ -761,7 +761,7 @@ And on Windows, the configuration files are:
 +--------------+-------------------------------------------------+-------+
 
 On all platforms, the "personal" file can be temporarily disabled by
-passing the `--no-user-cfg` option.
+passing the ``--no-user-cfg`` option.
 
 Notes:
 
@@ -774,7 +774,7 @@ Notes:
 
 (2)
    On Unix, if the :envvar:`HOME` environment variable is not defined, the user's
-   home directory will be determined with the :func:`getpwuid` function from the
+   home directory will be determined with the :func:`~pwd.getpwuid` function from the
    standard :mod:`pwd` module. This is done by the :func:`os.path.expanduser`
    function used by Distutils.
 
@@ -953,7 +953,7 @@ Borland/CodeGear C++
 This subsection describes the necessary steps to use Distutils with the Borland
 C++ compiler version 5.5.  First you have to know that Borland's object file
 format (OMF) is different from the format used by the Python version you can
-download from the Python or ActiveState Web site.  (Python is built with
+download from the Python or ActiveState web site.  (Python is built with
 Microsoft Visual C++, which uses COFF as the object file format.) For this
 reason you have to convert Python's library :file:`python25.lib` into the
 Borland format.  You can do this as follows:
@@ -1062,7 +1062,7 @@ normal libraries do.
 
 .. seealso::
 
-   `Building Python modules on MS Windows platform with MinGW <http://old.zope.org/Members/als/tips/win32_mingw_modules>`_
+   `Building Python modules on MS Windows platform with MinGW <https://old.zope.dev/Members/als/tips/win32_mingw_modules>`_
       Information about building the required libraries for the MinGW environment.
 
 

@@ -565,41 +565,53 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
     Py_ssize_t i,j;
     switch (typ) {
         case REG_DWORD:
-            if (value != Py_None && !PyLong_Check(value))
-                return FALSE;
-            *retDataBuf = (BYTE *)PyMem_NEW(DWORD, 1);
-            if (*retDataBuf == NULL){
-                PyErr_NoMemory();
-                return FALSE;
-            }
-            *retDataSize = sizeof(DWORD);
-            if (value == Py_None) {
-                DWORD zero = 0;
-                memcpy(*retDataBuf, &zero, sizeof(DWORD));
-            }
-            else {
-                DWORD d = PyLong_AsUnsignedLong(value);
+            {
+                if (value != Py_None && !PyLong_Check(value)) {
+                    return FALSE;
+                }
+                DWORD d;
+                if (value == Py_None) {
+                    d = 0;
+                }
+                else if (PyLong_Check(value)) {
+                    d = PyLong_AsUnsignedLong(value);
+                    if (d == (DWORD)(-1) && PyErr_Occurred()) {
+                        return FALSE;
+                    }
+                }
+                *retDataBuf = (BYTE *)PyMem_NEW(DWORD, 1);
+                if (*retDataBuf == NULL) {
+                    PyErr_NoMemory();
+                    return FALSE;
+                }
                 memcpy(*retDataBuf, &d, sizeof(DWORD));
+                *retDataSize = sizeof(DWORD);
+                break;
             }
-            break;
         case REG_QWORD:
-          if (value != Py_None && !PyLong_Check(value))
-                return FALSE;
-            *retDataBuf = (BYTE *)PyMem_NEW(DWORD64, 1);
-            if (*retDataBuf == NULL){
-                PyErr_NoMemory();
-                return FALSE;
-            }
-            *retDataSize = sizeof(DWORD64);
-            if (value == Py_None) {
-                DWORD64 zero = 0;
-                memcpy(*retDataBuf, &zero, sizeof(DWORD64));
-            }
-            else {
-                DWORD64 d = PyLong_AsUnsignedLongLong(value);
+            {
+                if (value != Py_None && !PyLong_Check(value)) {
+                    return FALSE;
+                }
+                DWORD64 d;
+                if (value == Py_None) {
+                    d = 0;
+                }
+                else if (PyLong_Check(value)) {
+                    d = PyLong_AsUnsignedLongLong(value);
+                    if (d == (DWORD64)(-1) && PyErr_Occurred()) {
+                        return FALSE;
+                    }
+                }
+                *retDataBuf = (BYTE *)PyMem_NEW(DWORD64, 1);
+                if (*retDataBuf == NULL) {
+                    PyErr_NoMemory();
+                    return FALSE;
+                }
                 memcpy(*retDataBuf, &d, sizeof(DWORD64));
+                *retDataSize = sizeof(DWORD64);
+                break;
             }
-            break;
         case REG_SZ:
         case REG_EXPAND_SZ:
             {
@@ -991,7 +1003,9 @@ winreg_DeleteKey_impl(PyObject *module, HKEY key, const Py_UNICODE *sub_key)
                     (Py_ssize_t)0) < 0) {
         return NULL;
     }
-    rc = RegDeleteKeyW(key, sub_key );
+    Py_BEGIN_ALLOW_THREADS
+    rc = RegDeleteKeyW(key, sub_key);
+    Py_END_ALLOW_THREADS
     if (rc != ERROR_SUCCESS)
         return PyErr_SetFromWindowsErrWithFunction(rc, "RegDeleteKey");
     Py_RETURN_NONE;
@@ -1012,7 +1026,10 @@ winreg.DeleteKeyEx
     reserved: int = 0
         A reserved integer, and must be zero.  Default is zero.
 
-Deletes the specified key (64-bit OS only).
+Deletes the specified key (intended for 64-bit OS).
+
+While this function is intended to be used for 64-bit OS, it is also
+ available on 32-bit systems.
 
 This method can not delete keys with subkeys.
 
@@ -1025,34 +1042,17 @@ static PyObject *
 winreg_DeleteKeyEx_impl(PyObject *module, HKEY key,
                         const Py_UNICODE *sub_key, REGSAM access,
                         int reserved)
-/*[clinic end generated code: output=52a1c8b374ebc003 input=711d9d89e7ecbed7]*/
+/*[clinic end generated code: output=52a1c8b374ebc003 input=a3186db079b3bf85]*/
 {
-    HMODULE hMod;
-    typedef LONG (WINAPI *RDKEFunc)(HKEY, const wchar_t*, REGSAM, int);
-    RDKEFunc pfn = NULL;
     long rc;
-
     if (PySys_Audit("winreg.DeleteKey", "nun",
                     (Py_ssize_t)key, sub_key,
                     (Py_ssize_t)access) < 0) {
         return NULL;
     }
-    /* Only available on 64bit platforms, so we must load it
-       dynamically. */
     Py_BEGIN_ALLOW_THREADS
-    hMod = GetModuleHandleW(L"advapi32.dll");
-    if (hMod)
-        pfn = (RDKEFunc)GetProcAddress(hMod, "RegDeleteKeyExW");
+    rc = RegDeleteKeyExW(key, sub_key, access, reserved);
     Py_END_ALLOW_THREADS
-    if (!pfn) {
-        PyErr_SetString(PyExc_NotImplementedError,
-                                        "not implemented on this platform");
-        return NULL;
-    }
-    Py_BEGIN_ALLOW_THREADS
-    rc = (*pfn)(key, sub_key, access, reserved);
-    Py_END_ALLOW_THREADS
-
     if (rc != ERROR_SUCCESS)
         return PyErr_SetFromWindowsErrWithFunction(rc, "RegDeleteKeyEx");
     Py_RETURN_NONE;
@@ -2046,11 +2046,9 @@ PyMODINIT_FUNC PyInit_winreg(void)
     PyHKEY_Type.tp_doc = PyHKEY_doc;
     if (PyType_Ready(&PyHKEY_Type) < 0)
         return NULL;
-    Py_INCREF(&PyHKEY_Type);
     if (PyDict_SetItemString(d, "HKEYType",
                              (PyObject *)&PyHKEY_Type) != 0)
         return NULL;
-    Py_INCREF(PyExc_OSError);
     if (PyDict_SetItemString(d, "error",
                              PyExc_OSError) != 0)
         return NULL;
@@ -2116,5 +2114,3 @@ PyMODINIT_FUNC PyInit_winreg(void)
     ADD_INT(REG_RESOURCE_REQUIREMENTS_LIST);
     return m;
 }
-
-

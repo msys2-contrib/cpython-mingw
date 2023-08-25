@@ -19,6 +19,10 @@ The :mod:`datetime` module supplies classes for manipulating dates and times.
 While date and time arithmetic is supported, the focus of the implementation is
 on efficient attribute extraction for output formatting and manipulation.
 
+.. tip::
+
+    Skip to :ref:`the format codes <format-codes>`.
+
 .. seealso::
 
    Module :mod:`calendar`
@@ -26,6 +30,9 @@ on efficient attribute extraction for output formatting and manipulation.
 
    Module :mod:`time`
       Time access and conversions.
+
+   Module :mod:`zoneinfo`
+      Concrete time zones representing the IANA time zone database.
 
    Package `dateutil <https://dateutil.readthedocs.io/en/stable/>`_
       Third-party library with expanded time zone and parsing support.
@@ -80,6 +87,12 @@ The :mod:`datetime` module exports the following constants:
 
    The largest year number allowed in a :class:`date` or :class:`.datetime` object.
    :const:`MAXYEAR` is ``9999``.
+
+.. attribute:: UTC
+
+   Alias for the UTC timezone singleton :attr:`datetime.timezone.utc`.
+
+   .. versionadded:: 3.11
 
 Available Types
 ---------------
@@ -151,7 +164,7 @@ The :class:`date`, :class:`.datetime`, :class:`.time`, and :class:`timezone` typ
 share these common features:
 
 - Objects of these types are immutable.
-- Objects of these types are hashable, meaning that they can be used as
+- Objects of these types are :term:`hashable`, meaning that they can be used as
   dictionary keys.
 - Objects of these types support efficient pickling via the :mod:`pickle` module.
 
@@ -517,18 +530,20 @@ Other constructors, all class methods:
 
 .. classmethod:: date.fromisoformat(date_string)
 
-   Return a :class:`date` corresponding to a *date_string* given in the format
-   ``YYYY-MM-DD``::
+   Return a :class:`date` corresponding to a *date_string* given in any valid
+   ISO 8601 format, except ordinal dates (e.g. ``YYYY-DDD``)::
 
       >>> from datetime import date
       >>> date.fromisoformat('2019-12-04')
       datetime.date(2019, 12, 4)
-
-   This is the inverse of :meth:`date.isoformat`. It only supports the format
-   ``YYYY-MM-DD``.
+      >>> date.fromisoformat('20191204')
+      datetime.date(2019, 12, 4)
+      >>> date.fromisoformat('2021-W01-1')
+      datetime.date(2021, 1, 4)
 
    .. versionadded:: 3.7
-
+   .. versionchanged:: 3.11
+      Previously, this method only supported the format ``YYYY-MM-DD``.
 
 .. classmethod:: date.fromisocalendar(year, week, day)
 
@@ -578,8 +593,8 @@ Supported operations:
 +-------------------------------+----------------------------------------------+
 | Operation                     | Result                                       |
 +===============================+==============================================+
-| ``date2 = date1 + timedelta`` | *date2* is ``timedelta.days`` days removed   |
-|                               | from *date1*. (1)                            |
+| ``date2 = date1 + timedelta`` | *date2* will be ``timedelta.days`` days      |
+|                               | after *date1*. (1)                           |
 +-------------------------------+----------------------------------------------+
 | ``date2 = date1 - timedelta`` | Computes *date2* such that ``date2 +         |
 |                               | timedelta == date1``. (2)                    |
@@ -701,8 +716,6 @@ Instance methods:
        >>> date(2002, 12, 4).isoformat()
        '2002-12-04'
 
-   This is the inverse of :meth:`date.fromisoformat`.
-
 .. method:: date.__str__()
 
    For a date *d*, ``str(d)`` is equivalent to ``d.isoformat()``.
@@ -728,18 +741,16 @@ Instance methods:
 .. method:: date.strftime(format)
 
    Return a string representing the date, controlled by an explicit format string.
-   Format codes referring to hours, minutes or seconds will see 0 values. For a
-   complete list of formatting directives, see
-   :ref:`strftime-strptime-behavior`.
+   Format codes referring to hours, minutes or seconds will see 0 values.
+   See also :ref:`strftime-strptime-behavior` and :meth:`date.isoformat`.
 
 
 .. method:: date.__format__(format)
 
    Same as :meth:`.date.strftime`. This makes it possible to specify a format
    string for a :class:`.date` object in :ref:`formatted string
-   literals <f-strings>` and when using :meth:`str.format`. For a
-   complete list of formatting directives, see
-   :ref:`strftime-strptime-behavior`.
+   literals <f-strings>` and when using :meth:`str.format`.
+   See also :ref:`strftime-strptime-behavior` and :meth:`date.isoformat`.
 
 Examples of Usage: :class:`date`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -985,31 +996,29 @@ Other constructors, all class methods:
 
 .. classmethod:: datetime.fromisoformat(date_string)
 
-   Return a :class:`.datetime` corresponding to a *date_string* in one of the
-   formats emitted by :meth:`date.isoformat` and :meth:`datetime.isoformat`.
+   Return a :class:`.datetime` corresponding to a *date_string* in any valid
+   ISO 8601 format, with the following exceptions:
 
-   Specifically, this function supports strings in the format:
-
-   .. code-block:: none
-
-      YYYY-MM-DD[*HH[:MM[:SS[.fff[fff]]]][+HH:MM[:SS[.ffffff]]]]
-
-   where ``*`` can match any single character.
-
-   .. caution::
-
-     This does *not* support parsing arbitrary ISO 8601 strings - it is only intended
-     as the inverse operation of :meth:`datetime.isoformat`. A more full-featured
-     ISO 8601 parser, ``dateutil.parser.isoparse`` is available in the third-party package
-     `dateutil <https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.isoparse>`__.
+   1. Time zone offsets may have fractional seconds.
+   2. The ``T`` separator may be replaced by any single unicode character.
+   3. Ordinal dates are not currently supported.
+   4. Fractional hours and minutes are not supported.
 
    Examples::
 
        >>> from datetime import datetime
        >>> datetime.fromisoformat('2011-11-04')
        datetime.datetime(2011, 11, 4, 0, 0)
+       >>> datetime.fromisoformat('20111104')
+       datetime.datetime(2011, 11, 4, 0, 0)
        >>> datetime.fromisoformat('2011-11-04T00:05:23')
        datetime.datetime(2011, 11, 4, 0, 5, 23)
+       >>> datetime.fromisoformat('2011-11-04T00:05:23Z')
+       datetime.datetime(2011, 11, 4, 0, 5, 23, tzinfo=datetime.timezone.utc)
+       >>> datetime.fromisoformat('20111104T000523')
+       datetime.datetime(2011, 11, 4, 0, 5, 23)
+       >>> datetime.fromisoformat('2011-W01-2T00:05:23.283')
+       datetime.datetime(2011, 1, 4, 0, 5, 23, 283000)
        >>> datetime.fromisoformat('2011-11-04 00:05:23.283')
        datetime.datetime(2011, 11, 4, 0, 5, 23, 283000)
        >>> datetime.fromisoformat('2011-11-04 00:05:23.283+00:00')
@@ -1019,6 +1028,10 @@ Other constructors, all class methods:
            tzinfo=datetime.timezone(datetime.timedelta(seconds=14400)))
 
    .. versionadded:: 3.7
+   .. versionchanged:: 3.11
+      Previously, this method only supported formats that could be emitted by
+      :meth:`date.isoformat()` or :meth:`datetime.isoformat()`.
+
 
 .. classmethod:: datetime.fromisocalendar(year, week, day)
 
@@ -1034,14 +1047,14 @@ Other constructors, all class methods:
    Return a :class:`.datetime` corresponding to *date_string*, parsed according to
    *format*.
 
-   This is equivalent to::
+   If *format* does not contain microseconds or timezone information, this is equivalent to::
 
      datetime(*(time.strptime(date_string, format)[0:6]))
 
    :exc:`ValueError` is raised if the date_string and format
    can't be parsed by :func:`time.strptime` or if it returns a value which isn't a
-   time tuple. For a complete list of formatting directives, see
-   :ref:`strftime-strptime-behavior`.
+   time tuple.  See also :ref:`strftime-strptime-behavior` and
+   :meth:`datetime.fromisoformat`.
 
 
 
@@ -1339,7 +1352,7 @@ Instance methods:
 
       Because naive ``datetime`` objects are treated by many ``datetime`` methods
       as local times, it is preferred to use aware datetimes to represent times
-      in UTC; as a result, using ``utcfromtimetuple`` may give misleading
+      in UTC; as a result, using :meth:`datetime.utctimetuple` may give misleading
       results. If you have a naive ``datetime`` representing UTC, use
       ``datetime.replace(tzinfo=timezone.utc)`` to make it aware, at which point
       you can use :meth:`.datetime.timetuple`.
@@ -1499,20 +1512,21 @@ Instance methods:
    (which :func:`time.ctime` invokes, but which
    :meth:`datetime.ctime` does not invoke) conforms to the C standard.
 
+
 .. method:: datetime.strftime(format)
 
-   Return a string representing the date and time, controlled by an explicit format
-   string. For a complete list of formatting directives, see
-   :ref:`strftime-strptime-behavior`.
+   Return a string representing the date and time,
+   controlled by an explicit format string.
+   See also :ref:`strftime-strptime-behavior` and :meth:`datetime.isoformat`.
 
 
 .. method:: datetime.__format__(format)
 
    Same as :meth:`.datetime.strftime`. This makes it possible to specify a format
    string for a :class:`.datetime` object in :ref:`formatted string
-   literals <f-strings>` and when using :meth:`str.format`. For a
-   complete list of formatting directives, see
-   :ref:`strftime-strptime-behavior`.
+   literals <f-strings>` and when using :meth:`str.format`.
+   See also :ref:`strftime-strptime-behavior` and :meth:`datetime.isoformat`.
+
 
 Examples of Usage: :class:`.datetime`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1754,30 +1768,41 @@ Other constructor:
 
 .. classmethod:: time.fromisoformat(time_string)
 
-   Return a :class:`.time` corresponding to a *time_string* in one of the
-   formats emitted by :meth:`time.isoformat`. Specifically, this function supports
-   strings in the format:
+   Return a :class:`.time` corresponding to a *time_string* in any valid
+   ISO 8601 format, with the following exceptions:
 
-   .. code-block:: none
-
-      HH[:MM[:SS[.fff[fff]]]][+HH:MM[:SS[.ffffff]]]
-
-   .. caution::
-
-     This does *not* support parsing arbitrary ISO 8601 strings. It is only
-     intended as the inverse operation of :meth:`time.isoformat`.
+   1. Time zone offsets may have fractional seconds.
+   2. The leading ``T``, normally required in cases where there may be ambiguity between
+      a date and a time, is not required.
+   3. Fractional seconds may have any number of digits (anything beyond 6 will
+      be truncated).
+   4. Fractional hours and minutes are not supported.
 
    Examples::
 
        >>> from datetime import time
        >>> time.fromisoformat('04:23:01')
        datetime.time(4, 23, 1)
+       >>> time.fromisoformat('T04:23:01')
+       datetime.time(4, 23, 1)
+       >>> time.fromisoformat('T042301')
+       datetime.time(4, 23, 1)
        >>> time.fromisoformat('04:23:01.000384')
+       datetime.time(4, 23, 1, 384)
+       >>> time.fromisoformat('04:23:01,000')
        datetime.time(4, 23, 1, 384)
        >>> time.fromisoformat('04:23:01+04:00')
        datetime.time(4, 23, 1, tzinfo=datetime.timezone(datetime.timedelta(seconds=14400)))
+       >>> time.fromisoformat('04:23:01Z')
+       datetime.time(4, 23, 1, tzinfo=datetime.timezone.utc)
+       >>> time.fromisoformat('04:23:01+00:00')
+       datetime.time(4, 23, 1, tzinfo=datetime.timezone.utc)
+
 
    .. versionadded:: 3.7
+   .. versionchanged:: 3.11
+      Previously, this method only supported formats that could be emitted by
+      :meth:`time.isoformat()`.
 
 
 Instance methods:
@@ -1846,17 +1871,15 @@ Instance methods:
 .. method:: time.strftime(format)
 
    Return a string representing the time, controlled by an explicit format
-   string. For a complete list of formatting directives, see
-   :ref:`strftime-strptime-behavior`.
+   string.  See also :ref:`strftime-strptime-behavior` and :meth:`time.isoformat`.
 
 
 .. method:: time.__format__(format)
 
-   Same as :meth:`.time.strftime`. This makes it possible to specify a format string
-   for a :class:`.time` object in :ref:`formatted string
-   literals <f-strings>` and when using :meth:`str.format`. For a
-   complete list of formatting directives, see
-   :ref:`strftime-strptime-behavior`.
+   Same as :meth:`.time.strftime`. This makes it possible to specify
+   a format string for a :class:`.time` object in :ref:`formatted string
+   literals <f-strings>` and when using :meth:`str.format`.
+   See also :ref:`strftime-strptime-behavior` and :meth:`time.isoformat`.
 
 
 .. method:: time.utcoffset()
@@ -2174,14 +2197,13 @@ only EST (fixed offset -5 hours), or only EDT (fixed offset -4 hours)).
 
 .. seealso::
 
-   `dateutil.tz <https://dateutil.readthedocs.io/en/stable/tz.html>`_
+    :mod:`zoneinfo`
       The :mod:`datetime` module has a basic :class:`timezone` class (for
       handling arbitrary fixed offsets from UTC) and its :attr:`timezone.utc`
       attribute (a UTC timezone instance).
 
-      *dateutil.tz* library brings the *IANA timezone database*
-      (also known as the Olson database) to Python, and its usage is
-      recommended.
+      ``zoneinfo`` brings the *IANA timezone database* (also known as the Olson
+      database) to Python, and its usage is recommended.
 
    `IANA timezone database <https://www.iana.org/time-zones>`_
       The Time Zone Database (often called tz, tzdata or zoneinfo) contains code
@@ -2244,7 +2266,7 @@ where historical changes have been made to civil time.
   two digits of ``offset.hours`` and ``offset.minutes`` respectively.
 
   .. versionchanged:: 3.6
-     Name generated from ``offset=timedelta(0)`` is now plain `'UTC'`, not
+     Name generated from ``offset=timedelta(0)`` is now plain ``'UTC'``, not
      ``'UTC+00:00'``.
 
 
@@ -2296,8 +2318,18 @@ versus :meth:`strptime`:
 +----------------+--------------------------------------------------------+------------------------------------------------------------------------------+
 
 
+   .. _format-codes:
+
 :meth:`strftime` and :meth:`strptime` Format Codes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These methods accept format codes that can be used to parse and format dates::
+
+   >>> datetime.strptime('31/01/22 23:59:59.999999',
+   ...                   '%d/%m/%y %H:%M:%S.%f')
+   datetime.datetime(2022, 1, 31, 23, 59, 59, 999999)
+   >>> _.strftime('%a %d %b %Y, %I:%M%p')
+   'Mon 31 Jan 2022, 11:59PM'
 
 The following is a list of all the format codes that the 1989 C standard
 requires, and these work on all platforms with a standard C implementation.
@@ -2357,8 +2389,8 @@ requires, and these work on all platforms with a standard C implementation.
 |           | decimal number.                |                        | \(9)  |
 +-----------+--------------------------------+------------------------+-------+
 | ``%f``    | Microsecond as a decimal       | 000000, 000001, ...,   | \(5)  |
-|           | number, zero-padded on the     | 999999                 |       |
-|           | left.                          |                        |       |
+|           | number, zero-padded to 6       | 999999                 |       |
+|           | digits.                        |                        |       |
 +-----------+--------------------------------+------------------------+-------+
 | ``%z``    | UTC offset in the form         | (empty), +0000,        | \(6)  |
 |           | ``±HHMM[SS[.ffffff]]`` (empty  | -0400, +1030,          |       |
@@ -2373,7 +2405,7 @@ requires, and these work on all platforms with a standard C implementation.
 +-----------+--------------------------------+------------------------+-------+
 | ``%U``    | Week number of the year        | 00, 01, ..., 53        | \(7), |
 |           | (Sunday as the first day of    |                        | \(9)  |
-|           | the week) as a zero padded     |                        |       |
+|           | the week) as a zero-padded     |                        |       |
 |           | decimal number. All days in a  |                        |       |
 |           | new year preceding the first   |                        |       |
 |           | Sunday are considered to be in |                        |       |
@@ -2381,10 +2413,10 @@ requires, and these work on all platforms with a standard C implementation.
 +-----------+--------------------------------+------------------------+-------+
 | ``%W``    | Week number of the year        | 00, 01, ..., 53        | \(7), |
 |           | (Monday as the first day of    |                        | \(9)  |
-|           | the week) as a decimal number. |                        |       |
-|           | All days in a new year         |                        |       |
-|           | preceding the first Monday     |                        |       |
-|           | are considered to be in        |                        |       |
+|           | the week) as a zero-padded     |                        |       |
+|           | decimal number. All days in a  |                        |       |
+|           | new year preceding the first   |                        |       |
+|           | Monday are considered to be in |                        |       |
 |           | week 0.                        |                        |       |
 +-----------+--------------------------------+------------------------+-------+
 | ``%c``    | Locale's appropriate date and  || Tue Aug 16 21:30:00   | \(1)  |
@@ -2431,7 +2463,8 @@ incomplete or ambiguous ISO 8601 directives will raise a :exc:`ValueError`.
 The full set of format codes supported varies across platforms, because Python
 calls the platform C library's :func:`strftime` function, and platform
 variations are common. To see the full set of format codes supported on your
-platform, consult the :manpage:`strftime(3)` documentation.
+platform, consult the :manpage:`strftime(3)` documentation. There are also
+differences between platforms in handling of unsupported format specifiers.
 
 .. versionadded:: 3.6
    ``%G``, ``%u`` and ``%V`` were added.
@@ -2475,10 +2508,7 @@ Notes:
    Because the format depends on the current locale, care should be taken when
    making assumptions about the output value. Field orderings will vary (for
    example, "month/day/year" versus "day/month/year"), and the output may
-   contain Unicode characters encoded using the locale's default encoding (for
-   example, if the current locale is ``ja_JP``, the default encoding could be
-   any one of ``eucJP``, ``SJIS``, or ``utf-8``; use :meth:`locale.getlocale`
-   to determine the current locale's encoding).
+   contain non-ASCII characters.
 
 (2)
    The :meth:`strptime` method can parse years in the full [1, 9999] range, but
@@ -2567,7 +2597,7 @@ Notes:
 
 (9)
    When used with the :meth:`strptime` method, the leading zero is optional
-   for  formats ``%d``, ``%m``, ``%H``, ``%I``, ``%M``, ``%S``, ``%J``, ``%U``,
+   for  formats ``%d``, ``%m``, ``%H``, ``%I``, ``%M``, ``%S``, ``%j``, ``%U``,
    ``%W``, and ``%V``. Format ``%y`` does require a leading zero.
 
 .. rubric:: Footnotes
@@ -2581,7 +2611,7 @@ Notes:
        many other calendar systems.
 
 .. [#] See R. H. van Gent's `guide to the mathematics of the ISO 8601 calendar
-       <https://www.staff.science.uu.nl/~gent0113/calendar/isocalendar.htm>`_
+       <https://web.archive.org/web/20220531051136/https://webspace.science.uu.nl/~gent0113/calendar/isocalendar.htm>`_
        for a good explanation.
 
 .. [#] Passing ``datetime.strptime('Feb 29', '%b %d')`` will fail since ``1900`` is not a leap year.
