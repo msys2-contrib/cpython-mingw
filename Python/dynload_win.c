@@ -250,6 +250,9 @@ dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
     _Py_CheckPython3(); 
 #endif
 
+// So we can adjust the separators in the path below
+#define USE_UNICODE_WCHAR_CACHE 0
+
 #if USE_UNICODE_WCHAR_CACHE
     const wchar_t *wpathname = _PyUnicode_AsUnicode(pathname);
 #else /* USE_UNICODE_WCHAR_CACHE */
@@ -257,6 +260,15 @@ dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
 #endif /* USE_UNICODE_WCHAR_CACHE */
     if (wpathname == NULL)
         return NULL;
+
+    // LoadLibraryExW only considers paths using backslashes as "fully qualified",
+    // and for example LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR doesn't work with forward slashes.
+    // https://github.com/msys2-contrib/cpython-mingw/issues/151
+    for (size_t i = 0; wpathname[i] != L'\0'; ++i) {
+        if (wpathname[i] == L'/') {
+            wpathname[i] = L'\\';
+        }
+    }
 
     PyOS_snprintf(funcname, sizeof(funcname), "%.20s_%.200s", prefix, shortname);
 
