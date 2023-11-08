@@ -218,6 +218,9 @@ class Tests(unittest.TestCase):
         import sysconfig
         import platform
         import importlib.machinery
+        import tempfile
+        import venv
+        import subprocess
         self.assertEqual(sys.implementation.name, "cpython")
         self.assertEqual(sys.platform, "win32")
         self.assertTrue(sysconfig.get_platform().startswith("mingw"))
@@ -240,6 +243,21 @@ class Tests(unittest.TestCase):
         self.assertEqual(platform.python_implementation(), "CPython")
         self.assertEqual(platform.system(), "Windows")
         self.assertTrue(isinstance(sys.api_version, int) and sys.api_version > 0)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            builder = venv.EnvBuilder()
+            builder.create(tmp)
+            # This will not work in in-tree build
+            if not sysconfig.is_python_build():
+                op = subprocess.check_output(
+                    [
+                        os.path.join(tmp, "bin", "python.exe"),
+                        "-c",
+                        "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))"
+                    ],
+                    cwd=tmp,
+                )
+                self.assertTrue(op.decode().strip().startswith(sys.base_prefix))
 
     def test_sys_getpath(self):
         # everything sourced from getpath.py
