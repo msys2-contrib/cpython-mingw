@@ -4516,6 +4516,12 @@ AS_CASE([$MACHDEP],
   [CTYPES_LIBS=""]
 )
 
+dnl On MINGW, you need to link againt rpcrt4 for _uuid
+AS_CASE([$MACHDEP],
+  [win32], [UUID_LIBS="-lrpcrt4"],
+  [UUID_LIBS=""]
+)
+
 dnl detect sqlite3 from Emscripten emport
 PY_CHECK_EMSCRIPTEN_PORT([LIBSQLITE3], [-sUSE_SQLITE3])
 
@@ -8348,8 +8354,8 @@ PY_STDLIB_MOD([_tkinter],
   [], [test "$have_tcltk" = "yes"],
   [$TCLTK_CFLAGS], [$TCLTK_LIBS])
 PY_STDLIB_MOD([_uuid],
-  [], [test "$have_uuid" = "yes"],
-  [$LIBUUID_CFLAGS], [$LIBUUID_LIBS])
+  [], [test "$have_uuid" = "yes" -o "$MACHDEP" = "win32"],
+  [$LIBUUID_CFLAGS], [$LIBUUID_LIBS $UUID_LIBS])
 
 dnl compression libs
 PY_STDLIB_MOD([zlib], [], [test "$have_zlib" = yes],
