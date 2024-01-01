@@ -7186,6 +7186,14 @@ dnl have_panel=[no, yes]
 have_curses=no
 have_panel=no
 
+case "$host_os" in
+	mingw*)
+	# On Mingw, include directory is different, so just assume
+  # it's there.
+	ac_cv_header_ncurses_h=yes
+	;;
+esac
+
 dnl PY_CHECK_CURSES(LIBCURSES, LIBPANEL)
 dnl Sets 'have_curses' and 'have_panel'.
 dnl For the PKG_CHECK_MODULES() calls, we can safely reuse the first variable
