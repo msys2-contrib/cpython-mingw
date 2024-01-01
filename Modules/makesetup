@@ -88,7 +88,7 @@ NL='\
 '
 
 # Setup to link with extra libraries when making shared extensions.
-# Currently, only Cygwin needs this baggage.
+# Currently, only Cygwin and MINGW needs this baggage.
 case `uname -s` in
 CYGWIN*) if test $libdir = .
 	 then
@@ -97,6 +97,9 @@ CYGWIN*) if test $libdir = .
 	 	ExtraLibDir='$(LIBPL)'
 	 fi
 	 ExtraLibs="-L$ExtraLibDir -lpython\$(LDVERSION)";;
+*)
+	 ExtraLibs='$(BLDLIBRARY)'
+	 ExtraLibDepends='$(LIBRARY_DEPS)';;
 esac
 
 # Main loop
@@ -285,7 +288,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
 				BUILT_SHARED="$BUILT_SHARED $mod"
 				;;
 			esac
-			rule="$file: $objs"
+			rule="$file: $objs $ExtraLibDepends"
 			rule="$rule; \$(BLDSHARED) $objs $libs $ExtraLibs -o $file"
 			echo "$rule" >>$rulesf
 		done
