@@ -4498,6 +4498,13 @@ AS_CASE([$MACHDEP],
   [SOCKET_LIBS=""]
 )
 
+dnl On MINGW, you need to link againt ws2_32 for _multiprocessing
+AS_CASE([$MACHDEP],
+  [win32], [MULTIPROCESSING_LIBS="-lws2_32"],
+  [MULTIPROCESSING_LIBS=""]
+)
+
+
 dnl detect sqlite3 from Emscripten emport
 PY_CHECK_EMSCRIPTEN_PORT([LIBSQLITE3], [-sUSE_SQLITE3])
 
@@ -8227,7 +8234,7 @@ PY_STDLIB_MOD_SIMPLE([_zoneinfo])
 dnl multiprocessing modules
 PY_STDLIB_MOD([_multiprocessing],
   [], [test "$ac_cv_func_sem_unlink" = "yes" -o "$MACHDEP" = "win32"],
-  [-I\$(srcdir)/Modules/_multiprocessing])
+  [-I\$(srcdir)/Modules/_multiprocessing], [$MULTIPROCESSING_LIBS])
 PY_STDLIB_MOD([_posixshmem],
   [], [test "$have_posix_shmem" = "yes"],
   [$POSIXSHMEM_CFLAGS], [$POSIXSHMEM_LIBS])
