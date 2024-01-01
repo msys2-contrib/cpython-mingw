@@ -4294,6 +4294,12 @@ AS_CASE([$MACHDEP],
   [SELECTMODULE_LIBS=""]
 )
 
+dnl On MINGW, you need to link againt ole32, oleaut32 and uuid for ctypes
+AS_CASE([$MACHDEP],
+  [win32], [CTYPES_LIBS="-lole32 -loleaut32 -luuid"],
+  [CTYPES_LIBS=""]
+)
+
 dnl detect sqlite3 from Emscripten emport
 PY_CHECK_EMSCRIPTEN_PORT([LIBSQLITE3], [-sUSE_SQLITE3])
 
@@ -7991,7 +7997,7 @@ PY_STDLIB_MOD([_crypt],
   [$LIBCRYPT_CFLAGS], [$LIBCRYPT_LIBS])
 PY_STDLIB_MOD([_ctypes],
   [], [test "$have_libffi" = yes],
-  [$NO_STRICT_OVERFLOW_CFLAGS $LIBFFI_CFLAGS], [$LIBFFI_LIBS])
+  [$NO_STRICT_OVERFLOW_CFLAGS $LIBFFI_CFLAGS], [$LIBFFI_LIBS $CTYPES_LIBS])
 PY_STDLIB_MOD([_curses],
   [], [test "$have_curses" != "no"],
   [$CURSES_CFLAGS], [$CURSES_LIBS]
@@ -8062,7 +8068,7 @@ PY_STDLIB_MOD([_xxtestfuzz], [test "$TEST_MODULES" = yes])
 PY_STDLIB_MOD([_testconsole], [test "$TEST_MODULES" = yes -a "$MACHDEP" = "win32"])
 PY_STDLIB_MOD([_ctypes_test],
   [test "$TEST_MODULES" = yes], [test "$have_libffi" = yes -a "$have_dynamic_loading" = yes],
-  [], [$LIBM])
+  [], [$LIBM $CTYPES_LIBS])
 
 dnl Limited API template modules.
 dnl The limited C API is not compatible with the Py_TRACE_REFS macro.
