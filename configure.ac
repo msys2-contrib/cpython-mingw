@@ -6868,6 +6868,14 @@ dnl have_panel=[no, panelw, panel]
 have_curses=no
 have_panel=no
 
+case "$host_os" in
+	mingw*)
+	# On Mingw, include directory is different, so just assume
+  # it's there.
+	ac_cv_header_ncurses_h=yes
+	;;
+esac
+
 AH_TEMPLATE([HAVE_NCURSESW], [Define to 1 if you have the `ncursesw' library.])
 AC_CHECK_HEADERS([curses.h ncurses.h])
 
