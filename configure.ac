@@ -4288,6 +4288,11 @@ AS_CASE([$MACHDEP],
   [MULTIPROCESSING_LIBS=""]
 )
 
+dnl On MINGW, you need to link againt ws2_32 for selectmodule
+AS_CASE([$MACHDEP],
+  [win32], [SELECTMODULE_LIBS="-lws2_32"],
+  [SELECTMODULE_LIBS=""]
+)
 
 dnl detect sqlite3 from Emscripten emport
 PY_CHECK_EMSCRIPTEN_PORT([LIBSQLITE3], [-sUSE_SQLITE3])
@@ -7896,7 +7901,7 @@ PY_STDLIB_MOD_SIMPLE([_opcode])
 PY_STDLIB_MOD_SIMPLE([_pickle])
 PY_STDLIB_MOD_SIMPLE([_queue])
 PY_STDLIB_MOD_SIMPLE([_random])
-PY_STDLIB_MOD_SIMPLE([select])
+PY_STDLIB_MOD_SIMPLE([select], [], [$SELECTMODULE_LIBS])
 PY_STDLIB_MOD_SIMPLE([_struct])
 PY_STDLIB_MOD_SIMPLE([_typing])
 PY_STDLIB_MOD_SIMPLE([_xxsubinterpreters])
