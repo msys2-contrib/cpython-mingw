@@ -7760,6 +7760,7 @@ AS_CASE([$ac_sys_system],
   [VxWorks*], [PY_STDLIB_MOD_SET_NA([_scproxy], [_crypt], [termios], [grp])],
   [Darwin], [PY_STDLIB_MOD_SET_NA([ossaudiodev], [spwd])],
   [CYGWIN*], [PY_STDLIB_MOD_SET_NA([_scproxy], [nis])],
+  [MINGW*], [PY_STDLIB_MOD_SET_NA([readline])],
   [QNX*], [PY_STDLIB_MOD_SET_NA([_scproxy], [nis])],
   [FreeBSD*], [PY_STDLIB_MOD_SET_NA([_scproxy], [spwd])],
   [Emscripten|WASI], [
