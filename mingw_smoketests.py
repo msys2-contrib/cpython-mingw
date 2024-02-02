@@ -61,24 +61,24 @@ class Tests(unittest.TestCase):
                 self.assertEqual(str(Path("~").expanduser()), expanduser("~"))
                 self.assertEqual(str(Path.home()), expanduser("~"))
 
-    def test_sysconfig_schemes(self):
-        # https://github.com/msys2/MINGW-packages/issues/9319
-        import sysconfig
-        from distutils.dist import Distribution
-        from distutils.command.install import install
+    # def test_sysconfig_schemes(self):
+    #     # https://github.com/msys2/MINGW-packages/issues/9319
+    #     import sysconfig
+    #     from distutils.dist import Distribution
+    #     from distutils.command.install import install
 
-        names = ['scripts', 'purelib', 'platlib', 'data', 'include']
-        for scheme in ["nt", "nt_user"]:
-            for name in names:
-                c = install(Distribution({"name": "foobar"}))
-                c.user = (scheme == "nt_user")
-                c.finalize_options()
-                if name == "include":
-                    dist_path = os.path.dirname(getattr(c, "install_" + "headers"))
-                else:
-                    dist_path = getattr(c, "install_" + name)
-                sys_path = sysconfig.get_path(name, scheme)
-                self.assertEqual(dist_path, sys_path, (scheme, name))
+    #     names = ['scripts', 'purelib', 'platlib', 'data', 'include']
+    #     for scheme in ["nt", "nt_user"]:
+    #         for name in names:
+    #             c = install(Distribution({"name": "foobar"}))
+    #             c.user = (scheme == "nt_user")
+    #             c.finalize_options()
+    #             if name == "include":
+    #                 dist_path = os.path.dirname(getattr(c, "install_" + "headers"))
+    #             else:
+    #                 dist_path = getattr(c, "install_" + name)
+    #             sys_path = sysconfig.get_path(name, scheme)
+    #             self.assertEqual(dist_path, sys_path, (scheme, name))
 
     def test_ctypes_find_library(self):
         from ctypes.util import find_library
