@@ -283,6 +283,10 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(site.getsitepackages()), 1)
 
     def test_c_ext_build(self):
+        # This will not work in in-tree build
+        if sysconfig.is_python_build():
+            raise unittest.SkipTest("in-tree build")
+
         import tempfile
         import sys
         import subprocess
