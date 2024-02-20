@@ -1,0 +1,8 @@
+test.datetimetester.TestLocalTimeDisambiguation_Fast.*
+test.datetimetester.TestLocalTimeDisambiguation_Pure.*
+test.test_cmath.CMathTests.test_specific_values
+test.test_math.MathTests.*
+test.test_strptime.CalculationTests.*
+test.test_strptime.StrptimeTests.test_weekday
+test.test_strptime.TimeRETests.test_compile
+test.test_tools.test_i18n.Test_pygettext.test_POT_Creation_Date
