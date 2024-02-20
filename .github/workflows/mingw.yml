@@ -89,16 +89,24 @@ jobs:
         shell: msys2 {0}
         run: |
           IGNOREFILE="$(pwd)/mingw_ignorefile.txt"
+          IGNOREFILE_EXTRA="$IGNOREFILE"
+          if [[ "${{ matrix.msystem }}" == "MINGW32" ]] || [[ "${{ matrix.msystem }}" == "MINGW64" ]]; then
+            IGNOREFILE_EXTRA="$(pwd)/mingw_ignorefile_msvcrt.txt"
+          fi
           cd _build
-          MSYSTEM= ./python.exe -m test -j8 --ignorefile "$IGNOREFILE" -W
+          MSYSTEM= ./python.exe -m test -j8 --ignorefile "$IGNOREFILE" --ignorefile "$IGNOREFILE_EXTRA" -W
 
       - name: Run broken tests
         continue-on-error: true
         shell: msys2 {0}
         run: |
           IGNOREFILE="$(pwd)/mingw_ignorefile.txt"
+          IGNOREFILE_EXTRA="$IGNOREFILE"
+          if [[ "${{ matrix.msystem }}" == "MINGW32" ]] || [[ "${{ matrix.msystem }}" == "MINGW64" ]]; then
+            IGNOREFILE_EXTRA="$(pwd)/mingw_ignorefile_msvcrt.txt"
+          fi
           cd _build
-          MSYSTEM= ./python.exe -m test -j8 --matchfile "$IGNOREFILE" -W
+          MSYSTEM= ./python.exe -m test -j8 --matchfile "$IGNOREFILE" --matchfile "$IGNOREFILE_EXTRA" -W
 
       - name: Install
         shell: msys2 {0}
