@@ -7,7 +7,7 @@ from test.support import import_helper, requires_resource, LOOPBACK_TIMEOUT
 
 
 # Do this first so test will be skipped if module doesn't exist
-_wmi = import_helper.import_module('_wmi', required_on=['win'])
+_wmi = import_helper.import_module('_wmi')
 
 
 def wmi_exec_query(query):
