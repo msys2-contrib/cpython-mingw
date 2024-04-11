@@ -27,6 +27,7 @@ test.test_strptime.CalculationTests.*
 test.test_strptime.StrptimeTests.test_weekday
 test.test_strptime.TimeRETests.test_compile
 test.test_tools.test_i18n.Test_pygettext.test_POT_Creation_Date
+test.test_tools.test_makefile.*
 test.test_venv.BasicTest.*
 test.test_venv.EnsurePipTest.*
 test.test_sysconfig.TestSysConfig.test_user_similar
