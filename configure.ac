@@ -2639,6 +2639,14 @@ case $GCC in
 yes)
     CFLAGS_NODIST="$CFLAGS_NODIST -std=c11"
 
+    # GCC 14 and later error out with incompatible-pointer-types
+    # this only occues on mingw
+    case $host in
+    *-*-mingw*)
+        CFLAGS_NODIST="$CFLAGS_NODIST -Wno-error=incompatible-pointer-types"
+      ;;
+    esac
+
     PY_CHECK_CC_WARNING([enable], [extra], [if we can add -Wextra])
     AS_VAR_IF([ac_cv_enable_extra_warning], [yes],
               [CFLAGS_NODIST="$CFLAGS_NODIST -Wextra"])
