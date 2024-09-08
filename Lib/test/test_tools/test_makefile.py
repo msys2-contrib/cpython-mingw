@@ -33,11 +33,12 @@ class TestMakefile(unittest.TestCase):
                     if '\t' not in line:
                         break
                     result.append(line.replace('\\', '').strip())
+        result = [os.path.normpath(d) for d in result if d]
         return result
 
     def test_makefile_test_folders(self):
         test_dirs = self.list_test_dirs()
-        idle_test = 'idlelib/idle_test'
+        idle_test = os.path.join('idlelib', 'idle_test')
         self.assertIn(idle_test, test_dirs)
 
         used = [idle_test]
