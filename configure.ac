@@ -6628,16 +6628,12 @@ AC_C_BIGENDIAN
 
 AC_SUBST(PYD_PLATFORM_TAG)
 # Special case of PYD_PLATFORM_TAG with python build with mingw.
-# Python can with compiled with clang or gcc and linked
-# to msvcrt or ucrt. To avoid conflicts between them
-# we are selecting the extension as based on the compiler
-# and the runtime they link to
-#   gcc + x86_64 + msvcrt = cp{version number}-x86_64
-#   gcc + i686 + msvcrt = cp{version number}-i686
-#   gcc + x86_64 + ucrt = cp{version number}-x86_64-ucrt
-#   clang + x86_64 + ucrt = cp{version number}-x86_64-clang
-#   clang + i686 + ucrt = cp{version number}-i686-clang
-
+# Python can with different cpu arch and c runtime as well as different
+# toolchain. We follow this`mingw_<cpu_arch>_<c_runtime>_<toolchain>`
+# convention for PYD_PLATFORM_TAG. Where:
+# `cpu_arch` = `x86_64`, `aarch64` or `i686`
+# `c_runtime` = `msvcrt` or `ucrt`
+# `toolchain` = `gnu` or `llvm`
 PYD_PLATFORM_TAG=""
 case $host in
   *-*-mingw*)
@@ -6656,38 +6652,32 @@ esac
 case $host_os in
     mingw*)
   AC_MSG_CHECKING(PYD_PLATFORM_TAG)
+  PYD_PLATFORM_TAG="mingw"
   case $host in
   i686-*-mingw*)
-    if test -n "${cc_is_clang}"; then
-      # it is CLANG32
-      PYD_PLATFORM_TAG="mingw_i686_clang"
-    else
-      if test $linking_to_ucrt = no; then
-        PYD_PLATFORM_TAG="mingw_i686"
-      else
-        PYD_PLATFORM_TAG="mingw_i686_ucrt"
-      fi
-    fi
+    PYD_PLATFORM_TAG+="_i686"
     ;;
   x86_64-*-mingw*)
-    if test -n "${cc_is_clang}"; then
-      # it is CLANG64
-      PYD_PLATFORM_TAG="mingw_x86_64_clang"
-    else
-      if test $linking_to_ucrt = no; then
-        PYD_PLATFORM_TAG="mingw_x86_64"
-      else
-        PYD_PLATFORM_TAG="mingw_x86_64_ucrt"
-      fi
-    fi
+    PYD_PLATFORM_TAG+="_x86_64"
     ;;
   aarch64-*-mingw*)
-    PYD_PLATFORM_TAG+="mingw_aarch64"
+    PYD_PLATFORM_TAG+="_aarch64"
     ;;
   armv7-*-mingw*)
-    PYD_PLATFORM_TAG+="mingw_armv7"
+    PYD_PLATFORM_TAG+="_armv7"
     ;;
   esac
+  if test $linking_to_ucrt = no; then
+    PYD_PLATFORM_TAG+="_msvcrt"
+  else
+    PYD_PLATFORM_TAG += "_ucrt"
+  fi
+  if test -n "${cc_is_clang}"; then
+    # it is CLANG32
+    PYD_PLATFORM_TAG+="_llvm"
+  else
+    PYD_PLATFORM_TAG+="_gnu"
+  fi
   AC_MSG_RESULT($PYD_PLATFORM_TAG)
 esac
 
