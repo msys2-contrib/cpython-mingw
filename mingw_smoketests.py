@@ -37,7 +37,7 @@ else:
 if sysconfig.is_python_build():
     os.environ["PYTHONLEGACYWINDOWSDLLLOADING"] = "1"
 
-_UCRT = sysconfig.get_platform() not in ('mingw_x86_64', 'mingw_i686')
+_UCRT = 'ucrt' in sysconfig.get_platform()
 
 
 class Tests(unittest.TestCase):
