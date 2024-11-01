@@ -32,8 +32,13 @@
 #if defined(__clang__)
 #define str(x) #x
 #define xstr(x) str(x)
+#if defined(_UCRT)
+#define COMPILER COMP_SEP "[GCC UCRT Clang " xstr(__clang_major__) "." \
+        xstr(__clang_minor__) "." xstr(__clang_patchlevel__) ARCH_SUFFIX "]"
+#else
 #define COMPILER COMP_SEP "[GCC Clang " xstr(__clang_major__) "." \
         xstr(__clang_minor__) "." xstr(__clang_patchlevel__) ARCH_SUFFIX "]"
+#endif
 #else
 #if defined(_UCRT)
 #define COMPILER COMP_SEP "[GCC UCRT " __VERSION__ ARCH_SUFFIX "]"
