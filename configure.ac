@@ -6377,7 +6377,7 @@ case $host_os in
   if test $linking_to_ucrt = no; then
     PYD_PLATFORM_TAG+="_msvcrt"
   else
-    PYD_PLATFORM_TAG += "_ucrt"
+    PYD_PLATFORM_TAG+="_ucrt"
   fi
   if test -n "${cc_is_clang}"; then
     # it is CLANG32
