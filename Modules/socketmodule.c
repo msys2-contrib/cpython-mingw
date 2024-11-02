@@ -279,7 +279,7 @@ shutdown(how) -- shut down traffic in one or both directions\n\
 # endif
 
 /* Helpers needed for AF_HYPERV */
-# include <Rpc.h>
+# include <rpc.h>
 
 /* Macros based on the IPPROTO enum, see: https://bugs.python.org/issue29515 */
 #ifdef _MSC_VER
