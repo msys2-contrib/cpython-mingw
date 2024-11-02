@@ -161,13 +161,21 @@ jobs:
   cross-gcc-x86_64:
     runs-on: ubuntu-latest
     container:
-      image: archlinux:base-devel
+      image: ubuntu:24.10
     steps:
       - uses: actions/checkout@v3
       - name: Install deps
         run: |
-          pacman --noconfirm -Suuy
-          pacman --needed --noconfirm -S mingw-w64-gcc autoconf-archive autoconf automake zip
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            gcc-mingw-w64-x86-64 \
+            g++-mingw-w64-x86-64 \
+            autoconf-archive \
+            autoconf \
+            automake \
+            zip \
+            make \
+            pkg-config
 
       - uses: actions/setup-python@v4
         with:
@@ -188,9 +196,6 @@ jobs:
             --host=x86_64-w64-mingw32 \
             --build=x86_64-pc-linux-gnu \
             --enable-shared \
-            --with-system-expat \
-            --with-system-ffi \
-            --with-system-libmpdec \
             --without-ensurepip \
             --enable-loadable-sqlite-extensions \
             --with-build-python=yes
