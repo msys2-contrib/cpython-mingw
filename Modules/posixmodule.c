@@ -9345,7 +9345,7 @@ os_setpgrp_impl(PyObject *module)
 
 #ifdef MS_WINDOWS
 #include <winternl.h>
-#include <ProcessSnapshot.h>
+#include <processsnapshot.h>
 
 // The structure definition in winternl.h may be incomplete.
 // This structure is the full version from the MSDN documentation.
