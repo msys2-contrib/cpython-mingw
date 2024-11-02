@@ -255,9 +255,6 @@ jobs:
             --host=${{ matrix.arch }}-w64-mingw32 \
             --build=x86_64-pc-linux-gnu \
             --enable-shared \
-            --with-system-expat \
-            --with-system-ffi \
-            --with-system-libmpdec \
             --without-ensurepip \
             --without-c-locale-coercion \
             --enable-loadable-sqlite-extensions \
