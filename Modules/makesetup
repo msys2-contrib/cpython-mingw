@@ -97,7 +97,7 @@ CYGWIN*) if test $libdir = .
 	 	ExtraLibDir='$(LIBPL)'
 	 fi
 	 ExtraLibs="-L$ExtraLibDir -lpython\$(LDVERSION)";;
-MINGW*)
+*)
 	 ExtraLibs='$(BLDLIBRARY)'
 	 ExtraLibDepends='$(LIBRARY_DEPS)';;
 esac
