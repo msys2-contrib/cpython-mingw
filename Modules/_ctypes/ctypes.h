@@ -56,7 +56,7 @@
 #endif
 
 #ifdef MS_WIN32
-#include <Unknwn.h> // for IUnknown interface
+#include <unknwn.h> // for IUnknown interface
 #endif
 
 typedef struct {
