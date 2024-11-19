@@ -48,7 +48,9 @@ def pathname2url(p):
     # e.g.
     #   C:\foo\bar\spam.foo
     # becomes
-    #   ///C:/foo/bar/spam.foo
+    #   //C:/foo/bar/spam.foo
+    # Normalize path separators to backslashes first
+    p = p.replace('/', '\\')
     import urllib.parse
     # First, clean up some special forms. We are going to sacrifice
     # the additional information anyway
@@ -74,7 +76,7 @@ def pathname2url(p):
 
     drive = urllib.parse.quote(comp[0].upper())
     components = comp[1].split('\\')
-    path = '///' + drive + ':'
+    path = '//' + drive + ':'
     for comp in components:
         if comp:
             path = path + '/' + urllib.parse.quote(comp)
