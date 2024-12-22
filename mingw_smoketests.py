@@ -287,10 +287,14 @@ class Tests(unittest.TestCase):
         import sys
         import subprocess
         import textwrap
+        import venv
         from pathlib import Path
 
         with tempfile.TemporaryDirectory() as tmppro:
-            subprocess.check_call([sys.executable, "-m", "ensurepip", "--user"])
+            builder = venv.EnvBuilder(with_pip=True)
+            builder.create(tmppro)
+            venv_exe = os.path.join(tmppro, "bin", os.path.basename(sys.executable))
+
             with Path(tmppro, "setup.py").open("w") as f:
                 f.write(
                     textwrap.dedent(
@@ -342,20 +346,11 @@ class Tests(unittest.TestCase):
                     )
                 )
             subprocess.check_call(
-                [sys.executable, "-c", "import struct"],
+                [venv_exe, "-c", "import struct"],
             )
             subprocess.check_call(
                 [
-                    sys.executable,
-                    "-m",
-                    "pip",
-                    "install",
-                    "wheel",
-                ],
-            )
-            subprocess.check_call(
-                [
-                    sys.executable,
+                    venv_exe,
                     "-m",
                     "pip",
                     "install",
@@ -363,7 +358,7 @@ class Tests(unittest.TestCase):
                 ],
             )
             subprocess.check_call(
-                [sys.executable, "-c", "import cwrapper"],
+                [venv_exe, "-c", "import cwrapper"],
             )
 
 
