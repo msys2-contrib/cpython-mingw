@@ -918,10 +918,10 @@ $(BUILDPYTHON):	Programs/python.o $(LINK_PYTHON_DEPS) python_exe.o
 	$(LINKCC) $(PY_CORE_LDFLAGS) $(LINKFORSHARED) -municode -o $@ Programs/python.o $(LINK_PYTHON_OBJS) $(LIBS) $(MODLIBS) $(SYSLIBS) python_exe.o
 
 $(BUILDVENVLAUNCHER): $(BUILDPYTHON) venvlauncher.o  $(srcdir)/PC/launcher.c
-	$(LINKCC) -D_CONSOLE -DVENV_REDIRECT $(PY_STDMODULE_CFLAGS) -municode -static -static-libgcc -static-libstdc++ venvlauncher.o $(srcdir)/PC/launcher.c -o $@ -lversion
+	$(LINKCC) -D_CONSOLE -DVENV_REDIRECT -DPYTHON_EXECUTABLE_WITH_VERSION="L\"python$(LDVERSION)$(EXE)\"" $(PY_STDMODULE_CFLAGS) -municode -static -static-libgcc -static-libstdc++ venvlauncher.o $(srcdir)/PC/launcher.c -o $@ -lversion
 
 $(BUILDVENVWLAUNCHER): $(BUILDPYTHONW) venvwlauncher.o  $(srcdir)/PC/launcher.c
-	$(LINKCC) -D_WINDOWS -DVENV_REDIRECT $(PY_STDMODULE_CFLAGS) -mwindows -municode -static -static-libgcc -static-libstdc++ venvwlauncher.o $(srcdir)/PC/launcher.c -o $@ -lversion
+	$(LINKCC) -D_WINDOWS -DVENV_REDIRECT -DPYTHON_EXECUTABLE_WITH_VERSION="L\"pythonw$(LDVERSION)$(EXE)\"" $(PY_STDMODULE_CFLAGS) -mwindows -municode -static -static-libgcc -static-libstdc++ venvwlauncher.o $(srcdir)/PC/launcher.c -o $@ -lversion
 
 platform: $(PYTHON_FOR_BUILD_DEPS) pybuilddir.txt
 	$(RUNSHARED) $(PYTHON_FOR_BUILD) -c 'import sys ; from sysconfig import get_platform ; print("%s-%d.%d" % (get_platform(), *sys.version_info[:2]))' >platform
