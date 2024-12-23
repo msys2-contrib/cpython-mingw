@@ -1930,7 +1930,8 @@ process(int argc, wchar_t ** argv)
         if (!cch) {
             error(0, L"Cannot determine memory for home path");
         }
-        cch += (DWORD)wcslen(PYTHON_EXECUTABLE) + 4; /* include sep, null and quotes */
+        cch += (DWORD)max(wcslen(PYTHON_EXECUTABLE_WITH_VERSION),
+                          wcslen(PYTHON_EXECUTABLE)) + 4; /* include sep, null and quotes */
         executable = (wchar_t *)malloc(cch * sizeof(wchar_t));
         if (executable == NULL) {
             error(RC_NO_MEMORY, L"A memory allocation failed");
@@ -1948,13 +1949,22 @@ process(int argc, wchar_t ** argv)
             executable[cch_actual++] = L'\\';
             executable[cch_actual] = L'\0';
         }
-        if (wcscat_s(&executable[1], cch - 1, PYTHON_EXECUTABLE)) {
+        if (wcscat_s(&executable[1], cch - 1, PYTHON_EXECUTABLE_WITH_VERSION)) {
             error(RC_BAD_VENV_CFG, L"Cannot create executable path from '%ls'",
                   venv_cfg_path);
         }
         /* there's no trailing quote, so we only have to skip one character for the test */
+        // Check if the versioned executable (PYTHON_EXECUTABLE_WITH_VERSION) exists first
         if (GetFileAttributesW(&executable[1]) == INVALID_FILE_ATTRIBUTES) {
-            error(RC_NO_PYTHON, L"No Python at '%ls'", executable);
+            // If not found, try PYTHON_EXECUTABLE
+            executable[cch_actual] = L'\0';  // Reset the path
+            if (wcscat_s(&executable[1], cch - 1, PYTHON_EXECUTABLE)) {
+                error(RC_BAD_VENV_CFG, L"Cannot create executable path from '%ls'",
+                      venv_cfg_path);
+            }
+            if (GetFileAttributesW(&executable[1]) == INVALID_FILE_ATTRIBUTES) {
+                error(RC_NO_PYTHON, L"No Python at '%ls'", executable);
+            }
         }
         /* now append the final quote */
         wcscat_s(executable, cch, L"\"");
