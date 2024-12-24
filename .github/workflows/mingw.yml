@@ -55,7 +55,7 @@ jobs:
         run: |
           set -ex
 
-          if [[ "${{ matrix.msystem }}" == "CLANG64" ]]; then
+          if [[ "${{ matrix.msystem }}" == CLANG* ]]; then
             export CC=clang
             export CXX=clang++
           fi
