@@ -13,7 +13,6 @@ import sysconfig
 import types
 import shlex
 
-from sysconfig import _POSIX_BUILD
 
 CORE_VENV_DEPS = ('pip',)
 logger = logging.getLogger(__name__)
@@ -331,7 +330,7 @@ class EnvBuilder:
                     if not os.path.islink(path):
                         os.chmod(path, 0o755)
         else:
-            if self.symlinks and not _POSIX_BUILD:
+            if self.symlinks:
                 # For symlinking, we need a complete copy of the root directory
                 # If symlinks fail, you'll get unnecessary copies of files, but
                 # we assume that if you've opted into symlinks on Windows then
@@ -355,11 +354,10 @@ class EnvBuilder:
                 if os.path.lexists(src):
                     copier(src, os.path.join(binpath, suffix))
 
-            if _POSIX_BUILD:
-                # copy from python/pythonw so the venvlauncher magic in symlink_or_copy triggers
-                copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python3.exe'))
-                copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python%d.%d.exe' % sys.version_info[:2]))
-                copier(os.path.join(dirname, 'pythonw.exe'), os.path.join(binpath, 'python3w.exe'))
+            # copy from python/pythonw so the venvlauncher magic in symlink_or_copy triggers
+            copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python3.exe'))
+            copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python%d.%d.exe' % sys.version_info[:2]))
+            copier(os.path.join(dirname, 'pythonw.exe'), os.path.join(binpath, 'python3w.exe'))
 
             if sysconfig.is_python_build():
                 # copy init.tcl
@@ -385,7 +383,6 @@ class EnvBuilder:
         env['VIRTUAL_ENV'] = context.env_dir
         env.pop('PYTHONHOME', None)
         env.pop('PYTHONPATH', None)
-        env.pop("MSYSTEM", None)
         kwargs['cwd'] = context.env_dir
         kwargs['executable'] = context.env_exec_cmd
         subprocess.check_output(args, **kwargs)
