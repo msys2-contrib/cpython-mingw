@@ -2174,7 +2174,7 @@ LIBSUBDIRS=	asyncio \
 		msilib \
 		unittest \
 		urllib \
-		venv venv/scripts venv/scripts/common venv/scripts/posix \
+		venv venv/scripts venv/scripts/common venv/scripts/nt venv/scripts/posix \
 		wsgiref \
 		$(XMLLIBSUBDIRS) \
 		xmlrpc \
