@@ -297,17 +297,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ['x86_64', 'i686', 'aarch64', 'armv7']
+        arch: ['x86_64', 'i686', 'aarch64']
         include:
           - arch: x86_64
             runner: windows-latest
           - arch: i686
             runner: windows-latest
           - arch: aarch64
-            runner: windows-11-arm
-          # we can test this for now, but Windows 11 24H2 dropped support for
-          # arm32
-          - arch: armv7
             runner: windows-11-arm
     steps:
       - uses: actions/download-artifact@v4
