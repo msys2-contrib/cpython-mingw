@@ -12,7 +12,7 @@ dnl
 # Set VERSION so we only need to edit in one place (i.e., here)
 m4_define([PYTHON_VERSION], [3.13])
 
-AC_PREREQ([2.69])
+AC_PREREQ([2.71])
 
 AC_INIT([python],[PYTHON_VERSION],[https://github.com/python/cpython/issues/])
 
@@ -8382,8 +8382,6 @@ PY_STDLIB_MOD([_hashlib], [], [test "$ac_cv_working_openssl_hashlib" = yes],
 dnl windows specific modules
 PY_STDLIB_MOD([msvcrt], [test "$MACHDEP" = "win32"])
 PY_STDLIB_MOD([_winapi], [test "$MACHDEP" = "win32"])
-PY_STDLIB_MOD([_msi], [test "$MACHDEP" = "win32"], [], [],
-  [-lmsi -lcabinet -lrpcrt4])
 PY_STDLIB_MOD([winsound], [test "$MACHDEP" = "win32"], [], [],
   [-lwinmm])
 PY_STDLIB_MOD([_overlapped], [test "$MACHDEP" = "win32"], [], [],
