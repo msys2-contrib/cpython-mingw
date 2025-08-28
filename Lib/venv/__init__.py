@@ -382,7 +382,7 @@ class EnvBuilder:
                 # the executables.
                 link_sources.update({
                     f: os.path.join(dirname, f) for f in os.listdir(dirname)
-                    if os.path.normcase(f).startswith(('python', 'vcruntime'))
+                    if os.path.normcase(f).startswith(('python', 'libpython', 'vcruntime'))
                     and os.path.normcase(os.path.splitext(f)[1]) == '.dll'
                 })
 
@@ -411,13 +411,6 @@ class EnvBuilder:
                         shutil.copy2(src, dest)
                     except OSError:
                         logger.warning('Unable to copy %r to %r', src, dest)
-
-            if os.name == 'posix' or (os.name == "nt" and 'mingw' in sys.version.lower()):
-                # copy from python/pythonw so the venvlauncher magic in symlink_or_copy triggers
-                copier = self.symlink_or_copy
-                copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python3.exe'))
-                copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python%d.%d.exe' % sys.version_info[:2]))
-                copier(os.path.join(dirname, 'pythonw.exe'), os.path.join(binpath, 'python3w.exe'))
 
             if sysconfig.is_python_build():
                 # copy init.tcl
