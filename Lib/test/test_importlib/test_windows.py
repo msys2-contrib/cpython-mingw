@@ -25,7 +25,7 @@ def get_platform():
             'arm' : 'win-arm32',
         }
     if os.name == 'nt':
-        if "gcc" in sys.version.lower():
+        if "mingw" in sys.version.lower():
             platform = "mingw"
             if "amd64" in sys.version.lower():
                 platform += "_x86_64"

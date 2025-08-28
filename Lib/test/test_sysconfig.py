@@ -25,7 +25,7 @@ import sysconfig
 from sysconfig import (get_paths, get_platform, get_config_vars,
                        get_path, get_path_names, _INSTALL_SCHEMES,
                        get_default_scheme, get_scheme_names, get_config_var,
-                       _expand_vars, _get_preferred_schemes, _POSIX_BUILD)
+                       _expand_vars, _get_preferred_schemes)
 from sysconfig.__main__ import _main, _parse_makefile
 import _imp
 import _osx_support
@@ -208,7 +208,7 @@ class TestSysConfig(unittest.TestCase):
         self.assertEqual(libpath, sysconfig.get_path('purelib', scheme='nt_venv', vars=vars))
 
     def test_venv_scheme(self):
-        if not _POSIX_BUILD and sys.platform == 'win32':
+        if sys.platform == 'win32' and not 'mingw' in sys.version.lower():
             self.assertEqual(
                 sysconfig.get_path('scripts', scheme='venv'),
                 sysconfig.get_path('scripts', scheme='nt_venv')
@@ -421,7 +421,7 @@ class TestSysConfig(unittest.TestCase):
             if HAS_USER_BASE:
                 user_path = get_path(name, 'posix_user')
                 expected = os.path.normpath(global_path.replace(base, user, 1))
-                if os.name == 'nt' and _POSIX_BUILD:
+                if os.name == 'nt' and 'mingw' in sys.version.lower():
                     expected = expected.replace(
                         f'python{sysconfig.get_python_version()}',
                         f'python{sysconfig.get_python_version()}-{get_platform()}')

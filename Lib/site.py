@@ -90,12 +90,6 @@ USER_SITE = None
 USER_BASE = None
 
 
-# Same as defined in Lib/sysconfig.py
-# redeclared since sysconfig is large for site.
-# GCC[mingw*] use posix build system
-_POSIX_BUILD = os.name == 'posix' or \
-    (os.name == "nt" and 'GCC' in sys.version)
-
 def _trace(message):
     if sys.flags.verbose:
         print(message, file=sys.stderr)
@@ -305,7 +299,7 @@ def _getuserbase():
     def joinuser(*args):
         return os.path.expanduser(os.path.join(*args))
 
-    if os.name == "nt" and not _POSIX_BUILD:
+    if os.name == "nt" and not 'mingw' in sys.version.lower():
         base = os.environ.get("APPDATA") or "~"
         return joinuser(base, _get_implementation())
 
@@ -318,7 +312,7 @@ def _getuserbase():
 # Copy of sysconfig.get_platform() but only for MinGW
 def _get_platform():
     if os.name == 'nt':
-        if 'gcc' in sys.version.lower():
+        if 'mingw' in sys.version.lower():
             platform = 'mingw'
             if 'amd64' in sys.version.lower():
                 platform += '_x86_64'
@@ -340,6 +334,12 @@ def _get_platform():
                 platform += "_gnu"
 
             return platform
+        if 'amd64' in sys.version.lower():
+            return 'win-amd64'
+        if '(arm)' in sys.version.lower():
+            return 'win-arm32'
+        if '(arm64)' in sys.version.lower():
+            return 'win-arm64'
     return sys.platform
 
 # Same to sysconfig.get_path('purelib', os.name+'_user')
@@ -353,10 +353,11 @@ def _get_path(userbase):
     implementation = _get_implementation()
     implementation_lower = implementation.lower()
     if os.name == 'nt':
-        if not _POSIX_BUILD:
-            ver_nodot = sys.winver.replace('.', '')
-            return f'{userbase}\\{implementation}{ver_nodot}\\site-packages'
-        return f'{userbase}/lib/python{version[0]}.{version[1]}-{_get_platform()}/site-packages'
+        if 'mingw' in sys.version.lower():
+            return f'{userbase}/lib/{implementation_lower}{version[0]}.{version[1]}-{_get_platform()}/site-packages'
+
+        ver_nodot = sys.winver.replace('.', '')
+        return f'{userbase}\\{implementation}{ver_nodot}\\site-packages'
 
     if sys.platform == 'darwin' and sys._framework:
         return f'{userbase}/lib/{implementation_lower}/site-packages'
@@ -433,7 +434,7 @@ def getsitepackages(prefixes=None):
             abi_thread = 't'
         else:
             abi_thread = ''
-        if _POSIX_BUILD:
+        if os.name == 'posix' or (os.name == "nt" and 'mingw' in sys.version.lower()):
             libdirs = [sys.platlibdir]
             if sys.platlibdir != "lib":
                 libdirs.append("lib")

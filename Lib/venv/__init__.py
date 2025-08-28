@@ -13,8 +13,6 @@ import sysconfig
 import types
 import shlex
 
-from sysconfig import _POSIX_BUILD
-
 CORE_VENV_DEPS = ('pip',)
 logger = logging.getLogger(__name__)
 
@@ -378,7 +376,7 @@ class EnvBuilder:
                 }
 
             do_copies = True
-            if self.symlinks and not _POSIX_BUILD:
+            if self.symlinks and not 'mingw' in sys.version.lower():
                 do_copies = False
                 # For symlinking, we need all the DLLs to be available alongside
                 # the executables.
@@ -414,7 +412,7 @@ class EnvBuilder:
                     except OSError:
                         logger.warning('Unable to copy %r to %r', src, dest)
 
-            if _POSIX_BUILD:
+            if os.name == 'posix' or (os.name == "nt" and 'mingw' in sys.version.lower()):
                 # copy from python/pythonw so the venvlauncher magic in symlink_or_copy triggers
                 copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python3.exe'))
                 copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python%d.%d.exe' % sys.version_info[:2]))

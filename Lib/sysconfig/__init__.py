@@ -49,12 +49,12 @@ _INSTALL_SCHEMES = {
         'data': '{base}',
         },
     'nt': {
-        'stdlib': '{installed_base}/lib/python{py_version_short}',
-        'platstdlib': '{base}/lib/python{py_version_short}',
-        'purelib': '{base}/lib/python{py_version_short}/site-packages',
-        'platlib': '{base}/lib/python{py_version_short}/site-packages',
-        'include': '{installed_base}/include/python{py_version_short}',
-        'platinclude': '{installed_base}/include/python{py_version_short}',
+        'stdlib': '{installed_base}/lib/{implementation_lower}{py_version_short}',
+        'platstdlib': '{base}/lib/{implementation_lower}{py_version_short}',
+        'purelib': '{base}/lib/{implementation_lower}{py_version_short}/site-packages',
+        'platlib': '{base}/lib/{implementation_lower}{py_version_short}/site-packages',
+        'include': '{installed_base}/include/{implementation_lower}{py_version_short}',
+        'platinclude': '{installed_base}/include/{implementation_lower}{py_version_short}',
         'scripts': '{base}/bin',
         'data': '{base}',
         },
@@ -100,12 +100,8 @@ _INSTALL_SCHEMES = {
         },
     }
 
-# GCC[mingw*] use posix build system
-_POSIX_BUILD = os.name == 'posix' or \
-    (os.name == "nt" and 'GCC' in sys.version)
-
 # For the OS-native venv scheme, we essentially provide an alias:
-if os.name == 'nt' and not _POSIX_BUILD:
+if os.name == 'nt' and not 'mingw' in sys.version.lower():
     _INSTALL_SCHEMES['venv'] = _INSTALL_SCHEMES['nt_venv']
 else:
     _INSTALL_SCHEMES['venv'] = _INSTALL_SCHEMES['posix_venv']
@@ -127,7 +123,7 @@ def _getuserbase():
     def joinuser(*args):
         return os.path.expanduser(os.path.join(*args))
 
-    if os.name == "nt" and not _POSIX_BUILD:
+    if os.name == "nt" and not 'mingw' in sys.version.lower():
         base = os.environ.get("APPDATA") or "~"
         return joinuser(base,  _get_implementation())
 
@@ -289,7 +285,7 @@ def _expand_vars(scheme, vars):
 
 
 def _get_preferred_schemes():
-    if os.name == 'nt' and not _POSIX_BUILD:
+    if os.name == 'nt' and not 'mingw' in sys.version.lower():
         return {
             'prefix': 'nt',
             'home': 'posix_home',
@@ -430,7 +426,7 @@ def parse_config_h(fp, vars=None):
 def get_config_h_filename():
     """Return the path of pyconfig.h."""
     if _PYTHON_BUILD:
-        if os.name == "nt" and not _POSIX_BUILD:
+        if os.name == "nt" and not 'mingw' in sys.version.lower():
             inc_dir = os.path.dirname(sys._base_executable)
         else:
             inc_dir = _PROJECT_BASE
@@ -499,15 +495,15 @@ def _init_config_vars():
         _CONFIG_VARS['py_version_nodot_plat'] = sys.winver.replace('.', '')
     except AttributeError:
         _CONFIG_VARS['py_version_nodot_plat'] = ''
-    if os.name == 'nt' and _POSIX_BUILD:
+    if os.name == 'nt' and 'mingw' in sys.version.lower():
         _CONFIG_VARS['py_version_short_plat'] = f'{_PY_VERSION_SHORT}-{get_platform()}'
     else:
         _CONFIG_VARS['py_version_short_plat'] = _PY_VERSION_SHORT
 
-    if os.name == 'nt' and not _POSIX_BUILD:
+    if os.name == 'nt' and not 'mingw' in sys.version.lower():
         _init_non_posix(_CONFIG_VARS)
         _CONFIG_VARS['VPATH'] = sys._vpath
-    if _POSIX_BUILD:
+    if os.name == 'posix' or 'mingw' in sys.version.lower():
         _init_posix(_CONFIG_VARS)
     if _HAS_USER_BASE:
         # Setting 'userbase' is done below the call to the
@@ -520,7 +516,7 @@ def _init_config_vars():
 
     # Always convert srcdir to an absolute path
     srcdir = _CONFIG_VARS.get('srcdir', _PROJECT_BASE)
-    if _POSIX_BUILD:
+    if os.name == 'posix' or 'mingw' in sys.version.lower():
         if _PYTHON_BUILD:
             # If srcdir is a relative path (typically '.' or '..')
             # then it should be interpreted relative to the directory
@@ -617,7 +613,7 @@ def get_platform():
 
     """
     if os.name == 'nt':
-        if 'gcc' in sys.version.lower():
+        if 'mingw' in sys.version.lower():
             platform = 'mingw'
             if 'amd64' in sys.version.lower():
                 platform += '_x86_64'
