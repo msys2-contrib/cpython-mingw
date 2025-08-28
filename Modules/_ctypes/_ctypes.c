@@ -5391,7 +5391,7 @@ PyCArrayType_from_ctype(ctypes_state *st, PyObject *itemtype, Py_ssize_t length)
         return NULL;
     }
 #ifdef MS_WIN64
-    sprintf(name, "%.200s_Array_%Id",
+    sprintf(name, "%.200s_Array_%lld",
         ((PyTypeObject *)itemtype)->tp_name, length);
 #else
     sprintf(name, "%.200s_Array_%ld",
