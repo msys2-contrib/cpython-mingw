@@ -58,7 +58,7 @@ extern "C" {
 #endif
 
 
-#ifdef __clang__
+#if defined(__clang__) || defined(__MINGW32__)
 struct timeval;
 #endif
 
