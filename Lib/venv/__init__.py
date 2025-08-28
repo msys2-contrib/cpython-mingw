@@ -414,6 +414,7 @@ class EnvBuilder:
 
             if os.name == 'posix' or (os.name == "nt" and 'mingw' in sys.version.lower()):
                 # copy from python/pythonw so the venvlauncher magic in symlink_or_copy triggers
+                copier = self.symlink_or_copy
                 copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python3.exe'))
                 copier(os.path.join(dirname, 'python.exe'), os.path.join(binpath, 'python%d.%d.exe' % sys.version_info[:2]))
                 copier(os.path.join(dirname, 'pythonw.exe'), os.path.join(binpath, 'python3w.exe'))
