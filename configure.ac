@@ -2469,6 +2469,7 @@ _RESTORE_VAR([CFLAGS])
 PYDEBUG_CFLAGS="-O0"
 AS_VAR_IF([ac_cv_cc_supports_og], [yes],
           [PYDEBUG_CFLAGS="-Og"])
+PYDEBUG_CFLAGS="-D_DEBUG $PYDEBUG_CFLAGS"
 
 # tweak OPT based on compiler and platform, only if the user didn't set
 # it on the command line
