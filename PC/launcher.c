@@ -499,6 +499,7 @@ locate_all_pythons(void)
 {
     /* venv Python is highest priority */
     locate_venv_python();
+#ifndef __MINGW32__
 #if defined(_M_X64)
     /* If we are a 64bit process, first hit the 32bit keys. */
     debug(L"locating Pythons in 32bit registry\n");
@@ -519,6 +520,7 @@ locate_all_pythons(void)
     locate_pythons_for_key(HKEY_LOCAL_MACHINE, KEY_READ);
     /* Store-installed Python is lowest priority */
     locate_store_pythons();
+#endif
     qsort(installed_pythons, num_installed_pythons, sizeof(INSTALLED_PYTHON),
           compare_pythons);
 }
