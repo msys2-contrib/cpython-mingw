@@ -226,12 +226,14 @@ class Tests(unittest.TestCase):
         self.assertTrue(sysconfig.get_platform().startswith("mingw"))
         self.assertTrue(sysconfig.get_config_var('SOABI').startswith("cpython-"))
         ext_suffix = sysconfig.get_config_var('EXT_SUFFIX')
+        abiflags = sysconfig.get_config_var('ABIFLAGS')
         self.assertTrue(ext_suffix.endswith(".pyd"))
         self.assertTrue("mingw" in ext_suffix)
         self.assertEqual(sysconfig.get_config_var('SHLIB_SUFFIX'), ".pyd")
         ext_suffixes = importlib.machinery.EXTENSION_SUFFIXES
         self.assertTrue(ext_suffix in ext_suffixes)
-        self.assertTrue(".pyd" in ext_suffixes)
+        untagged_ext = abiflags + '.pyd';
+        self.assertTrue(untagged_ext in ext_suffixes)
         if sysconfig.get_platform().startswith('mingw_i686'):
              self.assertEqual(sys.winver, ".".join(map(str, sys.version_info[:2])) + '-32')
         elif sysconfig.get_platform().startswith('mingw_aarch64'):

@@ -1875,7 +1875,10 @@ then
   [Define if you want to build an interpreter with many run-time checks.])
   AC_MSG_RESULT([yes]);
   Py_DEBUG='true'
-  ABIFLAGS="${ABIFLAGS}d"
+  case $host in
+      *-*-mingw*)  ABIFLAGS="${ABIFLAGS}_d" ;;
+      *) ABIFLAGS="${ABIFLAGS}d" ;;
+  esac
 else AC_MSG_RESULT([no]); Py_DEBUG='false'
 fi],
 [AC_MSG_RESULT([no])])
@@ -2474,9 +2477,9 @@ _RESTORE_VAR([CFLAGS])
 
 # Optimization messes up debuggers, so turn it off for
 # debug builds.
-PYDEBUG_CFLAGS="-O0"
+PYDEBUG_CFLAGS="-D_DEBUG -O0"
 AS_VAR_IF([ac_cv_cc_supports_og], [yes],
-          [PYDEBUG_CFLAGS="-Og"])
+          [PYDEBUG_CFLAGS="-D_DEBUG -Og"])
 
 # tweak OPT based on compiler and platform, only if the user didn't set
 # it on the command line
@@ -6717,7 +6720,7 @@ fi
 AC_SUBST([EXT_SUFFIX])
 VERSION_NO_DOTS=$(echo $LDVERSION | tr -d .)
 if test -n "${PYD_PLATFORM_TAG}"; then
-  EXT_SUFFIX=".cp${VERSION_NO_DOTS}-${PYD_PLATFORM_TAG}${SHLIB_SUFFIX}"
+  EXT_SUFFIX="${ABIFLAGS}.cp${VERSION_NO_DOTS}-${PYD_PLATFORM_TAG}${SHLIB_SUFFIX}"
 else
   EXT_SUFFIX=.${SOABI}${SHLIB_SUFFIX}
 fi
