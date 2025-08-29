@@ -189,19 +189,21 @@ class Tests(unittest.TestCase):
         import venv
         import subprocess
         import shutil
+        import sysconfig
         with tempfile.TemporaryDirectory() as tmp:
             builder = venv.EnvBuilder()
             builder.create(tmp)
+            abiflags = sysconfig.get_config_var('ABIFLAGS')
             assert os.path.exists(os.path.join(tmp, "bin", "activate"))
-            assert os.path.exists(os.path.join(tmp, "bin", "python.exe"))
-            assert os.path.exists(os.path.join(tmp, "bin", "python3.exe"))
+            assert os.path.exists(os.path.join(tmp, "bin", "python" + abiflags + ".exe"))
+            assert os.path.exists(os.path.join(tmp, "bin", "pythonw" + abiflags + ".exe"))
             subprocess.check_call([shutil.which("bash.exe"), os.path.join(tmp, "bin", "activate")])
 
             # This will not work in in-tree build
             if not sysconfig.is_python_build():
                 op = subprocess.check_output(
                     [
-                        os.path.join(tmp, "bin", "python.exe"),
+                        os.path.join(tmp, "bin", "python" + abiflags + ".exe"),
                         "-c",
                         "print('Hello World')"
                     ],
