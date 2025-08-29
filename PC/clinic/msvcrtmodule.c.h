@@ -517,7 +517,7 @@ exit:
 
 #endif /* defined(MS_WINDOWS_DESKTOP) */
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_MSC_VER)
 
 PyDoc_STRVAR(msvcrt_CrtSetReportFile__doc__,
 "CrtSetReportFile($module, type, file, /)\n"
@@ -564,7 +564,7 @@ exit:
 
 #endif /* defined(_DEBUG) */
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_MSC_VER)
 
 PyDoc_STRVAR(msvcrt_CrtSetReportMode__doc__,
 "CrtSetReportMode($module, type, mode, /)\n"
