@@ -1713,14 +1713,18 @@ _winapi_GetVersion_impl(PyObject *module)
 /* Disable deprecation warnings about GetVersionEx as the result is
    being passed straight through to the caller, who is responsible for
    using it correctly. */
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 
 {
     return GetVersion();
 }
 
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 /*[clinic input]
 _winapi.MapViewOfFile -> LPVOID
