@@ -2166,7 +2166,7 @@ math_ldexp_impl(PyObject *module, double x, PyObject *i)
     } else {
         errno = 0;
         r = ldexp(x, (int)exp);
-#ifdef _MSC_VER
+#ifdef _WIN32
         if (DBL_MIN > r && r > -DBL_MIN) {
             /* Denormal (or zero) results can be incorrectly rounded here (rather,
                truncated).  Fixed in newer versions of the C runtime, included
@@ -2404,7 +2404,7 @@ math_fmod_impl(PyObject *module, double x, double y)
         return PyFloat_FromDouble(x);
     errno = 0;
     r = fmod(x, y);
-#ifdef _MSC_VER
+#ifdef _WIN32
     /* Windows (e.g. Windows 10 with MSC v.1916) loose sign
        for zero result.  But C99+ says: "if y is nonzero, the result
        has the same sign as x".

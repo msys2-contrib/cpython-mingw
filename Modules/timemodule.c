@@ -41,7 +41,7 @@
 #  include <sanitizer/msan_interface.h>
 #endif
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #  define _Py_timezone _timezone
 #  define _Py_daylight _daylight
 #  define _Py_tzname _tzname
