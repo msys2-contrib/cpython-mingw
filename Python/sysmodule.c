@@ -1722,8 +1722,10 @@ _sys_getwindowsversion_from_kernel32(void)
 /* Disable deprecation warnings about GetVersionEx as the result is
    being passed straight through to the caller, who is responsible for
    using it correctly. */
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 
 /*[clinic input]
 sys.getwindowsversion
@@ -1817,7 +1819,9 @@ error:
     return NULL;
 }
 
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 /*[clinic input]
 sys._enablelegacywindowsfsencoding
