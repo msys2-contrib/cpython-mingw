@@ -5888,7 +5888,7 @@ _ssl_nid2obj_impl(PyObject *module, int nid)
     return result;
 }
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 
 static PyObject*
 certEncodingType(DWORD encodingType)
@@ -6207,7 +6207,7 @@ _ssl_enum_crls_impl(PyObject *module, const char *store_name)
     }
 }
 
-#endif /* _MSC_VER */
+#endif /* _WIN32 */
 
 /* List of functions exported by this module. */
 static PyMethodDef PySSL_methods[] = {
