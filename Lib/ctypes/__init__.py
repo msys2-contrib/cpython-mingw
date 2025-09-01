@@ -476,7 +476,7 @@ cdll = LibraryLoader(CDLL)
 pydll = LibraryLoader(PyDLL)
 
 if _os.name == "nt":
-    if 'mingw' in sys.version.lower():
+    if 'mingw' in _sys.version.lower():
         pythonapi = PyDLL("libpython%d.%d%s.dll" % (_sys.version_info[:2] + (_sys.abiflags,)), None)
     else:
         pythonapi = PyDLL("python.dll", None, _sys.dllhandle)
