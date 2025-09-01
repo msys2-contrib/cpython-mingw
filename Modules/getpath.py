@@ -285,6 +285,7 @@ if EXE_SUFFIX and not hassuffix(program_name, EXE_SUFFIX) and isxfile(program_na
 if py_setpath:
     # When Py_SetPath has been called, executable defaults to
     # the real executable path.
+
     if not executable:
         executable = real_executable
 

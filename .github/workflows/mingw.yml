@@ -46,6 +46,7 @@ jobs:
             ${{ matrix.prefix }}-toolchain
             ${{ matrix.prefix }}-expat
             ${{ matrix.prefix }}-bzip2
+            ${{ matrix.prefix }}-libb2
             ${{ matrix.prefix }}-libffi
             ${{ matrix.prefix }}-mpdecimal
             ${{ matrix.prefix }}-ncurses

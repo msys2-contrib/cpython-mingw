@@ -56,6 +56,7 @@ _INSTALL_SCHEMES = {
         'include': '{installed_base}/Include',
         'platinclude': '{installed_base}/Include',
         'scripts': '{base}/Scripts',
+        'data': '{base}',
         },
 
     # Downstream distributors can overwrite the default install scheme.

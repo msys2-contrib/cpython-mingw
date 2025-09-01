@@ -434,7 +434,7 @@ def getsitepackages(prefixes=None):
             abi_thread = 't'
         else:
             abi_thread = ''
-        if os.name == 'posix' or (os.name == "nt" and 'mingw' in sys.version.lower()):
+        if os.name == 'posix' or 'mingw' in sys.version.lower():
             libdirs = [sys.platlibdir]
             if sys.platlibdir != "lib":
                 libdirs.append("lib")
