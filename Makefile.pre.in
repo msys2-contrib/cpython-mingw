@@ -1730,8 +1730,9 @@ Modules/getbuildinfo.o: $(PARSER_OBJS) \
 		$(MODULE_OBJS) \
 		$(MODOBJS) \
 		$(DTRACE_OBJS) \
-		$(srcdir)/Modules/getbuildinfo.c
-	$(CC) -c $(PY_CORE_CFLAGS) \
+		$(srcdir)/Modules/getbuildinfo.c \
+		$(PYTHON_HEADERS)
+	$(CC) -c $(PY_BUILTIN_MODULE_CFLAGS) \
 	      -DGITVERSION="\"`LC_ALL=C $(GITVERSION)`\"" \
 	      -DGITTAG="\"`LC_ALL=C $(GITTAG)`\"" \
 	      -DGITBRANCH="\"`LC_ALL=C $(GITBRANCH)`\"" \
