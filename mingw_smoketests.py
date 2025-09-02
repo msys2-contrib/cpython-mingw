@@ -226,7 +226,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(sys.implementation.name, "cpython")
         self.assertEqual(sys.platform, "win32")
         self.assertTrue(sysconfig.get_platform().startswith("mingw"))
-        self.assertTrue(sysconfig.get_config_var('SOABI').startswith("cpython-"))
+        self.assertTrue(sysconfig.get_config_var('SOABI').startswith("cp" + f'{sys.version_info.major}{sys.version_info.minor}'))
         ext_suffix = sysconfig.get_config_var('EXT_SUFFIX')
         abiflags = sysconfig.get_config_var('ABIFLAGS')
         self.assertTrue(ext_suffix.endswith(".pyd"))
