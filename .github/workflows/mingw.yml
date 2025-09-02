@@ -90,8 +90,8 @@ jobs:
         run: |
           SMOKETESTS="$(pwd)/mingw_smoketests.py"
           cd _build
-          LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH ./python.exe "$SMOKETESTS"
-          LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH MSYSTEM= ./python.exe "$SMOKETESTS"
+          ./python.exe "$SMOKETESTS"
+          MSYSTEM= ./python.exe "$SMOKETESTS"
 
       - name: Run tests
         shell: msys2 {0}
