@@ -461,10 +461,11 @@ class TestSysConfig(unittest.TestCase):
         if sys.platform == 'win32':
             if 'mingw' in sys.version.lower():
                 self.assertTrue(library.startswith(f'libpython{major}.{minor}'))
+                self.assertTrue(ldlibrary.endswith('.dll.a'))
             else:
                 self.assertTrue(library.startswith(f'python{major}{minor}'))
-            self.assertTrue(library.endswith('.dll'))
-            self.assertEqual(library, ldlibrary)
+                self.assertTrue(library.endswith('.dll'))
+                self.assertEqual(library, ldlibrary)
         elif is_apple_mobile:
             framework = sysconfig.get_config_var('PYTHONFRAMEWORK')
             self.assertEqual(ldlibrary, f"{framework}.framework/{framework}")
