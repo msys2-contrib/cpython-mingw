@@ -8389,6 +8389,7 @@ PY_STDLIB_MOD([_hashlib], [], [test "$ac_cv_working_openssl_hashlib" = yes],
   [$OPENSSL_INCLUDES], [$OPENSSL_LDFLAGS $OPENSSL_LDFLAGS_RPATH $LIBCRYPTO_LIBS])
 
 dnl windows specific modules
+PY_STDLIB_MOD([winreg], [test "$MACHDEP" = "win32"])
 PY_STDLIB_MOD([msvcrt], [test "$MACHDEP" = "win32"])
 PY_STDLIB_MOD([_winapi], [test "$MACHDEP" = "win32"])
 PY_STDLIB_MOD([winsound], [test "$MACHDEP" = "win32"], [], [],
