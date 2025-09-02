@@ -255,7 +255,7 @@ class Tests(unittest.TestCase):
             if not sysconfig.is_python_build():
                 op = subprocess.check_output(
                     [
-                        os.path.join(tmp, "bin", "python.exe"),
+                        os.path.join(tmp, "bin", 'python' + abiflags + '.exe'),
                         "-c",
                         "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))"
                     ],
@@ -293,6 +293,10 @@ class Tests(unittest.TestCase):
         import textwrap
         import venv
         from pathlib import Path
+
+        if sysconfig.is_python_build():
+            pydir = os.path.dirname(sys._base_executable)
+            os.environ["LDFLAGS"] = "-L " + pydir
 
         with tempfile.TemporaryDirectory() as tmppro:
             builder = venv.EnvBuilder(with_pip=True)
