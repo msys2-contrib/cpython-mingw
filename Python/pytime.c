@@ -1,5 +1,4 @@
 #include "Python.h"
-#include "pycore_time.h"          // PyTime_t
 
 #include <time.h>                 // gmtime_r()
 #ifdef HAVE_SYS_TIME_H
@@ -8,6 +7,8 @@
 #ifdef MS_WINDOWS
 #  include <winsock2.h>           // struct timeval
 #endif
+
+#include "pycore_time.h"          // PyTime_t
 
 #if defined(__APPLE__)
 #  include <mach/mach_time.h>     // mach_absolute_time(), mach_timebase_info()
