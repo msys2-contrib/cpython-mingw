@@ -92,7 +92,7 @@
    Written by Rusty Russell, public domain, http://ccodearchive.net/
 
    Requires at GCC 3.1+ */
-#if (defined(__GNUC__) && !defined(__STRICT_ANSI__) && \
+#if (defined(__GNUC__) && !defined(__STRICT_ANSI__) && !defined(__cplusplus) && \
     (((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1)) || (__GNUC__ >= 4)))
 /* Two gcc extensions.
    &a[0] degrades to a pointer: a different type from an array */
