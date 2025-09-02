@@ -295,7 +295,7 @@ class Tests(unittest.TestCase):
         from pathlib import Path
 
         if sysconfig.is_python_build():
-            pydir = os.path.dirname(sys._base_executable)
+            pydir = os.path.dirname(sys._base_executable).replace('\\', '/')
             os.environ["LDFLAGS"] = "-L " + pydir
 
         with tempfile.TemporaryDirectory() as tmppro:
