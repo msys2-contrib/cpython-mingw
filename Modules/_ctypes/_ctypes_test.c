@@ -1016,20 +1016,20 @@ typedef struct {
     char f10;
 } Size10;
 
-EXPORT(Size1) TestSize1() {
+EXPORT(Size1) TestSize1(void) {
     Size1 f;
     f.f1 = 'a';
     return f;
 }
 
-EXPORT(Size2) TestSize2() {
+EXPORT(Size2) TestSize2(void) {
     Size2 f;
     f.f1 = 'a';
     f.f2 = 'b';
     return f;
 }
 
-EXPORT(Size3) TestSize3() {
+EXPORT(Size3) TestSize3(void) {
     Size3 f;
     f.f1 = 'a';
     f.f2 = 'b';
@@ -1037,7 +1037,7 @@ EXPORT(Size3) TestSize3() {
     return f;
 }
 
-EXPORT(Size4) TestSize4() {
+EXPORT(Size4) TestSize4(void) {
     Size4 f;
     f.f1 = 'a';
     f.f2 = 'b';
@@ -1046,7 +1046,7 @@ EXPORT(Size4) TestSize4() {
     return f;
 }
 
-EXPORT(Size5) TestSize5() {
+EXPORT(Size5) TestSize5(void) {
     Size5 f;
     f.f1 = 'a';
     f.f2 = 'b';
@@ -1056,7 +1056,7 @@ EXPORT(Size5) TestSize5() {
     return f;
 }
 
-EXPORT(Size6) TestSize6() {
+EXPORT(Size6) TestSize6(void) {
     Size6 f;
     f.f1 = 'a';
     f.f2 = 'b';
@@ -1067,7 +1067,7 @@ EXPORT(Size6) TestSize6() {
     return f;
 }
 
-EXPORT(Size7) TestSize7() {
+EXPORT(Size7) TestSize7(void) {
     Size7 f;
     f.f1 = 'a';
     f.f2 = 'b';
@@ -1079,7 +1079,7 @@ EXPORT(Size7) TestSize7() {
     return f;
 }
 
-EXPORT(Size8) TestSize8() {
+EXPORT(Size8) TestSize8(void) {
     Size8 f;
     f.f1 = 'a';
     f.f2 = 'b';
@@ -1092,7 +1092,7 @@ EXPORT(Size8) TestSize8() {
     return f;
 }
 
-EXPORT(Size9) TestSize9() {
+EXPORT(Size9) TestSize9(void) {
     Size9 f;
     f.f1 = 'a';
     f.f2 = 'b';
@@ -1106,7 +1106,7 @@ EXPORT(Size9) TestSize9() {
     return f;
 }
 
-EXPORT(Size10) TestSize10() {
+EXPORT(Size10) TestSize10(void) {
     Size10 f;
     f.f1 = 'a';
     f.f2 = 'b';

@@ -67,12 +67,12 @@ getpath_normpath(PyObject *Py_UNUSED(self), PyObject *args)
         return NULL;
     }
     Py_ssize_t len;
-    wchar_t *buffer = PyUnicode_AsWideCharString(pathobj, &len);
-    if (!buffer) {
+    path = PyUnicode_AsWideCharString(pathobj, &len);
+    if (!path) {
         return NULL;
     }
-    r = PyUnicode_FromWideChar(_Py_normpath(buffer, len), -1);
-    PyMem_Free(buffer);
+    r = PyUnicode_FromWideChar(_Py_normpath(path, len), -1);
+    PyMem_Free(path);
     return r;
 }
 

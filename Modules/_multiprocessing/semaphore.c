@@ -663,10 +663,10 @@ _multiprocessing_SemLock__is_zero_impl(SemLockObject *self)
         Py_RETURN_FALSE;
     }
 #else
-    int sval;
+    long sval;
     if (SEM_GETVALUE(self->handle, &sval) < 0)
         return _PyMp_SetError(NULL, MP_STANDARD_ERROR);
-    return PyBool_FromLong((long)sval == 0);
+    return PyBool_FromLong(sval == 0);
 #endif
 }
 
