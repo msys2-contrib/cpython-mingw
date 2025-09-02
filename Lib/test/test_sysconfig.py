@@ -459,7 +459,10 @@ class TestSysConfig(unittest.TestCase):
         ldlibrary = sysconfig.get_config_var('LDLIBRARY')
         major, minor = sys.version_info[:2]
         if sys.platform == 'win32':
-            self.assertTrue(library.startswith(f'python{major}{minor}'))
+            if 'mingw' in sys.version.lower():
+                self.assertTrue(library.startswith(f'libpython{major}.{minor}'))
+            else:
+                self.assertTrue(library.startswith(f'python{major}{minor}'))
             self.assertTrue(library.endswith('.dll'))
             self.assertEqual(library, ldlibrary)
         elif is_apple_mobile:
