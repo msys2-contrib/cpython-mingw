@@ -1030,7 +1030,7 @@ $(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK): \
 $(DLLLIBRARY) libpython$(LDVERSION).dll.a: $(LIBRARY_OBJS) python_nt.o
 	if test -n "$(DLLLIBRARY)"; then \
 		$(LDSHARED) -Wl,--out-implib=$@ -o $(DLLLIBRARY) $^ \
-			$(LIBS) $(LDFLAGS_NODIST) $(MODLIBS) $(SYSLIBS) python_nt.o; \
+			$(LIBS) $(LDFLAGS_NODIST) $(MODLIBS) $(SYSLIBS); \
 	else true; \
 	fi
 
