@@ -100,10 +100,12 @@ _query_thread(LPVOID param)
         hr = HRESULT_FROM_WIN32(GetLastError());
     }
     if (SUCCEEDED(hr)) {
+        BSTR bstr_wql = SysAllocString(L"ROOT\\CIMV2");
         hr = locator->ConnectServer(
-            bstr_t(L"ROOT\\CIMV2"),
+            bstr_wql,
             NULL, NULL, 0, NULL, 0, 0, &services
         );
+        SysFreeString(bstr_wql);
     }
     if (SUCCEEDED(hr) && !SetEvent(data.connectEvent)) {
         hr = HRESULT_FROM_WIN32(GetLastError());
@@ -116,13 +118,15 @@ _query_thread(LPVOID param)
         );
     }
     if (SUCCEEDED(hr)) {
+        BSTR bstr_wql = SysAllocString(L"WQL");
         hr = services->ExecQuery(
-            bstr_t("WQL"),
+            bstr_wql,
             bstrQuery,
             WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
             NULL,
             &enumerator
         );
+        SysFreeString(bstr_wql);
     }
 
     // Okay, after all that, at this stage we should have an enumerator

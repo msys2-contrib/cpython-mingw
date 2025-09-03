@@ -171,6 +171,7 @@
 # Windows specific modules
 
 @MODULE__OVERLAPPED_TRUE@_overlapped overlapped.c
+@MODULE__WMI_TRUE@_wmi ../PC/_wmimodule.cpp
 @MODULE_WINSOUND_TRUE@winsound ../PC/winsound.c
 
 
