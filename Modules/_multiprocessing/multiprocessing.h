@@ -30,7 +30,7 @@
 #  endif
 #  define SEM_HANDLE HANDLE
 #  define SEM_VALUE_MAX LONG_MAX
-#    define HAVE_MP_SEMAPHORE
+#  define HAVE_MP_SEMAPHORE
 #  if defined(HAVE_SEM_OPEN) && defined(_POSIX_THREADS)
 #    include <semaphore.h>
 #  endif
