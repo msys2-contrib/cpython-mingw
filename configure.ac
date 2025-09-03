@@ -4852,13 +4852,6 @@ case $host in
     CFLAGS_NODIST="$CFLAGS_NODIST -D_WIN32_WINNT=0x0602";;
 esac
 
-# Determine if windows modules should be used.
-AC_SUBST(USE_WIN32_MODULE)
-USE_WIN32_MODULE='#'
-case $host in
-  *-*-mingw*) USE_WIN32_MODULE=;;
-esac
-
 # Templates for things AC_DEFINEd more than once.
 # For a single AC_DEFINE, no template is needed.
 AH_TEMPLATE([_REENTRANT],
