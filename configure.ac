@@ -8392,7 +8392,7 @@ dnl windows specific modules
 PY_STDLIB_MOD([winreg], [test "$MACHDEP" = "win32"])
 PY_STDLIB_MOD([msvcrt], [test "$MACHDEP" = "win32"])
 PY_STDLIB_MOD([_winapi], [test "$MACHDEP" = "win32"])
-PY_STDLIB_MOD([_wmimodule], [test "$MACHDEP" = "win32"], [], [],
+PY_STDLIB_MOD([_wmi], [test "$MACHDEP" = "win32"], [], [],
   [-lwbemuuid -lpropsys -lole32 -loleaut32 -luuid])
 PY_STDLIB_MOD([winsound], [test "$MACHDEP" = "win32"], [], [],
   [-lwinmm])

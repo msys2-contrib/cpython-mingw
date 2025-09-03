@@ -104,7 +104,7 @@ CONFIGURE_LDFLAGS=	@LDFLAGS@
 # values.
 PY_CFLAGS=	$(BASECFLAGS) $(OPT) $(CONFIGURE_CFLAGS) $(CFLAGS) $(EXTRA_CFLAGS)
 PY_CFLAGS_NODIST=$(CONFIGURE_CFLAGS_NODIST) $(CFLAGS_NODIST) -I$(srcdir)/Include/internal -I$(srcdir)/Include/internal/mimalloc
-PY_CXXFLAGS_NODIST=$(filter-out -std=c11,$(PY_CFLAGS_NODIST)) -std=c++17
+PY_CXXFLAGS_NODIST=$(filter-out -std=c11,$(PY_CFLAGS_NODIST)) -std=c++20
 # Both CPPFLAGS and LDFLAGS need to contain the shell's value for setup.py to
 # be able to build extension modules using the directories specified in the
 # environment variables
