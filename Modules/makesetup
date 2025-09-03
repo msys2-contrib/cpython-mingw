@@ -228,13 +228,13 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
 		for src in $srcs
 		do
 			case $src in
-			*.c)   obj=`basename $src .c`.o; cc='$(CC)'; ccld='$(BLDSHARED)';;
-			*.cc)  obj=`basename $src .cc`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)';;
-			*.c++) obj=`basename $src .c++`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)';;
-			*.C)   obj=`basename $src .C`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)';;
-			*.cxx) obj=`basename $src .cxx`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)';;
-			*.cpp) obj=`basename $src .cpp`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)';;
-			*.m)   obj=`basename $src .m`.o; cc='$(CC)'; ccld='$(BLDSHARED)';; # Obj-C
+			*.c)   obj=`basename $src .c`.o; cc='$(CC)'; ccld='$(BLDSHARED)'; ccflags='$(PY_STDMODULE_CFLAGS)';;
+			*.cc)  obj=`basename $src .cc`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)'; ccflags='$(PY_STDMODULE_CXXFLAGS)';;
+			*.c++) obj=`basename $src .c++`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)'; ccflags='$(PY_STDMODULE_CXXFLAGS)';;
+			*.C)   obj=`basename $src .C`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)'; ccflags='$(PY_STDMODULE_CXXFLAGS)';;
+			*.cxx) obj=`basename $src .cxx`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)'; ccflags='$(PY_STDMODULE_CXXFLAGS)';;
+			*.cpp) obj=`basename $src .cpp`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)'; ccflags='$(PY_STDMODULE_CXXFLAGS)';;
+			*.m)   obj=`basename $src .m`.o; cc='$(CC)'; ccld='$(BLDSHARED)'; ccflags='$(PY_STDMODULE_CFLAGS)';; # Obj-C
 			*)     continue;;
 			esac
 			case $src in
@@ -251,7 +251,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
 			# custom flags first, PY_STDMODULE_CFLAGS may contain -I with system libmpdec
 			case $doconfig in
 			no)
-				cc="$cc $cpps \$(PY_STDMODULE_CFLAGS) \$(CCSHARED)"
+				cc="$cc $cpps $ccflags \$(CCSHARED)"
 				rule="$obj: $src \$(MODULE_${mods_upper}_DEPS) \$(MODULE_DEPS_SHARED) \$(PYTHON_HEADERS); $cc -c $src -o $obj"
 				;;
 			*)

@@ -104,6 +104,7 @@ CONFIGURE_LDFLAGS=	@LDFLAGS@
 # values.
 PY_CFLAGS=	$(BASECFLAGS) $(OPT) $(CONFIGURE_CFLAGS) $(CFLAGS) $(EXTRA_CFLAGS)
 PY_CFLAGS_NODIST=$(CONFIGURE_CFLAGS_NODIST) $(CFLAGS_NODIST) -I$(srcdir)/Include/internal -I$(srcdir)/Include/internal/mimalloc
+PY_CXXFLAGS_NODIST=$(filter-out -std=c11,$(PY_CFLAGS_NODIST)) -std=c++17
 # Both CPPFLAGS and LDFLAGS need to contain the shell's value for setup.py to
 # be able to build extension modules using the directories specified in the
 # environment variables
@@ -121,7 +122,9 @@ ARFLAGS=	@ARFLAGS@
 CFLAGSFORSHARED=@CFLAGSFORSHARED@
 # C flags used for building the interpreter object files
 PY_STDMODULE_CFLAGS= $(PY_CFLAGS) $(PY_CFLAGS_NODIST) $(PY_CPPFLAGS) $(CFLAGSFORSHARED)
+PY_STDMODULE_CXXFLAGS= $(PY_CFLAGS) $(PY_CXXFLAGS_NODIST) $(PY_CPPFLAGS) $(CFLAGSFORSHARED)
 PY_BUILTIN_MODULE_CFLAGS= $(PY_STDMODULE_CFLAGS) -DPy_BUILD_CORE_BUILTIN
+PY_BUILTIN_MODULE_CXXFLAGS= $(PY_STDMODULE_CXXFLAGS) -DPy_BUILD_CORE_BUILTIN
 PY_CORE_CFLAGS=	$(PY_STDMODULE_CFLAGS) -DPy_BUILD_CORE
 # Linker flags used for building the interpreter object files
 PY_CORE_LDFLAGS=$(PY_LDFLAGS) $(PY_LDFLAGS_NODIST)
