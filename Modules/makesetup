@@ -228,13 +228,13 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
 		for src in $srcs
 		do
 			case $src in
-			*.c)   obj=`basename $src .c`.o; cc='$(CC)';;
-			*.cc)  obj=`basename $src .cc`.o; cc='$(CXX)';;
-			*.c++) obj=`basename $src .c++`.o; cc='$(CXX)';;
-			*.C)   obj=`basename $src .C`.o; cc='$(CXX)';;
-			*.cxx) obj=`basename $src .cxx`.o; cc='$(CXX)';;
-			*.cpp) obj=`basename $src .cpp`.o; cc='$(CXX)';;
-			*.m)   obj=`basename $src .m`.o; cc='$(CC)';; # Obj-C
+			*.c)   obj=`basename $src .c`.o; cc='$(CC)'; ccld='$(BLDSHARED)';;
+			*.cc)  obj=`basename $src .cc`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)';;
+			*.c++) obj=`basename $src .c++`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)';;
+			*.C)   obj=`basename $src .C`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)';;
+			*.cxx) obj=`basename $src .cxx`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)';;
+			*.cpp) obj=`basename $src .cpp`.o; cc='$(CXX)'; ccld='$(LDCXXSHARED)';;
+			*.m)   obj=`basename $src .m`.o; cc='$(CC)'; ccld='$(BLDSHARED)';; # Obj-C
 			*)     continue;;
 			esac
 			case $src in
@@ -274,7 +274,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
 				;;
 			esac
 			rule="$file: $objs"
-			rule="$rule; \$(BLDSHARED) $objs $libs \$(LIBPYTHON) -o $file"
+			rule="$rule; $ccld $objs $libs \$(LIBPYTHON) -o $file"
 			echo "$rule" >>$rulesf
 		done
 	done

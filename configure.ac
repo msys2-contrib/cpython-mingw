@@ -6705,7 +6705,7 @@ AC_MSG_CHECKING([ABIFLAGS])
 AC_MSG_RESULT([$ABIFLAGS])
 AC_MSG_CHECKING([SOABI])
 case $host_os in
-    mingw*) SOABI='cp'`echo $VERSION | tr -d .`${ABIFLAGS}${SOABI_PLATFORM:+-$SOABI_PLATFORM};;
+    mingw*) SOABI='cp'`echo $VERSION | tr -d .`;;
     *) SOABI='cpython-'`echo $VERSION | tr -d .`${ABIFLAGS}${SOABI_PLATFORM:+-$SOABI_PLATFORM};;
 esac
 AC_MSG_RESULT([$SOABI])
@@ -6716,7 +6716,7 @@ if test "$Py_DEBUG" = 'true'; then
   # Similar to SOABI but remove "d" flag from ABIFLAGS
   AC_SUBST([ALT_SOABI])
   case $host_os in
-      mingw*) ALT_SOABI='cp'`echo $VERSION | tr -d .``echo $ABIFLAGS | tr -d d`${SOABI_PLATFORM:+-$SOABI_PLATFORM};;
+      mingw*) ALT_SOABI='cp'`echo $VERSION | tr -d .`;;
       *) ALT_SOABI='cpython-'`echo $VERSION | tr -d .``echo $ABIFLAGS | tr -d d`${SOABI_PLATFORM:+-$SOABI_PLATFORM};;
   esac
   AC_DEFINE_UNQUOTED([ALT_SOABI], ["${ALT_SOABI}"],
@@ -8392,6 +8392,8 @@ dnl windows specific modules
 PY_STDLIB_MOD([winreg], [test "$MACHDEP" = "win32"])
 PY_STDLIB_MOD([msvcrt], [test "$MACHDEP" = "win32"])
 PY_STDLIB_MOD([_winapi], [test "$MACHDEP" = "win32"])
+PY_STDLIB_MOD([_wmimodule], [test "$MACHDEP" = "win32"], [], [],
+  [-lwbemuuid -lpropsys -lole32 -loleaut32 -luuid])
 PY_STDLIB_MOD([winsound], [test "$MACHDEP" = "win32"], [], [],
   [-lwinmm])
 PY_STDLIB_MOD([_overlapped], [test "$MACHDEP" = "win32"], [], [],
