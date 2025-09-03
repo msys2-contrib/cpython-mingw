@@ -62,6 +62,12 @@ def _get_colon(path):
     else:
         return ':'
 
+def _get_colon_seps(path):
+    if isinstance(path, bytes):
+        return b':'+bsep+baltsep
+    else:
+        return ':'+sep+altsep
+
 def _get_unc_prefix(path):
     if isinstance(path, bytes):
         return b'\\\\?\\UNC\\'
@@ -125,7 +131,7 @@ def join(path, *paths):
     path = os.fspath(path)
     sep = _get_sep(path)
     seps = _get_bothseps(path)
-    colon_seps = _get_colon(path)
+    colon_seps = _get_colon_seps(path)
     try:
         result_drive, result_root, result_path = splitroot(path)
         for p in paths:
