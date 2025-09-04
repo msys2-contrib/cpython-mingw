@@ -14,9 +14,9 @@
 #endif
 
 #define _WIN32_DCOM
-#include <Windows.h>
+#include <windows.h>
 #include <comdef.h>
-#include <Wbemidl.h>
+#include <wbemidl.h>
 #include <propvarutil.h>
 
 #include <Python.h>
