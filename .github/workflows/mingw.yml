@@ -167,7 +167,7 @@ jobs:
   cross-gcc-x86_64:
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:24.10
+      image: ubuntu:25.04
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
