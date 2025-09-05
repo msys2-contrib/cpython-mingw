@@ -40,10 +40,12 @@ test.test_venv.BasicTest.test_multiprocessing
 test.test_venv.BasicTest.test_multiprocessing_recursion
 test.test_venv.BasicTest.test_prefixes
 test.test_venv.BasicTest.test_special_chars_windows
+test.test_venv.BasicTest.test_symlinking
 test.test_venv.BasicTest.test_sysconfig
 test.test_venv.BasicTest.test_sysconfig_symlinks
 test.test_venv.BasicTest.test_unicode_in_batch_file
 test.test_venv.BasicTest.test_unoverwritable_fails
+test.test_venv.BasicTest.test_upgrade
 test.test_venv.BasicTest.test_upgrade_dependencies
 test.test_venv.BasicTest.test_venvwlauncher
 test.test_venv.EnsurePipTest.test_explicit_no_pip
