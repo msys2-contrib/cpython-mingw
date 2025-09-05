@@ -20,7 +20,7 @@ import sys
 import genericpath
 from genericpath import *
 
-if sys.platform == "win32" and os.environ.get("MSYSTEM", ""):
+if sys.use_alt_sep:
     sep = '/'
     altsep = '\\'
 else:
