@@ -1037,6 +1037,13 @@ if test -z "$CFLAGS"; then
         CFLAGS=
 fi
 
+dnl Build 32-bit mingw-w64 platform with 64-bit time support.
+case $host in
+  i686-*-mingw*)
+    CFLAGS="$CFLAGS -D__MINGW_USE_VC2005_COMPAT"
+    ;;
+esac
+
 dnl Emscripten SDK and WASI SDK default to wasm32.
 dnl On Emscripten use MEMORY64 setting to build target wasm64-emscripten.
 dnl for wasm64.
