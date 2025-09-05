@@ -2646,7 +2646,7 @@ yes)
     # this only occues on mingw
     case $host in
     *-*-mingw*)
-        CFLAGS_NODIST="$CFLAGS_NODIST -Wno-error=incompatible-pointer-types"
+        CFLAGS_NODIST="$CFLAGS_NODIST -Wno-error=incompatible-pointer-types -D__MINGW_USE_VC2005_COMPAT"
       ;;
     esac
 
