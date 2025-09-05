@@ -631,14 +631,14 @@ _multiprocessing_SemLock__get_value_impl(SemLockObject *self)
     PyErr_SetNone(PyExc_NotImplementedError);
     return NULL;
 #else
-    int sval;
+    long sval;
     if (SEM_GETVALUE(self->handle, &sval) < 0)
         return _PyMp_SetError(NULL, MP_STANDARD_ERROR);
     /* some posix implementations use negative numbers to indicate
        the number of waiting threads */
     if (sval < 0)
         sval = 0;
-    return PyLong_FromLong((long)sval);
+    return PyLong_FromLong(sval);
 #endif
 }
 
