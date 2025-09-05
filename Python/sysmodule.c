@@ -178,6 +178,38 @@ PySys_GetObject(const char *name)
 }
 
 static int
+use_alt_sep(void)
+{
+#ifdef MS_WINDOWS
+    char* msystem = getenv("MSYSTEM");
+    if (msystem != NULL && strcmp(msystem, "") != 0) {
+        return 1;
+    }
+#endif
+    return 0;
+}
+
+static int
+is_mingw(void)
+{
+#ifdef __MINGW32__
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+static int
+is_mingw_ucrt(void)
+{
+#if defined(__MINGW32__) && defined(_UCRT)
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+static int
 sys_set_object(PyInterpreterState *interp, PyObject *key, PyObject *v)
 {
     if (key == NULL) {
@@ -3621,6 +3653,10 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
 #else
     SET_SYS_FROM_STRING("byteorder", "little");
 #endif
+
+    SET_SYS("_is_mingw", PyLong_FromLong(is_mingw()));
+    SET_SYS("_is_mingw_ucrt", PyLong_FromLong(is_mingw_ucrt()));
+    SET_SYS("_use_alt_sep", PyLong_FromLong(use_alt_sep()));
 
 #ifdef MS_COREDLL
     SET_SYS("dllhandle", PyLong_FromVoidPtr(PyWin_DLLhModule));
