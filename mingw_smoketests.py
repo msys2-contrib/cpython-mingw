@@ -30,7 +30,7 @@ import os
 import unittest
 import sysconfig
 
-if sys.use_alt_sep:
+if sys._use_alt_sep:
     SEP = "/"
 else:
     SEP = "\\"

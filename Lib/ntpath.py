@@ -20,7 +20,7 @@ import sys
 import genericpath
 from genericpath import *
 
-if sys.use_alt_sep:
+if sys._use_alt_sep:
     sep = '/'
     altsep = '\\'
 else:

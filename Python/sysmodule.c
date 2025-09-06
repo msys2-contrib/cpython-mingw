@@ -3163,13 +3163,13 @@ hash_info -- a named tuple with information about the hash algorithm.\n\
 hexversion -- version information encoded as a single integer\n\
 implementation -- Python implementation information.\n\
 int_info -- a named tuple with information about the int implementation.\n\
-is_mingw -- integer value if Python builded with mingw-w64 toolchain\n\
+_is_mingw -- integer value if Python builded with mingw-w64 toolchain\n\
 maxsize -- the largest supported length of containers.\n\
 maxunicode -- the value of the largest Unicode code point\n\
 platform -- platform identifier\n\
 prefix -- prefix used to find the Python library\n\
 thread_info -- a named tuple with information about the thread implementation.\n\
-use_alt_sep -- indicate if need use posix style path setparator for path normalize\n\
+_use_alt_sep -- indicate if need use posix style path setparator for path normalize\n\
 version -- the version of this interpreter as a string\n\
 version_info -- version information as a named tuple\n\
 "
@@ -3647,8 +3647,8 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
     SET_SYS_FROM_STRING("byteorder", "little");
 #endif
 
-    SET_SYS("is_mingw", PyLong_FromLong(is_mingw_platform()));
-    SET_SYS("use_alt_sep", PyLong_FromLong(use_alt_sep()));
+    SET_SYS("_is_mingw", PyLong_FromLong(is_mingw_platform()));
+    SET_SYS("_use_alt_sep", PyLong_FromLong(use_alt_sep()));
 
 #if defined(MS_WINDOWS) && defined(Py_ENABLE_SHARED)
     SET_SYS("dllhandle", PyLong_FromVoidPtr(PyWin_DLLhModule));
