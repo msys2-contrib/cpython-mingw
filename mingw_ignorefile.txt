@@ -50,3 +50,4 @@ test.test_venv.BasicTest.test_upgrade_dependencies
 test.test_venv.BasicTest.test_venvwlauncher
 test.test_venv.EnsurePipTest.test_explicit_no_pip
 test.test_venv.EnsurePipTest.test_no_pip_by_default
+test.test_multiprocessing_spawn.test_manager
