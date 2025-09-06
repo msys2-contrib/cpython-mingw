@@ -1010,6 +1010,13 @@ if test -z "$CFLAGS"; then
         CFLAGS=
 fi
 
+dnl Build 32-bit mingw-w64 platform with 64-bit time support.
+case $host in
+  i686-*-mingw*)
+    CFLAGS="$CFLAGS -D__MINGW_USE_VC2005_COMPAT"
+    ;;
+esac
+
 dnl Emscripten SDK and WASI SDK default to wasm32.
 dnl On Emscripten use MEMORY64 setting to build target wasm64-emscripten.
 dnl for wasm64.
@@ -2646,7 +2653,7 @@ yes)
     # this only occues on mingw
     case $host in
     *-*-mingw*)
-        CFLAGS_NODIST="$CFLAGS_NODIST -Wno-error=incompatible-pointer-types -D__MINGW_USE_VC2005_COMPAT"
+        CFLAGS_NODIST="$CFLAGS_NODIST -Wno-error=incompatible-pointer-types"
       ;;
     esac
 
