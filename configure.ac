@@ -6740,6 +6740,11 @@ LIBPYTHON=''
 if test "$PY_ENABLE_SHARED" = "1" && ( test -n "$ANDROID_API_LEVEL" || test "$MACHDEP" = "cygwin" || test "$MACHDEP" = "win32"); then
   MODULE_DEPS_SHARED="$MODULE_DEPS_SHARED \$(LDLIBRARY)"
   LIBPYTHON="\$(BLDLIBRARY)"
+  LIBPYTHON="$BLDLIBRARY"
+  LIBPYTHON=$(echo "$LIBPYTHON" | sed "s/\$(LDVERSION)/$LDVERSION/g")
+  LIBPYTHON=$(echo "$LIBPYTHON" | sed "s/\$(VERSION)/$VERSION/g")
+  LIBPYTHON=$(echo "$LIBPYTHON" | sed "s/\$(ABIFLAGS)/$ABIFLAGS/g")
+  LIBPYTHON=$(echo "$LIBPYTHON" | sed "s/-L\. //g")
 fi
 
 # On iOS the shared libraries must be linked with the Python framework
