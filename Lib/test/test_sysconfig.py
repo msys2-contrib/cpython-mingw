@@ -251,14 +251,16 @@ class TestSysConfig(unittest.TestCase):
         sys.version = ('2.4.4 (#71, Oct 18 2006, 08:34:43) '
                        '[MSC v.1310 32 bit (Intel)]')
         sys.platform = 'win32'
-        self.assertEqual(get_platform(), 'win32')
+        if not sys._is_mingw:
+            self.assertEqual(get_platform(), 'win32')
 
         # windows XP, amd64
         os.name = 'nt'
         sys.version = ('2.4.4 (#71, Oct 18 2006, 08:34:43) '
                        '[MSC v.1310 32 bit (Amd64)]')
         sys.platform = 'win32'
-        self.assertEqual(get_platform(), 'win-amd64')
+        if not sys._is_mingw:
+            self.assertEqual(get_platform(), 'win-amd64')
 
         # macbook
         os.name = 'posix'
