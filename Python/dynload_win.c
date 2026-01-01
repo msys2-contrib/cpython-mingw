@@ -218,9 +218,9 @@ dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
     dl_funcptr p;
     char funcname[258], *import_python;
 
-#ifdef Py_ENABLE_SHARED
+#if defined(Py_ENABLE_SHARED) && defined(_MSC_VER)
     _Py_CheckPython3();
-#endif /* Py_ENABLE_SHARED */
+#endif /* defined(Py_ENABLE_SHARED) && defined(_MSC_VER) */
 
     int use_legacy = 0;
     DWORD load_library_flags = 0;
