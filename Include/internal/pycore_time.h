@@ -58,7 +58,7 @@ extern "C" {
 #endif
 
 
-#ifdef __clang__
+#ifdef MS_WINDOWS
 struct timeval;
 #endif
 
