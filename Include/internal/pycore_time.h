@@ -59,7 +59,7 @@ extern "C" {
 
 #include "pycore_runtime_structs.h" // _PyTimeFraction
 
-#ifdef __clang__
+#ifdef MS_WINDOWS
 struct timeval;
 #endif
 
