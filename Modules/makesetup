@@ -274,7 +274,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
 				;;
 			esac
 			rule="$file: $objs"
-			rule="$rule; $ccld $objs $libs \$(LIBPYTHON) -o $file"
+			rule="$rule; $ccld $objs $libs \$(BLDLIBRARY) -o $file"
 			echo "$rule" >>$rulesf
 		done
 	done
