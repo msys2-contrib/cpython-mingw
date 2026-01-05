@@ -2607,6 +2607,10 @@ python-config: $(srcdir)/Misc/python-config.in Misc/python-config.sh
 	@if test `uname -s` = Darwin; then \
 		cp python-config.py python-config; \
 	fi
+	@ # On Windows, use the python version of the script so no bash is required
+	@if test "$(MACHDEP)" = "win32"; then \
+		cp python-config.py python-config; \
+	fi
 
 # macOS' make seems to ignore a dependency on a
 # "$(BUILD_SCRIPTS_DIR): $(MKDIR_P) $@" rule.
