@@ -5397,6 +5397,12 @@ then
 	fi
 	;;
 	esac
+	case $host in
+	*-*-mingw*)
+    DYNLOADFILE="dynload_win.o"
+    extra_machdep_objs="$extra_machdep_objs PC/dl_nt.o"
+    ;;
+	esac
 fi
 AC_MSG_RESULT([$DYNLOADFILE])
 if test "$DYNLOADFILE" != "dynload_stub.o"
