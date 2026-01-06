@@ -6562,7 +6562,10 @@ AC_SUBST([SOABI])
 AC_MSG_CHECKING([ABIFLAGS])
 AC_MSG_RESULT([$ABIFLAGS])
 AC_MSG_CHECKING([SOABI])
-SOABI='cpython-'`echo $VERSION | tr -d .`${ABIFLAGS}${SOABI_PLATFORM:+-$SOABI_PLATFORM}
+case $host_os in
+    mingw*) SOABI='cp'`echo $VERSION | tr -d .`${ABI_THREAD}-${PYD_PLATFORM_TAG};;
+    *) SOABI='cpython-'`echo $VERSION | tr -d .`${ABIFLAGS}${SOABI_PLATFORM:+-$SOABI_PLATFORM};;
+esac
 AC_MSG_RESULT([$SOABI])
 
 # Release build, debug build (Py_DEBUG), and trace refs build (Py_TRACE_REFS)
@@ -6570,13 +6573,23 @@ AC_MSG_RESULT([$SOABI])
 if test "$Py_DEBUG" = 'true'; then
   # Similar to SOABI but remove "d" flag from ABIFLAGS
   AC_SUBST([ALT_SOABI])
-  ALT_SOABI='cpython-'`echo $VERSION | tr -d .``echo $ABIFLAGS | tr -d d`${SOABI_PLATFORM:+-$SOABI_PLATFORM}
+  case $host_os in
+      mingw*) ALT_SOABI='cp'`echo $VERSION | tr -d .`${ABI_THREAD}-${PYD_PLATFORM_TAG};;
+      *) ALT_SOABI='cpython-'`echo $VERSION | tr -d .``echo $ABIFLAGS | tr -d d`${SOABI_PLATFORM:+-$SOABI_PLATFORM};;
+  esac
   AC_DEFINE_UNQUOTED([ALT_SOABI], ["${ALT_SOABI}"],
             [Alternative SOABI used in debug build to load C extensions built in release mode])
 fi
 
 AC_SUBST([EXT_SUFFIX])
-EXT_SUFFIX=.${SOABI}${SHLIB_SUFFIX}
+PYD_DEBUG_SUFFIX=""
+if test "$Py_DEBUG" = "true"; then
+  PYD_DEBUG_SUFFIX="_d"
+fi
+case $host_os in
+    mingw*) EXT_SUFFIX=${PYD_DEBUG_SUFFIX}.${SOABI}${SHLIB_SUFFIX};;
+    *) EXT_SUFFIX=.${SOABI}${SHLIB_SUFFIX};;
+esac
 
 AC_MSG_CHECKING([LDVERSION])
 LDVERSION='$(VERSION)$(ABIFLAGS)'
