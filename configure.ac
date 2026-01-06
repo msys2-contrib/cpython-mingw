@@ -6475,6 +6475,61 @@ esac
 # check for endianness
 AC_C_BIGENDIAN
 
+AC_SUBST(PYD_PLATFORM_TAG)
+# Special case of PYD_PLATFORM_TAG with python build with mingw.
+# Python can with different cpu arch and c runtime as well as different
+# toolchain. We follow this`mingw_<cpu_arch>_<c_runtime>_<toolchain>`
+# convention for PYD_PLATFORM_TAG. Where:
+# `cpu_arch` = `x86_64`, `aarch64` or `i686`
+# `c_runtime` = `msvcrt` or `ucrt`
+# `toolchain` = `gnu` or `llvm`
+PYD_PLATFORM_TAG=""
+case $host in
+  *-*-mingw*)
+    # check if we are linking to ucrt
+    AC_MSG_CHECKING(whether linking to ucrt)
+    AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+    #include <stdio.h>
+    #ifndef _UCRT
+        #error no ucrt
+    #endif
+    int main(){ return 0; }
+    ]])],[linking_to_ucrt=yes],[linking_to_ucrt=no])
+    AC_MSG_RESULT($linking_to_ucrt)
+    ;;
+esac
+case $host_os in
+    mingw*)
+  AC_MSG_CHECKING(PYD_PLATFORM_TAG)
+  PYD_PLATFORM_TAG="mingw"
+  case $host in
+  i686-*-mingw*)
+    PYD_PLATFORM_TAG+="_i686"
+    ;;
+  x86_64-*-mingw*)
+    PYD_PLATFORM_TAG+="_x86_64"
+    ;;
+  aarch64-*-mingw*)
+    PYD_PLATFORM_TAG+="_aarch64"
+    ;;
+  armv7-*-mingw*)
+    PYD_PLATFORM_TAG+="_armv7"
+    ;;
+  esac
+  if test $linking_to_ucrt = no; then
+    PYD_PLATFORM_TAG+="_msvcrt"
+  else
+    PYD_PLATFORM_TAG+="_ucrt"
+  fi
+  if test "$ac_cv_cc_name" = "clang"; then
+    # it is CLANG32
+    PYD_PLATFORM_TAG+="_llvm"
+  else
+    PYD_PLATFORM_TAG+="_gnu"
+  fi
+  AC_MSG_RESULT($PYD_PLATFORM_TAG)
+esac
+
 # ABI version string for Python extension modules.  This appears between the
 # periods in shared library file names, e.g. foo.<SOABI>.so.  It is calculated
 # from the following attributes which affect the ABI of this Python build (in
