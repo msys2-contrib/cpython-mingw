@@ -3590,6 +3590,9 @@ if test -z "$SHLIB_SUFFIX"; then
 	CYGWIN*)   SHLIB_SUFFIX=.dll;;
 	*)	   SHLIB_SUFFIX=.so;;
 	esac
+	case $host_os in
+	mingw*)    SHLIB_SUFFIX=.pyd;;
+	esac
 fi
 AC_MSG_RESULT([$SHLIB_SUFFIX])
 
