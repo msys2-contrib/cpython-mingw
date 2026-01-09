@@ -169,6 +169,13 @@ if _HAS_USER_BASE:
             },
     }
 
+# XXX: setuptools uses os.name to select the scheme and doesn't use
+# sysconfig, we have to monkey patch the 'nt' scheme for mingw builds
+# until that is fixed
+if os.name == 'nt' and  sys._is_mingw:
+    _INSTALL_SCHEMES['nt'] = _INSTALL_SCHEMES['posix_prefix']
+    _INSTALL_SCHEMES['nt_user'] = _INSTALL_SCHEMES['posix_user']
+
 _SCHEME_KEYS = ('stdlib', 'platstdlib', 'purelib', 'platlib', 'include',
                 'scripts', 'data')
 
