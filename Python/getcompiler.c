@@ -38,9 +38,10 @@
 
 #if defined(__clang__)
 #  if defined(_UCRT)
-#    define COMPILER COMP_SEP "[" ARCH_PREFIX "Clang UCRT " __clang_version__ ARCH_SUFFIX "]"
+// Some code checks for "GCC" in the compiler string, so we include it here.
+#    define COMPILER COMP_SEP "[" ARCH_PREFIX "Clang UCRT " __clang_version__ ARCH_SUFFIX " (GCC)]"
 #  else
-#    define COMPILER COMP_SEP "[" ARCH_PREFIX "Clang " __clang_version__ ARCH_SUFFIX "]"
+#    define COMPILER COMP_SEP "[" ARCH_PREFIX "Clang " __clang_version__ ARCH_SUFFIX " (GCC)]"
 #  endif
 #else
 #  if defined(_UCRT)
