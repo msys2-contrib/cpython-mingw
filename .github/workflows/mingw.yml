@@ -181,7 +181,9 @@ jobs:
             automake \
             zip \
             make \
-            pkg-config
+            pkg-config \
+            git \
+            libtool
 
       - uses: actions/setup-python@v5
         with:
@@ -194,16 +196,40 @@ jobs:
 
       - name: Build
         run: |
-          autoreconf -vfi
+          DESTDIR=$(pwd)/_install
+          PREFIX=/myprefix
+          HOST=x86_64-w64-mingw32
+          BUILD=x86_64-pc-linux-gnu
 
-          mkdir _build && cd _build
-
-          export PKG_CONFIG_LIBDIR=/dev/null
+          export PKG_CONFIG_SYSROOT_DIR=$DESTDIR
+          export PKG_CONFIG_LIBDIR=$DESTDIR$PREFIX/lib/pkgconfig
           unset PKG_CONFIG_PATH
 
+          # build libffi
+          git clone https://github.com/libffi/libffi.git _libffi
+          cd _libffi
+          git checkout v3.4.7
+          autoreconf -vfi
+          cd ..
+          mkdir _libffi_build && cd _libffi_build
+          ../_libffi/configure \
+            --host="$HOST" \
+            --prefix="$PREFIX" \
+            --build="$BUILD" \
+            --disable-symvers \
+            --disable-docs
+          make -j8
+          DESTDIR="$DESTDIR" make install
+          cd ..
+
+          # build python
+          autoreconf -vfi
+          mkdir _build && cd _build
+
           ../configure \
-            --host=x86_64-w64-mingw32 \
-            --build=x86_64-pc-linux-gnu \
+            --host="$HOST" \
+            --build="$BUILD" \
+            --prefix="$PREFIX" \
             --enable-shared \
             --without-ensurepip \
             --enable-loadable-sqlite-extensions \
@@ -211,11 +237,15 @@ jobs:
 
           make -j8
 
-          make install DESTDIR="$(pwd)/install"
+          make install DESTDIR="$DESTDIR"
+
+          # copy toolchain dlls
+          cp "$("$HOST-gcc" -print-file-name=libgcc_s_seh-1.dll)" $DESTDIR$PREFIX/bin
+          cp "$("$HOST-gcc" -print-file-name=libstdc++-6.dll)" $DESTDIR$PREFIX/bin
 
       - name: 'Zip files'
         run: |
-          zip -r install.zip _build/install
+          zip -r install.zip _install
 
       - name: Upload
         uses: actions/upload-artifact@v4
@@ -234,7 +264,9 @@ jobs:
       - name: 'Run tests'
         run: |
           7z x install.zip
-          ./_build/install/usr/local/bin/python3.exe -c "import sysconfig, pprint; pprint.pprint(sysconfig.get_config_vars())"
+          ./_install/myprefix/bin/python3.exe -c "import sysconfig, pprint; pprint.pprint(sysconfig.get_config_vars())"
+          ./_install/myprefix/bin/python3.exe -c "import ctypes; print(ctypes)"
+          ./_install/myprefix/bin/python3.exe -c "import _wmi; print(_wmi)"
 
 
   cross-llvm-mingw:
