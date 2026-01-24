@@ -12,7 +12,7 @@ dnl
 # Set VERSION so we only need to edit in one place (i.e., here)
 m4_define([PYTHON_VERSION], [3.14])
 
-AC_PREREQ([2.72])
+AC_PREREQ([2.71])
 
 AC_INIT([python],[PYTHON_VERSION],[https://github.com/python/cpython/issues/])
 
