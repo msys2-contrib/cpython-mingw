@@ -720,7 +720,7 @@ class SysModuleTest(unittest.TestCase):
         self.assertTrue(vi > (1,0,0))
         self.assertIsInstance(sys.float_repr_style, str)
         self.assertIn(sys.float_repr_style, ('short', 'legacy'))
-        if not sys.platform.startswith('win'):
+        if sysconfig.get_config_var("ABIFLAGS") is not None:
             self.assertIsInstance(sys.abiflags, str)
         else:
             self.assertFalse(hasattr(sys, 'abiflags'))
